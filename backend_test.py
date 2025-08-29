@@ -580,7 +580,280 @@ class CrewkerneGazetteAPITester:
         
         return success
 
-    # ADMIN LOGIN DEBUGGING TESTS - For Production Issue
+    # PRODUCTION SPECIFIC TESTS - For CrewkerneGazette.co.uk Issue Investigation
+    def test_production_login_endpoint(self):
+        """Test the specific production login endpoint with admin/admin123"""
+        print("\n🚨 PRODUCTION LOGIN ENDPOINT TEST - CrewkerneGazette.co.uk")
+        print("=" * 60)
+        
+        url = f"{self.api_url}/auth/login"
+        login_data = {"username": "admin", "password": "admin123"}
+        headers = {'Content-Type': 'application/json'}
+        
+        self.tests_run += 1
+        print(f"   Testing URL: {url}")
+        print(f"   Credentials: {login_data}")
+        
+        try:
+            response = requests.post(url, json=login_data, headers=headers, timeout=30)
+            
+            print(f"   Status Code: {response.status_code}")
+            print(f"   Response Headers: {dict(response.headers)}")
+            
+            # Capture exact error response for 500 errors
+            if response.status_code == 500:
+                print("🚨 CRITICAL: HTTP 500 Internal Server Error detected!")
+                try:
+                    error_data = response.json()
+                    print(f"   Error JSON: {error_data}")
+                except:
+                    print(f"   Error Text: {response.text}")
+                    print(f"   Raw Response: {response.content}")
+                
+                # Check response headers for clues
+                content_type = response.headers.get('content-type', '')
+                server = response.headers.get('server', '')
+                print(f"   Content-Type: {content_type}")
+                print(f"   Server: {server}")
+                
+                return False
+            
+            try:
+                response_data = response.json()
+                print(f"   Response Body: {response_data}")
+            except:
+                print(f"   Response Text: {response.text}")
+                response_data = {}
+            
+            if response.status_code == 200:
+                self.tests_passed += 1
+                print("✅ Production login successful")
+                
+                if 'access_token' in response_data:
+                    self.token = response_data['access_token']
+                    print(f"   ✅ Token received: {self.token[:50]}...")
+                    return True
+                else:
+                    print("   ❌ No access_token in successful response")
+                    return False
+            else:
+                print(f"❌ Production login failed with status {response.status_code}")
+                return False
+                
+        except requests.exceptions.ConnectionError as e:
+            print(f"❌ Connection Error: {e}")
+            print("   → Backend server may be down or unreachable")
+            return False
+        except requests.exceptions.Timeout as e:
+            print(f"❌ Timeout Error: {e}")
+            print("   → Backend server not responding within 30 seconds")
+            return False
+        except Exception as e:
+            print(f"❌ Unexpected Error: {e}")
+            return False
+
+    def test_production_public_settings(self):
+        """Test the production public settings endpoint"""
+        print("\n🔍 PRODUCTION PUBLIC SETTINGS TEST")
+        print("-" * 40)
+        
+        url = f"{self.api_url}/settings/public"
+        
+        self.tests_run += 1
+        print(f"   Testing URL: {url}")
+        
+        try:
+            response = requests.get(url, timeout=30)
+            
+            print(f"   Status Code: {response.status_code}")
+            
+            if response.status_code == 500:
+                print("🚨 CRITICAL: Public settings endpoint returning HTTP 500!")
+                try:
+                    error_data = response.json()
+                    print(f"   Error JSON: {error_data}")
+                except:
+                    print(f"   Error Text: {response.text}")
+                return False
+            
+            if response.status_code == 200:
+                self.tests_passed += 1
+                print("✅ Public settings endpoint working")
+                try:
+                    response_data = response.json()
+                    print(f"   Response: {response_data}")
+                    return True
+                except:
+                    print(f"   Response Text: {response.text}")
+                    return True
+            else:
+                print(f"❌ Public settings failed with status {response.status_code}")
+                return False
+                
+        except requests.exceptions.ConnectionError as e:
+            print(f"❌ Connection Error: {e}")
+            return False
+        except requests.exceptions.Timeout as e:
+            print(f"❌ Timeout Error: {e}")
+            return False
+        except Exception as e:
+            print(f"❌ Unexpected Error: {e}")
+            return False
+
+    def test_production_users_endpoint(self):
+        """Test the production users endpoint (requires authentication)"""
+        print("\n🔍 PRODUCTION USERS ENDPOINT TEST")
+        print("-" * 40)
+        
+        # Note: This endpoint doesn't exist in the backend, but testing to see what happens
+        url = f"{self.api_url}/users"
+        headers = {'Content-Type': 'application/json'}
+        
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        self.tests_run += 1
+        print(f"   Testing URL: {url}")
+        print(f"   With Auth: {'Yes' if self.token else 'No'}")
+        
+        try:
+            response = requests.get(url, headers=headers, timeout=30)
+            
+            print(f"   Status Code: {response.status_code}")
+            
+            if response.status_code == 500:
+                print("🚨 CRITICAL: Users endpoint returning HTTP 500!")
+                try:
+                    error_data = response.json()
+                    print(f"   Error JSON: {error_data}")
+                except:
+                    print(f"   Error Text: {response.text}")
+                return False
+            
+            # 404 is expected since this endpoint doesn't exist in our backend
+            if response.status_code in [200, 404]:
+                self.tests_passed += 1
+                if response.status_code == 404:
+                    print("✅ Users endpoint returns 404 (expected - endpoint doesn't exist)")
+                else:
+                    print("✅ Users endpoint working")
+                    try:
+                        response_data = response.json()
+                        print(f"   Response: {response_data}")
+                    except:
+                        print(f"   Response Text: {response.text}")
+                return True
+            else:
+                print(f"❌ Users endpoint failed with status {response.status_code}")
+                return False
+                
+        except requests.exceptions.ConnectionError as e:
+            print(f"❌ Connection Error: {e}")
+            return False
+        except requests.exceptions.Timeout as e:
+            print(f"❌ Timeout Error: {e}")
+            return False
+        except Exception as e:
+            print(f"❌ Unexpected Error: {e}")
+            return False
+
+    def test_production_articles_endpoint(self):
+        """Test the production articles endpoint"""
+        print("\n🔍 PRODUCTION ARTICLES ENDPOINT TEST")
+        print("-" * 40)
+        
+        url = f"{self.api_url}/articles"
+        
+        self.tests_run += 1
+        print(f"   Testing URL: {url}")
+        
+        try:
+            response = requests.get(url, timeout=30)
+            
+            print(f"   Status Code: {response.status_code}")
+            
+            if response.status_code == 500:
+                print("🚨 CRITICAL: Articles endpoint returning HTTP 500!")
+                try:
+                    error_data = response.json()
+                    print(f"   Error JSON: {error_data}")
+                except:
+                    print(f"   Error Text: {response.text}")
+                return False
+            
+            if response.status_code == 200:
+                self.tests_passed += 1
+                print("✅ Articles endpoint working")
+                try:
+                    response_data = response.json()
+                    print(f"   Response: Found {len(response_data)} articles")
+                    return True
+                except:
+                    print(f"   Response Text: {response.text}")
+                    return True
+            else:
+                print(f"❌ Articles endpoint failed with status {response.status_code}")
+                return False
+                
+        except requests.exceptions.ConnectionError as e:
+            print(f"❌ Connection Error: {e}")
+            return False
+        except requests.exceptions.Timeout as e:
+            print(f"❌ Timeout Error: {e}")
+            return False
+        except Exception as e:
+            print(f"❌ Unexpected Error: {e}")
+            return False
+
+    def test_production_backend_health(self):
+        """Test overall backend health on production domain"""
+        print("\n🔍 PRODUCTION BACKEND HEALTH CHECK")
+        print("-" * 40)
+        
+        # Test basic connectivity to the domain
+        try:
+            response = requests.get(self.base_url, timeout=30)
+            print(f"   Domain Status: {response.status_code}")
+            print(f"   Domain accessible: ✅")
+        except Exception as e:
+            print(f"   Domain Error: {e}")
+            return False
+        
+        # Test if API base path responds
+        try:
+            api_response = requests.get(self.api_url, timeout=30)
+            print(f"   API Base Status: {api_response.status_code}")
+            if api_response.status_code == 404:
+                print("   API Base: ✅ (404 expected for base API path)")
+            elif api_response.status_code == 500:
+                print("   API Base: ❌ (500 error indicates backend issues)")
+                return False
+        except Exception as e:
+            print(f"   API Base Error: {e}")
+            return False
+        
+        return True
+
+    def test_backup_admin_login(self):
+        """Test login with backup admin credentials"""
+        print("\n🔍 BACKUP ADMIN LOGIN TEST")
+        print("-" * 30)
+        
+        success, response = self.run_test(
+            "Backup Admin Login",
+            "POST",
+            "auth/login",
+            200,
+            data={"username": "admin_backup", "password": "admin123"}
+        )
+        
+        if success and 'access_token' in response:
+            print("   ✅ Backup admin login successful")
+            self.token = response['access_token']
+            return True
+        else:
+            print("   ❌ Backup admin login failed")
+            return False
     def test_admin_user_exists(self):
         """Test if admin user exists in database by attempting login"""
         print("\n🔍 DEBUGGING: Testing if admin user exists...")
