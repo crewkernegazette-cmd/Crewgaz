@@ -15,9 +15,12 @@ const Footer = () => {
                 The Crewkerne Gazette
               </div>
             </div>
+            <p className="text-red-300 font-semibold mb-3 text-lg">
+              "Straight-talking news, culture, and comedy — proudly from Crewkerne."
+            </p>
             <p className="text-slate-400 mb-6 max-w-md">
-              Unfiltered truth for the people. Bold journalism that challenges 
-              the establishment and delivers the stories that matter most.
+              Bold, unapologetic journalism with roots in Somerset and eyes on the nation. 
+              Where common sense meets headlines.
             </p>
             <div className="flex space-x-4">
               <a 
@@ -41,31 +44,31 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4 uppercase">Quick Links</h3>
+            <h3 className="text-white font-bold text-lg mb-4 uppercase">Our Voice</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/news" className="text-slate-400 hover:text-red-400 transition-colors">
-                  Breaking News
+                  Sharp News
                 </Link>
               </li>
               <li>
                 <Link to="/music" className="text-slate-400 hover:text-red-400 transition-colors">
-                  Latest Tracks
+                  Authentic Music
                 </Link>
               </li>
               <li>
                 <Link to="/documentaries" className="text-slate-400 hover:text-red-400 transition-colors">
-                  Documentaries
+                  In-Depth Docs
                 </Link>
               </li>
               <li>
                 <Link to="/comedy" className="text-slate-400 hover:text-red-400 transition-colors">
-                  Comedy & Satire
+                  Honest Comedy
                 </Link>
               </li>
               <li>
                 <Link to="/contact" className="text-slate-400 hover:text-red-400 transition-colors">
-                  Contact Us
+                  Have Your Say
                 </Link>
               </li>
             </ul>
@@ -73,17 +76,23 @@ const Footer = () => {
 
           {/* Contact & Admin */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4 uppercase">Contact</h3>
+            <h3 className="text-white font-bold text-lg mb-4 uppercase">Get In Touch</h3>
             <ul className="space-y-2">
               <li className="flex items-center text-slate-400">
                 <MapPin className="w-4 h-4 mr-2" />
-                Crewkerne, UK
+                Somerset, England
               </li>
               <li className="flex items-center text-slate-400">
                 <Mail className="w-4 h-4 mr-2" />
                 CrewkerneGazette@gmail.com
               </li>
             </ul>
+            
+            <div className="mt-6">
+              <p className="text-xs text-slate-500 mb-3">
+                "News with bite. Culture with style. Comedy with grit."
+              </p>
+            </div>
             
             {/* Admin Login - Hidden at bottom */}
             <div className="mt-6 pt-4 border-t border-slate-700">
@@ -98,13 +107,20 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-slate-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-slate-400 text-sm">
-            © 2024 The Crewkerne Gazette. All rights reserved.
-          </p>
-          <p className="text-slate-500 text-xs mt-2 md:mt-0">
-            Truth. Integrity. Independence.
-          </p>
+        <div className="border-t border-slate-700 mt-8 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-slate-400 text-sm">
+              © 2024 The Crewkerne Gazette. All rights reserved.
+            </p>
+            <div className="mt-2 md:mt-0 text-center md:text-right">
+              <p className="text-red-400 text-sm font-semibold">
+                "From Somerset to the nation — bold, unapologetic, alive."
+              </p>
+              <p className="text-slate-500 text-xs">
+                No spin. No fluff. Just the Gazette.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

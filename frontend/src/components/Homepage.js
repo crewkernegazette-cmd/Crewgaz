@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Clock, ArrowRight, Zap, TrendingUp, Users } from 'lucide-react';
+import { Clock, ArrowRight, Users, Target, Globe } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { Card, CardContent } from './ui/card';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -89,35 +90,120 @@ const Homepage = () => {
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1 className="hero-title">
-            UNFILTERED TRUTH FOR THE PEOPLE
+            WHERE COMMON SENSE MEETS HEADLINES
           </h1>
           <p className="hero-subtitle">
-            Bold journalism that challenges the establishment. Real stories, real facts, 
-            real impact. Your voice in the fight for transparency and accountability.
+            Bold, unapologetic journalism from Somerset to the nation. 
+            We challenge the establishment, celebrate British life, and give a voice 
+            to those who feel overlooked. No spin. No fluff. Just the Gazette.
           </p>
           <div className="hero-cta">
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="btn-primary">
-                <TrendingUp className="w-5 h-5 mr-2" />
-                Latest Stories
+                <Target className="w-5 h-5 mr-2" />
+                Read The Truth
               </Button>
               <Button variant="outline" size="lg" className="btn-secondary">
                 <Users className="w-5 h-5 mr-2" />
-                Join the Movement
+                Join Our Voice
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Articles */}
+      {/* About Section */}
       <section className="py-20 bg-gradient-to-b from-transparent to-slate-800/50">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">BREAKING THE SILENCE</h2>
+            <h2 className="section-title">PROUDLY FROM CREWKERNE</h2>
             <p className="section-subtitle">
-              The stories they don't want you to see. Fearless reporting that 
-              cuts through the noise to deliver the truth that matters most.
+              A home for straight-talking, no-nonsense journalism and entertainment
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <div className="text-slate-200 space-y-4 text-lg leading-relaxed">
+                <p>
+                  Welcome to <strong className="text-red-400">The Crewkerne Gazette</strong> — a bold, 
+                  unapologetic publication with its roots in Somerset and its eyes on the nation.
+                </p>
+                <p>
+                  We are here to challenge the stale voices of the establishment and offer something fresh: 
+                  a platform that speaks plainly, asks the right questions, and gives people a reason to care again.
+                </p>
+                <p>
+                  The Gazette isn't just another outlet. It's a home for straight-talking journalism 
+                  that puts <strong className="text-red-400">common sense first</strong>, not political spin.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Badge className="bg-red-600/20 text-red-300 border border-red-600/30 px-4 py-2">
+                  Free Speech
+                </Badge>
+                <Badge className="bg-red-600/20 text-red-300 border border-red-600/30 px-4 py-2">
+                  Common Sense
+                </Badge>
+                <Badge className="bg-red-600/20 text-red-300 border border-red-600/30 px-4 py-2">
+                  British Pride
+                </Badge>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <Card className="bg-slate-800/60 border-red-600/30">
+                <CardContent className="p-6">
+                  <Globe className="w-8 h-8 text-red-400 mb-3" />
+                  <h3 className="font-bold text-white mb-2">FROM SOMERSET</h3>
+                  <p className="text-slate-300 text-sm">
+                    Rooted in local community, reaching national conversations
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-slate-800/60 border-red-600/30">
+                <CardContent className="p-6">
+                  <Target className="w-8 h-8 text-red-400 mb-3" />
+                  <h3 className="font-bold text-white mb-2">NO NONSENSE</h3>
+                  <p className="text-slate-300 text-sm">
+                    Sharp, punchy reporting that cuts through the noise
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-slate-800/60 border-red-600/30">
+                <CardContent className="p-6">
+                  <Users className="w-8 h-8 text-red-400 mb-3" />
+                  <h3 className="font-bold text-white mb-2">YOUR VOICE</h3>
+                  <p className="text-slate-300 text-sm">
+                    A platform for those who feel overlooked by mainstream media
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-slate-800/60 border-red-600/30">
+                <CardContent className="p-6">
+                  <ArrowRight className="w-8 h-8 text-red-400 mb-3" />
+                  <h3 className="font-bold text-white mb-2">ALIVE AGAIN</h3>
+                  <p className="text-slate-300 text-sm">
+                    Making news and culture feel vibrant and relevant
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Articles */}
+      <section className="py-20">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">NEWS WITH BITE</h2>
+            <p className="section-subtitle">
+              Stories told in a way that cuts through the noise. 
+              British life as it's lived — with all its grit, humor, and contradictions.
             </p>
           </div>
 
@@ -142,7 +228,7 @@ const Homepage = () => {
                     </Badge>
                     {article.is_breaking && (
                       <div className="breaking-alert">
-                        HOT
+                        URGENT
                       </div>
                     )}
                   </div>
@@ -165,7 +251,7 @@ const Homepage = () => {
           <div className="text-center mt-16">
             <Link to="/news">
               <Button size="lg" variant="outline" className="btn-secondary">
-                More Truth Bombs
+                More Straight Talk
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
@@ -173,33 +259,32 @@ const Homepage = () => {
         </div>
       </section>
 
-      {/* Sections Preview */}
+      {/* What We Do Section */}
       <section className="py-20 bg-gradient-to-b from-slate-800/50 to-slate-900">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">WHAT WE COVER</h2>
+            <h2 className="section-title">WHAT WE DO</h2>
             <p className="section-subtitle">
-              From breaking news to cultural commentary - we've got the stories 
-              that shape your world, told without fear or favor.
+              Culture with style. Comedy with grit. All boldly unapologetic and alive.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 stagger-children">
             {/* News Section */}
             <Link to="/news" className="group">
-              <div className="article-card h-80 flex flex-col">
+              <div className="article-card h-96 flex flex-col">
                 <img 
                   src="https://images.unsplash.com/photo-1675973094287-f4af3e49bb3d" 
-                  alt="Breaking News"
+                  alt="News Division"
                   className="article-image flex-1"
                 />
                 <div className="p-6 text-center bg-gradient-to-t from-red-900/20 to-transparent">
                   <div className="category-badge category-news mb-3">NEWS</div>
-                  <h3 className="text-xl font-bold text-red-400 group-hover:text-red-300 mb-2">
-                    BREAKING NEWS
+                  <h3 className="text-xl font-bold text-red-400 group-hover:text-red-300 mb-3">
+                    SHARP & PUNCHY
                   </h3>
                   <p className="text-sm text-slate-400">
-                    The stories that matter, told without compromise
+                    Unfiltered stories that cut through the noise and tell it like it is
                   </p>
                 </div>
               </div>
@@ -207,19 +292,19 @@ const Homepage = () => {
 
             {/* Music Section */}
             <Link to="/music" className="group">
-              <div className="article-card h-80 flex flex-col">
+              <div className="article-card h-96 flex flex-col">
                 <img 
                   src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04" 
-                  alt="Music"
+                  alt="Music Culture"
                   className="article-image flex-1"
                 />
                 <div className="p-6 text-center bg-gradient-to-t from-purple-900/20 to-transparent">
                   <div className="category-badge category-music mb-3">MUSIC</div>
-                  <h3 className="text-xl font-bold text-purple-400 group-hover:text-purple-300 mb-2">
-                    SOUND & FURY
+                  <h3 className="text-xl font-bold text-purple-400 group-hover:text-purple-300 mb-3">
+                    RAW & AUTHENTIC
                   </h3>
                   <p className="text-sm text-slate-400">
-                    Music that moves culture and changes minds
+                    Sounds and culture that reflect the people — energetic and real
                   </p>
                 </div>
               </div>
@@ -227,19 +312,19 @@ const Homepage = () => {
 
             {/* Documentaries Section */}
             <Link to="/documentaries" className="group">
-              <div className="article-card h-80 flex flex-col">
+              <div className="article-card h-96 flex flex-col">
                 <img 
                   src="https://images.unsplash.com/photo-1570882004527-319ba653f4d6" 
-                  alt="Documentaries"
+                  alt="Documentary Investigations"
                   className="article-image flex-1"
                 />
                 <div className="p-6 text-center bg-gradient-to-t from-blue-900/20 to-transparent">
                   <div className="category-badge category-documentaries mb-3">DOCS</div>
-                  <h3 className="text-xl font-bold text-blue-400 group-hover:text-blue-300 mb-2">
-                    DEEP DIVES
+                  <h3 className="text-xl font-bold text-blue-400 group-hover:text-blue-300 mb-3">
+                    STYLE & SUBSTANCE
                   </h3>
                   <p className="text-sm text-slate-400">
-                    Investigative documentaries that expose the truth
+                    In-depth explorations of history, crime, and issues that matter
                   </p>
                 </div>
               </div>
@@ -247,19 +332,19 @@ const Homepage = () => {
 
             {/* Comedy Section */}
             <Link to="/comedy" className="group">
-              <div className="article-card h-80 flex flex-col">
+              <div className="article-card h-96 flex flex-col">
                 <img 
                   src="https://images.unsplash.com/photo-1527224857830-43a7acc85260" 
-                  alt="Comedy"
+                  alt="Comedy & Satire"
                   className="article-image flex-1"
                 />
                 <div className="p-6 text-center bg-gradient-to-t from-orange-900/20 to-transparent">
                   <div className="category-badge category-comedy mb-3">COMEDY</div>
-                  <h3 className="text-xl font-bold text-orange-400 group-hover:text-orange-300 mb-2">
-                    TRUTH BOMBS
+                  <h3 className="text-xl font-bold text-orange-400 group-hover:text-orange-300 mb-3">
+                    LEVITY & LAUGHTER
                   </h3>
                   <p className="text-sm text-slate-400">
-                    Humor that cuts deeper than any headline
+                    Satire and sketches that poke fun at the modern circus
                   </p>
                 </div>
               </div>

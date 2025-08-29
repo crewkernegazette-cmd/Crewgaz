@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Clock, Eye } from 'lucide-react';
+import { Clock, Eye, Target } from 'lucide-react';
 import { Badge } from './ui/badge';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -48,19 +48,31 @@ const NewsSection = () => {
       <section 
         className="relative py-24 bg-cover bg-center"
         style={{
-          backgroundImage: `linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8)), 
+          backgroundImage: `linear-gradient(135deg, rgba(17, 24, 39, 0.9), rgba(31, 41, 55, 0.8)), 
                            url('https://images.unsplash.com/photo-1623039405147-547794f92e9e')`
         }}
       >
         <div className="container">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4">
-              News
+            <h1 className="text-5xl font-bold text-white mb-4 uppercase tracking-wider">
+              SHARP & PUNCHY NEWS
             </h1>
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-              Breaking stories, in-depth analysis, and the stories that matter most. 
-              Unfiltered journalism for the modern age.
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto mb-6">
+              Unfiltered journalism that cuts through the noise. We tell stories the way they need to be told — 
+              with common sense first, not political spin.
             </p>
+            <div className="flex flex-wrap justify-center gap-4 text-sm">
+              <Badge className="bg-red-600/20 text-red-300 border border-red-600/30 px-4 py-2">
+                <Target className="w-4 h-4 mr-2" />
+                No Spin Zone
+              </Badge>
+              <Badge className="bg-red-600/20 text-red-300 border border-red-600/30 px-4 py-2">
+                Straight Talk Only
+              </Badge>
+              <Badge className="bg-red-600/20 text-red-300 border border-red-600/30 px-4 py-2">
+                Somerset to Nation
+              </Badge>
+            </div>
           </div>
         </div>
       </section>
@@ -71,11 +83,15 @@ const NewsSection = () => {
           {articles.length === 0 ? (
             <div className="text-center py-16">
               <h3 className="text-2xl font-semibold text-slate-300 mb-4">
-                No News Articles Yet
+                More Sharp News Coming Soon
               </h3>
-              <p className="text-slate-400">
-                Check back soon for the latest news and updates.
+              <p className="text-slate-400 max-w-2xl mx-auto mb-6">
+                We're preparing hard-hitting stories that challenge the establishment and speak truth to power. 
+                The kind of journalism that gives people a reason to care again.
               </p>
+              <Link to="/contact" className="text-red-400 hover:text-red-300 underline">
+                Got a story tip? Let us know →
+              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 stagger-children">
@@ -97,11 +113,11 @@ const NewsSection = () => {
                   <div className="article-content">
                     <div className="flex items-center justify-between mb-3">
                       <Badge className="category-badge category-news">
-                        News
+                        STRAIGHT TALK
                       </Badge>
                       {article.is_breaking && (
                         <Badge variant="destructive" className="text-xs animate-pulse">
-                          BREAKING
+                          URGENT
                         </Badge>
                       )}
                     </div>
