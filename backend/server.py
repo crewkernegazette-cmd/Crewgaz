@@ -734,7 +734,7 @@ async def create_defaults():
     except Exception as e:
         print(f"⚠️  Failed to create admin users: {e}")
     
-    # Create default settings
+    # Create default settings with maintenance mode disabled
     try:
         settings_exists = await db.settings.find_one()
         if not settings_exists:
@@ -742,7 +742,13 @@ async def create_defaults():
             await db.settings.insert_one(default_settings.dict())
             print("✅ Default settings created")
         else:
-            print("✅ Settings already exist")
+            # Ensure maintenance mode is disabled
+            await db.settings.update_one(
+                {},
+                {"$set": {"maintenance_mode": False}},
+                upsert=True
+            )
+            print("✅ Settings updated - maintenance mode disabled")
     except Exception as e:
         print(f"⚠️  Failed to create default settings: {e}")
     
