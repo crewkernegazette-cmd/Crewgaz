@@ -85,32 +85,34 @@ function App() {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      <div className="App">
-        <Router>
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<Homepage />} />
-            <Route path="/news" element={<NewsSection />} />
-            <Route path="/music" element={<MusicSection />} />
-            <Route path="/documentaries" element={<DocumentariesSection />} />
-            <Route path="/comedy" element={<ComedySection />} />
-            <Route path="/contact" element={<ContactSection />} />
-            <Route path="/article/:id" element={<ArticleDetail />} />
-            <Route 
-              path="/login" 
-              element={user ? <Navigate to="/dashboard" /> : <LoginForm />} 
-            />
-            <Route 
-              path="/dashboard/*" 
-              element={user ? <Dashboard /> : <Navigate to="/login" />} 
-            />
-          </Routes>
-          <Footer />
-          <Toaster />
-        </Router>
-      </div>
-    </AuthContext.Provider>
+    <HelmetProvider>
+      <AuthContext.Provider value={{ user, login, logout }}>
+        <div className="App">
+          <Router>
+            <Navbar />
+            <Routes>
+              <Route path="/" element={<Homepage />} />
+              <Route path="/news" element={<NewsSection />} />
+              <Route path="/music" element={<MusicSection />} />
+              <Route path="/documentaries" element={<DocumentariesSection />} />
+              <Route path="/comedy" element={<ComedySection />} />
+              <Route path="/contact" element={<ContactSection />} />
+              <Route path="/article/:id" element={<ArticleDetail />} />
+              <Route 
+                path="/login" 
+                element={user ? <Navigate to="/dashboard" /> : <LoginForm />} 
+              />
+              <Route 
+                path="/dashboard/*" 
+                element={user ? <Dashboard /> : <Navigate to="/login" />} 
+              />
+            </Routes>
+            <Footer />
+            <Toaster />
+          </Router>
+        </div>
+      </AuthContext.Provider>
+    </HelmetProvider>
   );
 }
 
