@@ -243,15 +243,18 @@
 
   - task: "Breaking news flag in article editor"
     implemented: true
-    working: "unknown"
+    working: true
     file: "Dashboard.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "unknown"
           agent: "main"
           comment: "ArticleEditor includes breaking news switch with explanatory text"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Breaking news flag working perfectly. Switch component present in article editor. When enabled, articles display with prominent '🚨 BREAKING NEWS' banner and special styling."
 
   - task: "Subheading field in article editor"
     implemented: true
