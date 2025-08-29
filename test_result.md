@@ -101,3 +101,197 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+## user_problem_statement: Complete pending dashboard and article features including admin password change, maintenance mode toggle, publisher selection, breaking news flag, subheading field, trending topics section, and Google News optimization for The Crewkerne Gazette news CMS.
+
+## backend:
+  - task: "Admin password change functionality"
+    implemented: true
+    working: "unknown"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "Password change endpoint /api/auth/change-password exists with proper validation and bcrypt hashing"
+
+  - task: "Maintenance mode toggle functionality"
+    implemented: true
+    working: "unknown"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "Maintenance mode endpoint /api/settings/maintenance exists with middleware to show maintenance page"
+
+  - task: "Publisher selection for articles"
+    implemented: true
+    working: "unknown"
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "Article model includes publisher_name field with default 'The Crewkerne Gazette'"
+
+  - task: "Breaking news flag for articles"
+    implemented: true
+    working: "unknown"
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "Article model includes is_breaking boolean field"
+
+  - task: "Subheading field for articles"
+    implemented: true
+    working: "unknown"
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "Article model includes optional subheading field"
+
+  - task: "Related articles endpoint for trending topics"
+    implemented: true
+    working: "unknown"
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "Endpoint /api/articles/{article_id}/related exists to fetch related articles by category"
+
+## frontend:
+  - task: "Admin password change UI in settings"
+    implemented: true
+    working: "unknown"
+    file: "Dashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "SettingsManager component includes complete password change form with validation"
+
+  - task: "Maintenance mode toggle UI in settings"
+    implemented: true
+    working: "unknown"
+    file: "Dashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "SettingsManager component includes maintenance mode switch with alert indicators"
+
+  - task: "Publisher selection in article editor"
+    implemented: true
+    working: "unknown"
+    file: "Dashboard.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "ArticleEditor includes publisher_name input field"
+
+  - task: "Breaking news flag in article editor"
+    implemented: true
+    working: "unknown"
+    file: "Dashboard.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "ArticleEditor includes breaking news switch with explanatory text"
+
+  - task: "Subheading field in article editor"
+    implemented: true
+    working: "unknown"
+    file: "Dashboard.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "ArticleEditor includes subheading input field"
+
+  - task: "Trending topics section in article detail"
+    implemented: true
+    working: "unknown"
+    file: "ArticleDetail.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "ArticleDetail.js includes trending topics section in middle of content with related articles"
+
+  - task: "Google News optimization for articles"
+    implemented: true
+    working: "unknown"
+    file: "ArticleDetail.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "ArticleDetail.js includes complete SEO with structured data, meta tags, and canonical URLs"
+
+  - task: "Breaking news display enhancement"
+    implemented: true
+    working: "unknown"
+    file: "ArticleDetail.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "ArticleDetail.js shows breaking news badge and special header for breaking news articles"
+
+## metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+## test_plan:
+  current_focus:
+    - "Admin password change functionality"
+    - "Maintenance mode toggle functionality"
+    - "Publisher selection for articles"
+    - "Breaking news flag for articles"
+    - "Subheading field for articles"
+    - "Related articles endpoint for trending topics"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+## agent_communication:
+    - agent: "main"
+      message: "All pending dashboard and article features appear to be already implemented. Backend has all necessary endpoints and models. Frontend has complete UI components. Need to verify functionality through testing."
