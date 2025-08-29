@@ -625,7 +625,6 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
 # Initialize default admin user and settings on startup
 @app.on_event("startup")
 async def create_defaults():
-    # Test MongoDB connection first
     try:
         await client.admin.command('ping')
         print(f"Successfully connected to MongoDB database: {os.environ['DB_NAME']}")
@@ -634,29 +633,35 @@ async def create_defaults():
         # Don't raise exception - let the deployment continue and handle gracefully
     
     # Create default admin user
-    admin_exists = await db.users.find_one({"role": "admin"})
-    if not admin_exists:
-        admin_user = UserCreate(
-            username="admin",
-            email="admin@crewkerngazette.com",
-            password="admin123",
-            role=UserRole.ADMIN
-        )
-        hashed_password = hash_password(admin_user.password)
-        user_obj = User(**admin_user.dict(exclude={'password'}))
-        
-        user_doc = user_obj.dict()
-        user_doc['password_hash'] = hashed_password
-        
-        await db.users.insert_one(user_doc)
-        print("Default admin user created: username=admin, password=admin123")
+    try:
+        admin_exists = await db.users.find_one({"role": "admin"})
+        if not admin_exists:
+            admin_user = UserCreate(
+                username="admin",
+                email="admin@crewkerngazette.com",
+                password="admin123",
+                role=UserRole.ADMIN
+            )
+            hashed_password = hash_password(admin_user.password)
+            user_obj = User(**admin_user.dict(exclude={'password'}))
+            
+            user_doc = user_obj.dict()
+            user_doc['password_hash'] = hashed_password
+            
+            await db.users.insert_one(user_doc)
+            print("Default admin user created: username=admin, password=admin123")
+    except Exception as e:
+        print(f"Failed to create default admin user: {e}")
     
     # Create default settings
-    settings_exists = await db.settings.find_one()
-    if not settings_exists:
-        default_settings = SiteSettings()
-        await db.settings.insert_one(default_settings.dict())
-        print("Default settings created")
+    try:
+        settings_exists = await db.settings.find_one()
+        if not settings_exists:
+            default_settings = SiteSettings()
+            await db.settings.insert_one(default_settings.dict())
+            print("Default settings created")
+    except Exception as e:
+        print(f"Failed to create default settings: {e}")
 
 # Include the router in the main app
 app.include_router(api_router)
