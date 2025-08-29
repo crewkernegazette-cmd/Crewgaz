@@ -258,15 +258,18 @@
 
   - task: "Subheading field in article editor"
     implemented: true
-    working: "unknown"
+    working: true
     file: "Dashboard.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "unknown"
           agent: "main"
           comment: "ArticleEditor includes subheading input field"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Subheading field working correctly. Input field present in article editor and displays properly in article detail view. Optional field functionality working as expected."
 
   - task: "Trending topics section in article detail"
     implemented: true
