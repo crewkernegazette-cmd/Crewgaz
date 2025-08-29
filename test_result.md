@@ -256,12 +256,12 @@
           comment: "🚨 CRITICAL UPDATE: Production backend API completely down on https://CrewkerneGazette.co.uk. All API endpoints returning HTTP 500 Internal Server Error including /api/auth/login. Previous testing was on different URL. Current production site has complete backend failure - this explains the user's login issues. Backend deployment needs immediate investigation."
 
   - task: "Production backend API deployment issue"
-    implemented: false
-    working: false
+    implemented: true
+    working: "unknown"
     file: "server.py"
     stuck_count: 1
     priority: "critical"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: false
           agent: "testing"
@@ -269,6 +269,9 @@
         - working: false
           agent: "testing"
           comment: "🚨 PRODUCTION TESTING COMPLETED: Comprehensive testing confirms complete backend API failure on https://CrewkerneGazette.co.uk. FINDINGS: ✅ Domain accessible (200 status), ✅ Frontend loads correctly, ❌ ALL API endpoints return HTTP 500 'Internal Server Error', ❌ Login endpoint completely non-functional with admin/admin123, ❌ Public settings endpoint failing, ❌ Articles endpoint failing. ROOT CAUSE: Backend server deployment issue - all API routes returning plain text 'Internal Server Error' with nginx/1.22.1 server headers. RECOMMENDATION: Check backend server logs, database connectivity, and deployment configuration. This explains user's login failures - backend is completely down."
+        - working: "unknown"
+          agent: "main"
+          comment: "🔧 APPLIED DEPLOYMENT FIXES: Updated frontend .env to use correct production URL (https://CrewkerneGazette.co.uk/api), ensured backend uses 'test_database' for MongoDB compatibility, forced admin user creation on startup. Restarted all services. Backend configuration updated with robust error handling and Atlas-compatible MongoDB options. Ready for retesting after deployment fixes."
 
 ## frontend:
   - task: "Admin password change UI in settings"
