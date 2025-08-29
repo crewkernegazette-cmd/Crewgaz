@@ -625,6 +625,14 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
 # Initialize default admin user and settings on startup
 @app.on_event("startup")
 async def create_defaults():
+    # Test MongoDB connection first
+    try:
+        await client.admin.command('ping')
+        print(f"Successfully connected to MongoDB database: {os.environ['DB_NAME']}")
+    except Exception as e:
+        print(f"Failed to connect to MongoDB: {e}")
+        # Don't raise exception - let the deployment continue and handle gracefully
+    
     # Create default admin user
     admin_exists = await db.users.find_one({"role": "admin"})
     if not admin_exists:
