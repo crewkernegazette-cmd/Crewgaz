@@ -27,19 +27,32 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 # MongoDB connection with environment-specific URL selection
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 
-# Try mongo service name first (for Emergent environments), then localhost
-if 'localhost' in mongo_url:
-    mongo_urls_to_try = ['mongodb://localhost:27017', 'mongodb://mongo:27017']
-else:
-    mongo_urls_to_try = [mongo_url, 'mongodb://mongo:27017', 'mongodb://localhost:27017']
+# Detect if running in Emergent environment (container/cloud)
+import socket
+try:
+    # Try to resolve 'mongo' hostname - if it works, we're in a container environment
+    socket.gethostbyname('mongo')
+    is_container = True
+    default_mongo_url = 'mongodb://mongo:27017'
+    print("🐳 Detected container environment - using mongo service")
+except socket.gaierror:
+    is_container = False
+    default_mongo_url = 'mongodb://localhost:27017'
+    print("🏠 Detected local environment - using localhost")
+
+# Use environment-appropriate MongoDB URL
+if mongo_url == 'mongodb://localhost:27017' and is_container:
+    mongo_url = 'mongodb://mongo:27017'
 
 db_name = os.environ.get('DB_NAME', 'test_database')
 if db_name == 'crewkerne_gazette':
     db_name = 'test_database'  # Override for production compatibility
 
-# Use the first URL and let startup handle connection testing
+print(f"🔗 Using MongoDB URL: {mongo_url}")
+print(f"🗄️  Using database: {db_name}")
+
 client = AsyncIOMotorClient(
-    mongo_urls_to_try[0],
+    mongo_url,
     serverSelectionTimeoutMS=5000,
     maxPoolSize=10,
     retryWrites=True
