@@ -107,75 +107,93 @@
 ## backend:
   - task: "Admin password change functionality"
     implemented: true
-    working: "unknown"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "unknown"
           agent: "main"
           comment: "Password change endpoint /api/auth/change-password exists with proper validation and bcrypt hashing"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Password change functionality working perfectly. Successfully changed password from admin123 to newpassword123 and back. Proper validation for incorrect current password (returns 400 error). JWT authentication working correctly."
 
   - task: "Maintenance mode toggle functionality"
     implemented: true
-    working: "unknown"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "unknown"
           agent: "main"
           comment: "Maintenance mode endpoint /api/settings/maintenance exists with middleware to show maintenance page"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Maintenance mode toggle working perfectly. Successfully enabled and disabled maintenance mode via POST /api/settings/maintenance. Settings endpoint GET /api/settings returns current maintenance status. Admin-only access properly enforced."
 
   - task: "Publisher selection for articles"
     implemented: true
-    working: "unknown"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "unknown"
           agent: "main"
           comment: "Article model includes publisher_name field with default 'The Crewkerne Gazette'"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Publisher selection working correctly. Article creation accepts publisher_name field and stores it properly. Default value 'The Crewkerne Gazette' applied when not specified."
 
   - task: "Breaking news flag for articles"
     implemented: true
-    working: "unknown"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "unknown"
           agent: "main"
           comment: "Article model includes is_breaking boolean field"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Breaking news flag working perfectly. Articles can be created with is_breaking=true/false. GET /api/articles?is_breaking=true properly filters and returns only breaking news articles. Field stored and retrieved correctly."
 
   - task: "Subheading field for articles"
     implemented: true
-    working: "unknown"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "unknown"
           agent: "main"
           comment: "Article model includes optional subheading field"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Subheading field working correctly. Articles can be created with optional subheading field. Field is properly stored and retrieved in API responses. Optional nature working as expected."
 
   - task: "Related articles endpoint for trending topics"
     implemented: true
-    working: "unknown"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "unknown"
           agent: "main"
           comment: "Endpoint /api/articles/{article_id}/related exists to fetch related articles by category"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Related articles endpoint working perfectly. GET /api/articles/{id}/related returns related articles from same category, properly excludes original article, and falls back to other categories if needed. Supports trending topics functionality."
 
 ## frontend:
   - task: "Admin password change UI in settings"
