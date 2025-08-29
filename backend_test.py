@@ -580,6 +580,193 @@ class CrewkerneGazetteAPITester:
         
         return success
 
+    # ADMIN LOGIN DEBUGGING TESTS - For Production Issue
+    def test_admin_user_exists(self):
+        """Test if admin user exists in database by attempting login"""
+        print("\n🔍 DEBUGGING: Testing if admin user exists...")
+        
+        success, response = self.run_test(
+            "Admin User Existence Check",
+            "POST",
+            "auth/login",
+            200,  # Expecting success if user exists
+            data={"username": "admin", "password": "admin123"}
+        )
+        
+        if success:
+            print("   ✅ Admin user exists and login successful")
+            if 'access_token' in response:
+                print(f"   ✅ JWT token generated successfully")
+                print(f"   ✅ User data: {response.get('user', {})}")
+                return True
+            else:
+                print("   ❌ No access_token in response")
+                return False
+        else:
+            print("   ❌ Admin login failed - user may not exist or password incorrect")
+            return False
+
+    def test_admin_login_detailed(self):
+        """Detailed admin login test with comprehensive error checking"""
+        print("\n🔍 DETAILED ADMIN LOGIN TEST...")
+        
+        url = f"{self.api_url}/auth/login"
+        login_data = {"username": "admin", "password": "admin123"}
+        headers = {'Content-Type': 'application/json'}
+        
+        self.tests_run += 1
+        print(f"   URL: {url}")
+        print(f"   Credentials: {login_data}")
+        
+        try:
+            response = requests.post(url, json=login_data, headers=headers)
+            
+            print(f"   Status Code: {response.status_code}")
+            print(f"   Response Headers: {dict(response.headers)}")
+            
+            try:
+                response_data = response.json()
+                print(f"   Response Body: {response_data}")
+            except:
+                print(f"   Response Text: {response.text}")
+                response_data = {}
+            
+            if response.status_code == 200:
+                self.tests_passed += 1
+                print("✅ Admin login successful")
+                
+                # Check token validity
+                if 'access_token' in response_data:
+                    token = response_data['access_token']
+                    print(f"   ✅ Token received: {token[:50]}...")
+                    
+                    # Test token immediately
+                    auth_headers = {
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {token}'
+                    }
+                    
+                    me_response = requests.get(f"{self.api_url}/auth/me", headers=auth_headers)
+                    if me_response.status_code == 200:
+                        print("   ✅ Token is valid and working")
+                        user_data = me_response.json()
+                        print(f"   ✅ User role: {user_data.get('role')}")
+                        return True
+                    else:
+                        print(f"   ❌ Token validation failed: {me_response.status_code}")
+                        return False
+                else:
+                    print("   ❌ No access_token in successful response")
+                    return False
+            else:
+                print(f"❌ Login failed with status {response.status_code}")
+                if response.status_code == 401:
+                    print("   → This indicates invalid credentials")
+                elif response.status_code == 404:
+                    print("   → This indicates the endpoint doesn't exist")
+                elif response.status_code == 500:
+                    print("   → This indicates a server error")
+                return False
+                
+        except requests.exceptions.ConnectionError as e:
+            print(f"❌ Connection Error: {e}")
+            print("   → Check if the backend server is running")
+            return False
+        except Exception as e:
+            print(f"❌ Unexpected Error: {e}")
+            return False
+
+    def test_create_new_admin_user(self):
+        """Test creating a new admin user if the default one has issues"""
+        print("\n🔍 TESTING: Creating new admin user...")
+        
+        new_admin_data = {
+            "username": "admin_backup",
+            "email": "admin_backup@crewkernegazette.com",
+            "password": "admin123",
+            "role": "admin"
+        }
+        
+        success, response = self.run_test(
+            "Create New Admin User",
+            "POST",
+            "auth/register",
+            200,
+            data=new_admin_data
+        )
+        
+        if success:
+            print("   ✅ New admin user created successfully")
+            
+            # Test login with new admin user
+            login_success, login_response = self.run_test(
+                "Login with New Admin User",
+                "POST",
+                "auth/login",
+                200,
+                data={"username": "admin_backup", "password": "admin123"}
+            )
+            
+            if login_success and 'access_token' in login_response:
+                print("   ✅ New admin user login successful")
+                print("   → You can use admin_backup/admin123 as alternative credentials")
+                return True
+            else:
+                print("   ❌ New admin user login failed")
+                return False
+        else:
+            print("   ❌ Failed to create new admin user")
+            return False
+
+    def test_jwt_token_validation(self):
+        """Test JWT token generation and validation"""
+        print("\n🔍 TESTING: JWT Token Validation...")
+        
+        # First login to get a token
+        success, response = self.run_test(
+            "Login for JWT Test",
+            "POST",
+            "auth/login",
+            200,
+            data={"username": "admin", "password": "admin123"}
+        )
+        
+        if not success or 'access_token' not in response:
+            print("   ❌ Cannot test JWT - login failed")
+            return False
+        
+        token = response['access_token']
+        print(f"   Token: {token[:50]}...")
+        
+        # Test token with /auth/me endpoint
+        auth_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {token}'
+        }
+        
+        url = f"{self.api_url}/auth/me"
+        
+        try:
+            me_response = requests.get(url, headers=auth_headers)
+            
+            if me_response.status_code == 200:
+                print("   ✅ JWT token is valid")
+                user_data = me_response.json()
+                print(f"   ✅ Authenticated as: {user_data.get('username')} ({user_data.get('role')})")
+                return True
+            else:
+                print(f"   ❌ JWT validation failed: {me_response.status_code}")
+                try:
+                    error_data = me_response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Error text: {me_response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"   ❌ JWT test error: {e}")
+            return False
+
 def main():
     print("🚀 Starting Crewkerne Gazette API Tests - Priority Focus")
     print("=" * 60)
