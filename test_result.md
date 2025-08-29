@@ -288,15 +288,18 @@
 
   - task: "Google News optimization for articles"
     implemented: true
-    working: "unknown"
+    working: true
     file: "ArticleDetail.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "unknown"
           agent: "main"
           comment: "ArticleDetail.js includes complete SEO with structured data, meta tags, and canonical URLs"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Google News optimization working correctly. Page titles properly formatted with site name. Meta descriptions present. SEO-friendly URLs and proper page structure implemented. Minor: Some Open Graph tags need verification but core SEO is functional."
 
   - task: "Breaking news display enhancement"
     implemented: true
