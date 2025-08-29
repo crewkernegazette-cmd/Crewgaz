@@ -213,15 +213,18 @@
 
   - task: "Maintenance mode toggle UI in settings"
     implemented: true
-    working: "unknown"
+    working: true
     file: "Dashboard.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "unknown"
           agent: "main"
           comment: "SettingsManager component includes maintenance mode switch with alert indicators"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Maintenance mode toggle working perfectly. Switch component is present and functional. Current state properly displayed. Alert indicators show when maintenance mode is active."
 
   - task: "Publisher selection in article editor"
     implemented: true
