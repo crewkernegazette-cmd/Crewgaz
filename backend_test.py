@@ -768,17 +768,49 @@ class CrewkerneGazetteAPITester:
             return False
 
 def main():
-    print("🚀 Starting Crewkerne Gazette API Tests - Priority Focus")
-    print("=" * 60)
+    print("🚀 Starting Crewkerne Gazette API Tests - ADMIN LOGIN DEBUGGING")
+    print("=" * 70)
     
     tester = CrewkerneGazetteAPITester()
     
+    # ADMIN LOGIN DEBUGGING TESTS - Priority Focus
+    print("\n📋 ADMIN LOGIN DEBUGGING TESTS - PRODUCTION ISSUE")
+    print("-" * 60)
+    
+    # Test 1: Check if admin user exists and can login
+    admin_exists = tester.test_admin_user_exists()
+    
+    # Test 2: Detailed login test with comprehensive error checking
+    detailed_login = tester.test_admin_login_detailed()
+    
+    # Test 3: JWT token validation
+    jwt_valid = tester.test_jwt_token_validation()
+    
+    # Test 4: Try creating alternative admin user if needed
+    if not admin_exists or not detailed_login:
+        print("\n⚠️  Primary admin login failed, testing alternative...")
+        tester.test_create_new_admin_user()
+    
     # Authentication Tests
-    print("\n📋 AUTHENTICATION TESTS")
-    print("-" * 30)
+    print("\n📋 STANDARD AUTHENTICATION TESTS")
+    print("-" * 40)
     
     if not tester.test_login():
-        print("❌ Login failed, stopping tests")
+        print("❌ Standard login failed, stopping remaining tests")
+        print("\n" + "=" * 70)
+        print("🚨 CRITICAL ISSUE: Admin login is not working")
+        print("📋 DIAGNOSIS:")
+        if not admin_exists:
+            print("   • Admin user may not exist in production database")
+        if not detailed_login:
+            print("   • Login endpoint may have issues")
+        if not jwt_valid:
+            print("   • JWT token generation/validation may be broken")
+        print("\n💡 RECOMMENDED ACTIONS:")
+        print("   1. Check if MongoDB is properly connected")
+        print("   2. Verify admin user exists in database")
+        print("   3. Check JWT_SECRET configuration")
+        print("   4. Try using backup admin credentials if created")
         return 1
     
     tester.test_auth_me()
@@ -841,12 +873,18 @@ def main():
     tester.test_delete_article()
     
     # Final Results
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 70)
     print(f"📊 FINAL RESULTS")
     print(f"Tests Run: {tester.tests_run}")
     print(f"Tests Passed: {tester.tests_passed}")
-    print(f"Tests Failed: {tester.tests_run - tester.tests_passed}")
+    print(f"Tests Failed: {tester.tests_run - tester.tests_failed}")
     print(f"Success Rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
+    
+    # Special focus on admin login results
+    print(f"\n🔍 ADMIN LOGIN DIAGNOSIS:")
+    print(f"   Admin User Exists: {'✅' if admin_exists else '❌'}")
+    print(f"   Detailed Login: {'✅' if detailed_login else '❌'}")
+    print(f"   JWT Validation: {'✅' if jwt_valid else '❌'}")
     
     if tester.tests_passed == tester.tests_run:
         print("🎉 All tests passed!")
