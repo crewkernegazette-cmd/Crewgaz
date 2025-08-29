@@ -26,7 +26,13 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
+# Add connection options for better Atlas compatibility
+client = AsyncIOMotorClient(
+    mongo_url,
+    serverSelectionTimeoutMS=5000,
+    maxPoolSize=10,
+    retryWrites=True
+)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
