@@ -62,9 +62,9 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Admin Actions */}
+          {/* User Actions - Only show if logged in */}
           <div className="flex items-center space-x-3">
-            {user ? (
+            {user && (
               <>
                 <Link to="/dashboard">
                   <Button variant="outline" size="sm" className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white">
@@ -82,13 +82,6 @@ const Navbar = () => {
                   Logout
                 </Button>
               </>
-            ) : (
-              <Link 
-                to="/login" 
-                className="nav-admin-link text-xs text-slate-500 hover:text-slate-300 transition-colors"
-              >
-                Admin
-              </Link>
             )}
           </div>
         </div>

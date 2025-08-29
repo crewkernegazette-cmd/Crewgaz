@@ -5,6 +5,7 @@ import './App.css';
 
 // Components
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Homepage from './components/Homepage';
 import NewsSection from './components/NewsSection';
 import MusicSection from './components/MusicSection';
@@ -76,7 +77,7 @@ function App() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-500"></div>
+        <div className="loading-spinner"></div>
       </div>
     );
   }
@@ -102,6 +103,7 @@ function App() {
               element={user ? <Dashboard /> : <Navigate to="/login" />} 
             />
           </Routes>
+          <Footer />
           <Toaster />
         </Router>
       </div>
