@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Clock, ArrowRight, Shield } from 'lucide-react';
+import { Clock, ArrowRight, Zap, TrendingUp, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 
@@ -89,20 +89,21 @@ const Homepage = () => {
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1 className="hero-title">
-            Truth. Authority. Action.
+            UNFILTERED TRUTH FOR THE PEOPLE
           </h1>
           <p className="hero-subtitle">
-            The official source for uncompromising journalism and authentic reporting. 
-            Where facts meet fearless investigation in service of the people.
+            Bold journalism that challenges the establishment. Real stories, real facts, 
+            real impact. Your voice in the fight for transparency and accountability.
           </p>
           <div className="hero-cta">
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="btn-primary">
-                <Shield className="w-5 h-5 mr-2" />
-                Latest Intelligence
+                <TrendingUp className="w-5 h-5 mr-2" />
+                Latest Stories
               </Button>
               <Button variant="outline" size="lg" className="btn-secondary">
-                Subscribe for Updates
+                <Users className="w-5 h-5 mr-2" />
+                Join the Movement
               </Button>
             </div>
           </div>
@@ -110,13 +111,13 @@ const Homepage = () => {
       </section>
 
       {/* Featured Articles */}
-      <section className="py-20 bg-gradient-to-b from-transparent to-slate-900/50">
+      <section className="py-20 bg-gradient-to-b from-transparent to-slate-800/50">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Latest Intelligence</h2>
+            <h2 className="section-title">BREAKING THE SILENCE</h2>
             <p className="section-subtitle">
-              Critical updates and investigations from our newsroom. 
-              Stay informed with authoritative reporting you can trust.
+              The stories they don't want you to see. Fearless reporting that 
+              cuts through the noise to deliver the truth that matters most.
             </p>
           </div>
 
@@ -140,8 +141,8 @@ const Homepage = () => {
                       {article.category.toUpperCase()}
                     </Badge>
                     {article.is_breaking && (
-                      <div className="breaking-alert text-xs px-2 py-1">
-                        URGENT
+                      <div className="breaking-alert">
+                        HOT
                       </div>
                     )}
                   </div>
@@ -154,7 +155,7 @@ const Homepage = () => {
                       <Clock className="w-3 h-3 mr-1" />
                       {formatDate(article.created_at)}
                     </span>
-                    <span className="font-semibold">{article.author_name}</span>
+                    <span className="font-bold">{article.author_name}</span>
                   </div>
                 </div>
               </Link>
@@ -164,7 +165,7 @@ const Homepage = () => {
           <div className="text-center mt-16">
             <Link to="/news">
               <Button size="lg" variant="outline" className="btn-secondary">
-                View All Reports
+                More Truth Bombs
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
@@ -173,12 +174,13 @@ const Homepage = () => {
       </section>
 
       {/* Sections Preview */}
-      <section className="py-20 bg-gradient-to-b from-slate-900/50 to-slate-900">
+      <section className="py-20 bg-gradient-to-b from-slate-800/50 to-slate-900">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Intelligence Divisions</h2>
+            <h2 className="section-title">WHAT WE COVER</h2>
             <p className="section-subtitle">
-              Specialized reporting across our key operational areas
+              From breaking news to cultural commentary - we've got the stories 
+              that shape your world, told without fear or favor.
             </p>
           </div>
 
@@ -188,16 +190,16 @@ const Homepage = () => {
               <div className="article-card h-80 flex flex-col">
                 <img 
                   src="https://images.unsplash.com/photo-1675973094287-f4af3e49bb3d" 
-                  alt="Breaking News Division"
+                  alt="Breaking News"
                   className="article-image flex-1"
                 />
                 <div className="p-6 text-center bg-gradient-to-t from-red-900/20 to-transparent">
-                  <div className="category-badge category-news mb-3">BREAKING NEWS</div>
+                  <div className="category-badge category-news mb-3">NEWS</div>
                   <h3 className="text-xl font-bold text-red-400 group-hover:text-red-300 mb-2">
-                    News Division
+                    BREAKING NEWS
                   </h3>
                   <p className="text-sm text-slate-400">
-                    Critical updates and breaking developments
+                    The stories that matter, told without compromise
                   </p>
                 </div>
               </div>
@@ -208,16 +210,16 @@ const Homepage = () => {
               <div className="article-card h-80 flex flex-col">
                 <img 
                   src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04" 
-                  alt="Music Division"
+                  alt="Music"
                   className="article-image flex-1"
                 />
                 <div className="p-6 text-center bg-gradient-to-t from-purple-900/20 to-transparent">
                   <div className="category-badge category-music mb-3">MUSIC</div>
                   <h3 className="text-xl font-bold text-purple-400 group-hover:text-purple-300 mb-2">
-                    Music Bureau
+                    SOUND & FURY
                   </h3>
                   <p className="text-sm text-slate-400">
-                    Cultural intelligence and audio content
+                    Music that moves culture and changes minds
                   </p>
                 </div>
               </div>
@@ -228,16 +230,16 @@ const Homepage = () => {
               <div className="article-card h-80 flex flex-col">
                 <img 
                   src="https://images.unsplash.com/photo-1570882004527-319ba653f4d6" 
-                  alt="Documentary Division"
+                  alt="Documentaries"
                   className="article-image flex-1"
                 />
                 <div className="p-6 text-center bg-gradient-to-t from-blue-900/20 to-transparent">
-                  <div className="category-badge category-documentaries mb-3">DOCUMENTARIES</div>
+                  <div className="category-badge category-documentaries mb-3">DOCS</div>
                   <h3 className="text-xl font-bold text-blue-400 group-hover:text-blue-300 mb-2">
-                    Investigation Unit
+                    DEEP DIVES
                   </h3>
                   <p className="text-sm text-slate-400">
-                    Deep-dive investigations and visual reports
+                    Investigative documentaries that expose the truth
                   </p>
                 </div>
               </div>
@@ -248,16 +250,16 @@ const Homepage = () => {
               <div className="article-card h-80 flex flex-col">
                 <img 
                   src="https://images.unsplash.com/photo-1527224857830-43a7acc85260" 
-                  alt="Comedy Division"
+                  alt="Comedy"
                   className="article-image flex-1"
                 />
                 <div className="p-6 text-center bg-gradient-to-t from-orange-900/20 to-transparent">
                   <div className="category-badge category-comedy mb-3">COMEDY</div>
                   <h3 className="text-xl font-bold text-orange-400 group-hover:text-orange-300 mb-2">
-                    Satire Division
+                    TRUTH BOMBS
                   </h3>
                   <p className="text-sm text-slate-400">
-                    Commentary and satirical analysis
+                    Humor that cuts deeper than any headline
                   </p>
                 </div>
               </div>

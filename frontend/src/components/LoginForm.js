@@ -33,11 +33,11 @@ const LoginForm = () => {
     const result = await login(formData);
     
     if (result.success) {
-      toast.success('Access granted');
+      toast.success('Welcome back!');
       navigate('/dashboard');
     } else {
       setError(result.error);
-      toast.error('Access denied');
+      toast.error('Login failed');
     }
     
     setLoading(false);
@@ -47,14 +47,13 @@ const LoginForm = () => {
     <div className="login-container">
       <div className="login-card">
         <div className="text-center mb-8">
-          <div className="official-seal">
-            <div className="gazette-logo-circle w-full h-full border-0"></div>
-          </div>
+          {/* Logo */}
+          <div className="gazette-logo-circle mx-auto mb-6"></div>
           <h1 className="login-title">
-            Administrative Access
+            Content Management
           </h1>
           <p className="text-slate-400 text-sm">
-            Authorized Personnel Only
+            Sign in to manage The Crewkerne Gazette
           </p>
         </div>
 
@@ -78,7 +77,7 @@ const LoginForm = () => {
                 type="text"
                 value={formData.username}
                 onChange={handleChange}
-                placeholder="Enter credentials"
+                placeholder="Enter username"
                 className="pl-10 bg-slate-800/50 border-slate-600 text-white placeholder-slate-500 focus:border-red-600"
                 required
               />
@@ -97,7 +96,7 @@ const LoginForm = () => {
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Enter authorization code"
+                placeholder="Enter password"
                 className="pl-10 bg-slate-800/50 border-slate-600 text-white placeholder-slate-500 focus:border-red-600"
                 required
               />
@@ -109,13 +108,13 @@ const LoginForm = () => {
             className="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-3 text-lg border-0"
             disabled={loading}
           >
-            {loading ? 'AUTHENTICATING...' : 'AUTHORIZE ACCESS'}
+            {loading ? 'SIGNING IN...' : 'SIGN IN'}
           </Button>
         </form>
 
         <div className="mt-8 text-center">
           <p className="text-xs text-slate-500">
-            This system is for authorized use only. All activities are monitored and logged.
+            Access restricted to authorized content creators only.
           </p>
         </div>
       </div>
