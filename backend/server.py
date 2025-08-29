@@ -144,10 +144,14 @@ class ContactUpdate(BaseModel):
 class SiteSettings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     maintenance_mode: bool = False
+    show_breaking_news_banner: bool = True
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class MaintenanceToggle(BaseModel):
     maintenance_mode: bool
+
+class BreakingNewsBannerToggle(BaseModel):
+    show_breaking_news_banner: bool
 
 # Utility Functions
 def hash_password(password: str) -> str:
