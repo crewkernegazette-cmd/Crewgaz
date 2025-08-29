@@ -26,6 +26,11 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
+# Force use test_database for production compatibility
+db_name = os.environ.get('DB_NAME', 'test_database')
+if db_name == 'crewkerne_gazette':
+    db_name = 'test_database'  # Override for production compatibility
+
 # Add connection options for better Atlas compatibility
 client = AsyncIOMotorClient(
     mongo_url,
@@ -33,7 +38,7 @@ client = AsyncIOMotorClient(
     maxPoolSize=10,
     retryWrites=True
 )
-db = client[os.environ['DB_NAME']]
+db = client[db_name]
 
 # Create the main app without a prefix
 app = FastAPI()
