@@ -5,7 +5,7 @@ import json
 import io
 
 class CrewkerneGazetteAPITester:
-    def __init__(self, base_url="https://news-cms.preview.emergentagent.com"):
+    def __init__(self, base_url="https://CrewkerneGazette.co.uk"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
