@@ -7,7 +7,7 @@ import { Badge } from './ui/badge';
 import { Card, CardContent } from './ui/card';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = BACKEND_URL;
 
 const Homepage = () => {
   const [articles, setArticles] = useState([]);
