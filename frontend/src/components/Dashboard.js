@@ -17,7 +17,11 @@ import {
   CheckCircle,
   Clock,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Lock,
+  Power,
+  Shield,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -27,12 +31,200 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Switch } from './ui/switch';
+import { Alert, AlertDescription } from './ui/alert';
 import { toast } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Dashboard Overview Component
+// Settings Component
+const SettingsManager = () => {
+  const { user } = useContext(AuthContext);
+  const [settings, setSettings] = useState({ maintenance_mode: false });
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await axios.get(`${API}/settings`);
+      setSettings(response.data);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
+  const toggleMaintenanceMode = async () => {
+    setLoading(true);
+    try {
+      await axios.post(`${API}/settings/maintenance`, {
+        maintenance_mode: !settings.maintenance_mode
+      });
+      setSettings({ ...settings, maintenance_mode: !settings.maintenance_mode });
+      const status = !settings.maintenance_mode ? 'enabled' : 'disabled';
+      toast.success(`Maintenance mode ${status}`);
+    } catch (error) {
+      console.error('Error toggling maintenance mode:', error);
+      toast.error('Failed to toggle maintenance mode');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    
+    if (passwordData.new_password !== passwordData.confirm_password) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (passwordData.new_password.length < 6) {
+      toast.error('New password must be at least 6 characters');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await axios.post(`${API}/auth/change-password`, {
+        current_password: passwordData.current_password,
+        new_password: passwordData.new_password
+      });
+      toast.success('Password changed successfully');
+      setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
+    } catch (error) {
+      console.error('Error changing password:', error);
+      toast.error(error.response?.data?.detail || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold text-white">Settings</h1>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Maintenance Mode */}
+        <Card className="bg-slate-800/50 border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center">
+              <Power className="w-5 h-5 mr-2" />
+              Site Maintenance
+            </CardTitle>
+            <CardDescription className="text-slate-400">
+              Control site-wide maintenance mode
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-slate-200 font-medium">
+                  Maintenance Mode
+                </Label>
+                <p className="text-sm text-slate-400 mt-1">
+                  When enabled, visitors will see a maintenance page
+                </p>
+              </div>
+              <Switch
+                checked={settings.maintenance_mode}
+                onCheckedChange={toggleMaintenanceMode}
+                disabled={loading}
+              />
+            </div>
+            
+            {settings.maintenance_mode && (
+              <Alert className="mt-4 bg-orange-900/20 border-orange-600">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-orange-200">
+                  Maintenance mode is currently <strong>ACTIVE</strong>. 
+                  Public visitors will see the maintenance page.
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Password Change */}
+        <Card className="bg-slate-800/50 border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center">
+              <Lock className="w-5 h-5 mr-2" />
+              Change Password
+            </CardTitle>
+            <CardDescription className="text-slate-400">
+              Update your admin password
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              <div>
+                <Label htmlFor="current_password" className="text-slate-200">
+                  Current Password
+                </Label>
+                <Input
+                  id="current_password"
+                  type="password"
+                  value={passwordData.current_password}
+                  onChange={(e) => setPasswordData({...passwordData, current_password: e.target.value})}
+                  className="bg-slate-700/50 border-slate-600 text-white"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="new_password" className="text-slate-200">
+                  New Password
+                </Label>
+                <Input
+                  id="new_password"
+                  type="password"
+                  value={passwordData.new_password}
+                  onChange={(e) => setPasswordData({...passwordData, new_password: e.target.value})}
+                  className="bg-slate-700/50 border-slate-600 text-white"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="confirm_password" className="text-slate-200">
+                  Confirm New Password
+                </Label>
+                <Input
+                  id="confirm_password"
+                  type="password"
+                  value={passwordData.confirm_password}
+                  onChange={(e) => setPasswordData({...passwordData, confirm_password: e.target.value})}
+                  className="bg-slate-700/50 border-slate-600 text-white"
+                  required
+                />
+              </div>
+              
+              <Button 
+                type="submit" 
+                disabled={changingPassword}
+                className="w-full bg-red-600 hover:bg-red-700"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                {changingPassword ? 'Changing Password...' : 'Change Password'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+// Dashboard Overview Component (keeping existing)
 const DashboardOverview = () => {
   const [stats, setStats] = useState({});
   const [recentArticles, setRecentArticles] = useState([]);
@@ -154,7 +346,7 @@ const DashboardOverview = () => {
   );
 };
 
-// Contact Messages Component
+// Contact Messages Component (keeping existing)
 const ContactMessages = () => {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -371,20 +563,34 @@ const ArticlesManager = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white mb-2">{article.title}</h3>
-                    <div className="flex items-center space-x-4 text-sm text-slate-400">
-                      <Badge className={`category-badge category-${article.category}`}>
-                        {article.category}
-                      </Badge>
-                      <span>{new Date(article.created_at).toLocaleDateString()}</span>
-                      <span>By {article.author_name}</span>
-                      {article.is_breaking && <Badge variant="destructive" className="text-xs">Breaking</Badge>}
-                      <Badge variant={article.is_published ? "success" : "secondary"} className="text-xs">
-                        {article.is_published ? "Published" : "Draft"}
-                      </Badge>
+                    <div className="flex items-start gap-4">
+                      {article.featured_image && (
+                        <img 
+                          src={article.featured_image} 
+                          alt={article.title}
+                          className="w-20 h-20 object-cover rounded-lg border border-slate-600"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-white mb-2">{article.title}</h3>
+                        {article.subheading && (
+                          <p className="text-slate-300 text-sm mb-2">{article.subheading}</p>
+                        )}
+                        <div className="flex items-center space-x-4 text-sm text-slate-400">
+                          <Badge className={`category-badge category-${article.category}`}>
+                            {article.category}
+                          </Badge>
+                          <span>{new Date(article.created_at).toLocaleDateString()}</span>
+                          <span>By {article.publisher_name || article.author_name}</span>
+                          {article.is_breaking && <Badge variant="destructive" className="text-xs">Breaking</Badge>}
+                          <Badge variant={article.is_published ? "success" : "secondary"} className="text-xs">
+                            {article.is_published ? "Published" : "Draft"}
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 ml-4">
                     <Link to={`/article/${article.id}`}>
                       <Button variant="outline" size="sm">
                         <Eye className="w-4 h-4" />
@@ -414,13 +620,16 @@ const ArticlesManager = () => {
   );
 };
 
-// Article Editor Component
+// Article Editor Component (Enhanced with new fields)
 const ArticleEditor = ({ articleId = null }) => {
   const [article, setArticle] = useState({
     title: '',
+    subheading: '',
     content: '',
     category: 'news',
+    publisher_name: 'The Crewkerne Gazette',
     featured_image: '',
+    image_caption: '',
     video_url: '',
     is_breaking: false,
     is_published: true,
@@ -501,9 +710,12 @@ const ArticleEditor = ({ articleId = null }) => {
         // Reset form
         setArticle({
           title: '',
+          subheading: '',
           content: '',
           category: 'news',
+          publisher_name: 'The Crewkerne Gazette',
           featured_image: '',
+          image_caption: '',
           video_url: '',
           is_breaking: false,
           is_published: true,
@@ -546,42 +758,56 @@ const ArticleEditor = ({ articleId = null }) => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div>
-              <Label htmlFor="title" className="text-slate-200">Title</Label>
+              <Label htmlFor="title" className="text-slate-200">Headline *</Label>
               <Input
                 id="title"
                 value={article.title}
                 onChange={(e) => setArticle({ ...article, title: e.target.value })}
                 className="bg-slate-700/50 border-slate-600 text-white"
+                placeholder="Enter compelling headline..."
                 required
               />
             </div>
 
-            {/* Category */}
+            {/* Subheading */}
             <div>
-              <Label htmlFor="category" className="text-slate-200">Category</Label>
-              <Select value={article.category} onValueChange={(value) => setArticle({ ...article, category: value })}>
-                <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="news">News</SelectItem>
-                  <SelectItem value="music">Music</SelectItem>
-                  <SelectItem value="documentaries">Documentaries</SelectItem>
-                  <SelectItem value="comedy">Comedy</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="subheading" className="text-slate-200">Subheading</Label>
+              <Input
+                id="subheading"
+                value={article.subheading}
+                onChange={(e) => setArticle({ ...article, subheading: e.target.value })}
+                className="bg-slate-700/50 border-slate-600 text-white"
+                placeholder="Optional subheading..."
+              />
             </div>
 
-            {/* Content */}
-            <div>
-              <Label htmlFor="content" className="text-slate-200">Content</Label>
-              <Textarea
-                id="content"
-                value={article.content}
-                onChange={(e) => setArticle({ ...article, content: e.target.value })}
-                className="bg-slate-700/50 border-slate-600 text-white min-h-[300px]"
-                required
-              />
+            {/* Category and Publisher Name */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="category" className="text-slate-200">Category</Label>
+                <Select value={article.category} onValueChange={(value) => setArticle({ ...article, category: value })}>
+                  <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="news">News</SelectItem>
+                    <SelectItem value="music">Music</SelectItem>
+                    <SelectItem value="documentaries">Documentaries</SelectItem>
+                    <SelectItem value="comedy">Comedy</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="publisher_name" className="text-slate-200">Publisher Name</Label>
+                <Input
+                  id="publisher_name"
+                  value={article.publisher_name}
+                  onChange={(e) => setArticle({ ...article, publisher_name: e.target.value })}
+                  className="bg-slate-700/50 border-slate-600 text-white"
+                  placeholder="Who published this article?"
+                />
+              </div>
             </div>
 
             {/* Featured Image Upload */}
@@ -662,12 +888,40 @@ const ArticleEditor = ({ articleId = null }) => {
                     />
                   </div>
                 </div>
+
+                {/* Image Caption */}
+                <div>
+                  <Label htmlFor="image_caption" className="text-slate-200">Image Caption</Label>
+                  <Input
+                    id="image_caption"
+                    value={article.image_caption}
+                    onChange={(e) => setArticle({ ...article, image_caption: e.target.value })}
+                    className="bg-slate-700/50 border-slate-600 text-white"
+                    placeholder="Describe what's in the image..."
+                  />
+                </div>
               </div>
+            </div>
+
+            {/* Content */}
+            <div>
+              <Label htmlFor="content" className="text-slate-200">Article Content *</Label>
+              <Textarea
+                id="content"
+                value={article.content}
+                onChange={(e) => setArticle({ ...article, content: e.target.value })}
+                className="bg-slate-700/50 border-slate-600 text-white min-h-[400px]"
+                placeholder="Write your article content here..."
+                required
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Tip: A "Trending Topics" section will automatically appear in the middle of published articles
+              </p>
             </div>
 
             {/* Video URL */}
             <div>
-              <Label htmlFor="video_url" className="text-slate-200">Video URL</Label>
+              <Label htmlFor="video_url" className="text-slate-200">Video URL (Optional)</Label>
               <Input
                 id="video_url"
                 value={article.video_url}
@@ -685,7 +939,7 @@ const ArticleEditor = ({ articleId = null }) => {
                 value={article.tags.join(', ')}
                 onChange={handleTagsChange}
                 className="bg-slate-700/50 border-slate-600 text-white"
-                placeholder="breaking, politics, investigation"
+                placeholder="breaking, politics, investigation, local news"
               />
             </div>
 
@@ -697,6 +951,7 @@ const ArticleEditor = ({ articleId = null }) => {
                   onCheckedChange={(checked) => setArticle({ ...article, is_breaking: checked })}
                 />
                 <Label className="text-slate-200">Breaking News</Label>
+                <p className="text-xs text-slate-500 ml-2">Adds "BREAKING" before headline</p>
               </div>
               
               <div className="flex items-center space-x-2">
@@ -714,7 +969,7 @@ const ArticleEditor = ({ articleId = null }) => {
               className="w-full bg-red-600 hover:bg-red-700"
             >
               <Save className="w-4 h-4 mr-2" />
-              {saving ? 'Saving...' : (articleId ? 'Update Article' : 'Create Article')}
+              {saving ? 'Saving...' : (articleId ? 'Update Article' : 'Publish Article')}
             </Button>
           </form>
         </CardContent>
@@ -769,8 +1024,8 @@ const Dashboard = () => {
           <Route path="create" element={<ArticleEditor />} />
           <Route path="edit/:id" element={<ArticleEditor articleId={location.pathname.split('/').pop()} />} />
           <Route path="contacts" element={<ContactMessages />} />
+          <Route path="settings" element={<SettingsManager />} />
           <Route path="analytics" element={<div className="text-white">Analytics coming soon...</div>} />
-          <Route path="settings" element={<div className="text-white">Settings coming soon...</div>} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </div>
