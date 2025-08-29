@@ -389,6 +389,199 @@ class CrewkerneGazetteAPITester:
         )
         return success
 
+    # NEW FEATURE TESTS - Breaking News Banner Toggle
+    def test_breaking_news_banner_toggle(self):
+        """Test toggling breaking news banner on/off"""
+        # Enable breaking news banner
+        enable_data = {"show_breaking_news_banner": True}
+        success1, response1 = self.run_test(
+            "Enable Breaking News Banner",
+            "POST",
+            "settings/breaking-news-banner",
+            200,
+            data=enable_data
+        )
+        
+        # Disable breaking news banner
+        disable_data = {"show_breaking_news_banner": False}
+        success2, response2 = self.run_test(
+            "Disable Breaking News Banner",
+            "POST",
+            "settings/breaking-news-banner",
+            200,
+            data=disable_data
+        )
+        
+        # Re-enable for other tests
+        enable_data = {"show_breaking_news_banner": True}
+        success3, response3 = self.run_test(
+            "Re-enable Breaking News Banner",
+            "POST",
+            "settings/breaking-news-banner",
+            200,
+            data=enable_data
+        )
+        
+        return success1 and success2 and success3
+
+    def test_public_settings_endpoint(self):
+        """Test public settings endpoint (no auth required)"""
+        # Temporarily remove token for this test
+        original_token = self.token
+        self.token = None
+        
+        success, response = self.run_test(
+            "Get Public Settings (No Auth)",
+            "GET",
+            "settings/public",
+            200
+        )
+        
+        # Restore token
+        self.token = original_token
+        
+        if success and isinstance(response, dict):
+            if 'show_breaking_news_banner' in response:
+                print(f"   ✅ Breaking news banner setting: {response['show_breaking_news_banner']}")
+                return True
+            else:
+                print("   ❌ Missing show_breaking_news_banner in response")
+                return False
+        
+        return success
+
+    def test_settings_persistence(self):
+        """Test that settings changes persist properly"""
+        # First, disable breaking news banner
+        disable_data = {"show_breaking_news_banner": False}
+        success1, response1 = self.run_test(
+            "Disable Banner for Persistence Test",
+            "POST",
+            "settings/breaking-news-banner",
+            200,
+            data=disable_data
+        )
+        
+        if not success1:
+            return False
+        
+        # Check if the setting persists via public endpoint
+        original_token = self.token
+        self.token = None
+        
+        success2, response2 = self.run_test(
+            "Check Persistence via Public Settings",
+            "GET",
+            "settings/public",
+            200
+        )
+        
+        self.token = original_token
+        
+        if success2 and isinstance(response2, dict):
+            if response2.get('show_breaking_news_banner') == False:
+                print("   ✅ Settings properly persisted in database")
+                
+                # Re-enable for other tests
+                enable_data = {"show_breaking_news_banner": True}
+                self.run_test(
+                    "Re-enable Banner after Persistence Test",
+                    "POST",
+                    "settings/breaking-news-banner",
+                    200,
+                    data=enable_data
+                )
+                return True
+            else:
+                print("   ❌ Settings not properly persisted")
+                return False
+        
+        return False
+
+    def test_image_upload_url_format(self):
+        """Test image upload returns correct URL format"""
+        # Create a simple test image file in memory
+        import io
+        from PIL import Image
+        
+        # Create a simple 100x100 red image
+        img = Image.new('RGB', (100, 100), color='red')
+        img_bytes = io.BytesIO()
+        img.save(img_bytes, format='PNG')
+        img_bytes.seek(0)
+        
+        # Prepare multipart form data
+        files = {'file': ('test_image.png', img_bytes, 'image/png')}
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        url = f"{self.api_url}/upload-image"
+        
+        self.tests_run += 1
+        print(f"\n🔍 Testing Image Upload URL Format...")
+        print(f"   URL: {url}")
+        
+        try:
+            response = requests.post(url, files=files, headers=headers)
+            
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                
+                try:
+                    response_data = response.json()
+                    if 'url' in response_data:
+                        url_path = response_data['url']
+                        print(f"   Response URL: {url_path}")
+                        
+                        # Check if URL format is correct (should be "/uploads/filename.ext")
+                        if url_path.startswith('/uploads/') and url_path.endswith('.png'):
+                            print("   ✅ URL format is correct: /uploads/filename.ext")
+                            return True
+                        else:
+                            print(f"   ❌ URL format incorrect. Expected /uploads/filename.ext, got: {url_path}")
+                            return False
+                    else:
+                        print("   ❌ No 'url' field in response")
+                        return False
+                except Exception as e:
+                    print(f"   ❌ Error parsing response: {e}")
+                    return False
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Error: {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False
+
+    def test_unauthorized_breaking_news_banner_access(self):
+        """Test that breaking news banner toggle requires admin authentication"""
+        # Remove token temporarily
+        original_token = self.token
+        self.token = None
+        
+        banner_data = {"show_breaking_news_banner": False}
+        success, response = self.run_test(
+            "Unauthorized Breaking News Banner Toggle",
+            "POST",
+            "settings/breaking-news-banner",
+            401,  # Should return 401 Unauthorized
+            data=banner_data
+        )
+        
+        # Restore token
+        self.token = original_token
+        
+        return success
+
 def main():
     print("🚀 Starting Crewkerne Gazette API Tests - Priority Focus")
     print("=" * 60)
