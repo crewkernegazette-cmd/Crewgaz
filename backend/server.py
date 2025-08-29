@@ -401,6 +401,17 @@ async def get_settings(current_user: User = Depends(get_current_user)):
     
     return SiteSettings(**settings)
 
+@api_router.get("/settings/public")
+async def get_public_settings():
+    """Get public settings that don't require authentication"""
+    settings = await db.settings.find_one()
+    if not settings:
+        return {"show_breaking_news_banner": True}
+    
+    return {
+        "show_breaking_news_banner": settings.get("show_breaking_news_banner", True)
+    }
+
 @api_router.post("/settings/maintenance")
 async def toggle_maintenance(maintenance_data: MaintenanceToggle, current_user: User = Depends(get_current_user)):
     if current_user.role != UserRole.ADMIN:
