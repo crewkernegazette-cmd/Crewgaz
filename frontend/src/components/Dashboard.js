@@ -177,6 +177,48 @@ const SettingsManager = () => {
           </CardContent>
         </Card>
 
+        {/* Breaking News Banner */}
+        <Card className="bg-slate-800/50 border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center">
+              <AlertTriangle className="w-5 h-5 mr-2" />
+              Breaking News Banner
+            </CardTitle>
+            <CardDescription className="text-slate-400">
+              Control the breaking news ticker on homepage
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-slate-200 font-medium">
+                  Show Breaking News Banner
+                </Label>
+                <p className="text-sm text-slate-400 mt-1">
+                  When disabled, the red breaking news ticker will be hidden
+                </p>
+              </div>
+              <Switch
+                checked={settings.show_breaking_news_banner}
+                onCheckedChange={toggleBreakingNewsBanner}
+                disabled={togglingBanner}
+              />
+            </div>
+            
+            {!settings.show_breaking_news_banner && (
+              <Alert className="mt-4 bg-red-900/20 border-red-600">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-red-200">
+                  Breaking news banner is currently <strong>DISABLED</strong>. 
+                  Visitors will not see breaking news alerts.
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
         {/* Password Change */}
         <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader>
