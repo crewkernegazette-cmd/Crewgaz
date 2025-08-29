@@ -571,7 +571,7 @@ class CrewkerneGazetteAPITester:
             "Unauthorized Breaking News Banner Toggle",
             "POST",
             "settings/breaking-news-banner",
-            401,  # Should return 401 Unauthorized
+            403,  # Should return 403 Forbidden (FastAPI returns 403 for missing auth)
             data=banner_data
         )
         
