@@ -4,7 +4,7 @@ from datetime import datetime
 import json
 
 class CrewkerneGazetteAPITester:
-    def __init__(self, base_url="https://crewkerne-media.preview.emergentagent.com"):
+    def __init__(self, base_url="https://news-cms.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
