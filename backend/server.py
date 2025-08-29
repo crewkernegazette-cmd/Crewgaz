@@ -625,12 +625,14 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
 # Initialize default admin user and settings on startup
 @app.on_event("startup")
 async def create_defaults():
+    # Test MongoDB connection first
     try:
         await client.admin.command('ping')
-        print(f"Successfully connected to MongoDB database: {os.environ['DB_NAME']}")
+        print(f"✅ Successfully connected to MongoDB database: {os.environ['DB_NAME']}")
     except Exception as e:
-        print(f"Failed to connect to MongoDB: {e}")
-        # Don't raise exception - let the deployment continue and handle gracefully
+        print(f"❌ Failed to connect to MongoDB: {e}")
+        print("⚠️  Continuing deployment - database will be connected when available")
+        return  # Skip initialization if database is not available yet
     
     # Create default admin user
     try:
@@ -649,9 +651,11 @@ async def create_defaults():
             user_doc['password_hash'] = hashed_password
             
             await db.users.insert_one(user_doc)
-            print("Default admin user created: username=admin, password=admin123")
+            print("✅ Default admin user created: username=admin, password=admin123")
+        else:
+            print("✅ Admin user already exists")
     except Exception as e:
-        print(f"Failed to create default admin user: {e}")
+        print(f"⚠️  Failed to create default admin user: {e}")
     
     # Create default settings
     try:
@@ -659,9 +663,13 @@ async def create_defaults():
         if not settings_exists:
             default_settings = SiteSettings()
             await db.settings.insert_one(default_settings.dict())
-            print("Default settings created")
+            print("✅ Default settings created")
+        else:
+            print("✅ Settings already exist")
     except Exception as e:
-        print(f"Failed to create default settings: {e}")
+        print(f"⚠️  Failed to create default settings: {e}")
+    
+    print("🚀 Application startup completed")
 
 # Include the router in the main app
 app.include_router(api_router)
