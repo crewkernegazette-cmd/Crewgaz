@@ -13,11 +13,24 @@ const Homepage = () => {
   const [articles, setArticles] = useState([]);
   const [breakingNews, setBreakingNews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
     fetchArticles();
     fetchBreakingNews();
+    fetchPublicSettings();
   }, []);
+
+  const fetchPublicSettings = async () => {
+    try {
+      const response = await axios.get(`${API}/settings/public`);
+      setShowBanner(response.data.show_breaking_news_banner);
+    } catch (error) {
+      console.error('Error fetching public settings:', error);
+      // Default to showing banner if error
+      setShowBanner(true);
+    }
+  };
 
   const fetchArticles = async () => {
     try {
