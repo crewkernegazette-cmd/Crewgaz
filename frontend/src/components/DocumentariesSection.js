@@ -7,7 +7,7 @@ import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = BACKEND_URL;
 
 const DocumentariesSection = () => {
   const [articles, setArticles] = useState([]);
