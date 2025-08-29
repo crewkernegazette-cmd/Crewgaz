@@ -40,7 +40,10 @@ const API = `${BACKEND_URL}/api`;
 // Settings Component
 const SettingsManager = () => {
   const { user } = useContext(AuthContext);
-  const [settings, setSettings] = useState({ maintenance_mode: false });
+  const [settings, setSettings] = useState({ 
+    maintenance_mode: false, 
+    show_breaking_news_banner: true 
+  });
   const [passwordData, setPasswordData] = useState({
     current_password: '',
     new_password: '',
@@ -48,6 +51,7 @@ const SettingsManager = () => {
   });
   const [loading, setLoading] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [togglingBanner, setTogglingBanner] = useState(false);
 
   useEffect(() => {
     fetchSettings();
