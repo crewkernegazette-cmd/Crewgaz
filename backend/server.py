@@ -1,6 +1,7 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -77,14 +78,21 @@ class UserLogin(BaseModel):
     username: str
     password: str
 
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
 class Article(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     title: str
+    subheading: Optional[str] = None
     content: str
     category: ArticleCategory
     author_id: str
     author_name: str = ""
+    publisher_name: str = "The Crewkerne Gazette"
     featured_image: Optional[str] = None
+    image_caption: Optional[str] = None
     video_url: Optional[str] = None
     is_breaking: bool = False
     is_published: bool = True
@@ -94,9 +102,12 @@ class Article(BaseModel):
 
 class ArticleCreate(BaseModel):
     title: str
+    subheading: Optional[str] = None
     content: str
     category: ArticleCategory
+    publisher_name: Optional[str] = "The Crewkerne Gazette"
     featured_image: Optional[str] = None
+    image_caption: Optional[str] = None
     video_url: Optional[str] = None
     is_breaking: bool = False
     is_published: bool = True
@@ -104,9 +115,12 @@ class ArticleCreate(BaseModel):
 
 class ArticleUpdate(BaseModel):
     title: Optional[str] = None
+    subheading: Optional[str] = None
     content: Optional[str] = None
     category: Optional[ArticleCategory] = None
+    publisher_name: Optional[str] = None
     featured_image: Optional[str] = None
+    image_caption: Optional[str] = None
     video_url: Optional[str] = None
     is_breaking: Optional[bool] = None
     is_published: Optional[bool] = None
@@ -126,6 +140,14 @@ class ContactCreate(BaseModel):
 
 class ContactUpdate(BaseModel):
     status: Optional[ContactStatus] = None
+
+class SiteSettings(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    maintenance_mode: bool = False
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class MaintenanceToggle(BaseModel):
+    maintenance_mode: bool
 
 # Utility Functions
 def hash_password(password: str) -> str:
@@ -159,6 +181,123 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+async def check_maintenance_mode():
+    settings = await db.settings.find_one()
+    if settings and settings.get('maintenance_mode', False):
+        return True
+    return False
+
+# Maintenance mode middleware
+@app.middleware("http")
+async def maintenance_middleware(request: Request, call_next):
+    # Skip maintenance check for admin routes and API
+    if request.url.path.startswith("/api") or request.url.path.startswith("/uploads") or "login" in request.url.path or "dashboard" in request.url.path:
+        response = await call_next(request)
+        return response
+    
+    # Check if maintenance mode is enabled
+    if await check_maintenance_mode():
+        maintenance_html = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Under Maintenance - The Crewkerne Gazette</title>
+            <style>
+                body {
+                    margin: 0;
+                    padding: 0;
+                    font-family: 'Arial', sans-serif;
+                    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                    color: #f1f5f9;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    text-align: center;
+                }
+                .container {
+                    max-width: 600px;
+                    padding: 2rem;
+                }
+                .logo {
+                    width: 100px;
+                    height: 100px;
+                    margin: 0 auto 2rem;
+                    background: #B91C1C;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 3px solid #f1f5f9;
+                    position: relative;
+                }
+                .logo::before {
+                    content: '';
+                    position: absolute;
+                    top: 15%;
+                    left: 15%;
+                    right: 15%;
+                    height: 30%;
+                    background: #f1f5f9;
+                    border-radius: 50px 50px 0 0;
+                }
+                .logo::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 15%;
+                    left: 15%;
+                    right: 15%;
+                    height: 30%;
+                    background: #f1f5f9;
+                    border-radius: 0 0 50px 50px;
+                }
+                h1 {
+                    font-size: 2.5rem;
+                    margin-bottom: 1rem;
+                    color: #B91C1C;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                }
+                p {
+                    font-size: 1.2rem;
+                    margin-bottom: 2rem;
+                    color: #cbd5e1;
+                }
+                .maintenance-image {
+                    width: 300px;
+                    height: 200px;
+                    margin: 2rem auto;
+                    background: url('https://images.unsplash.com/photo-1581833971358-2c8b550f87b3') center/cover;
+                    border-radius: 12px;
+                    border: 2px solid #B91C1C;
+                }
+                .tagline {
+                    font-style: italic;
+                    color: #94a3b8;
+                    margin-top: 2rem;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="logo"></div>
+                <h1>Under Maintenance</h1>
+                <p>The Crewkerne Gazette is currently undergoing some improvements.<br>
+                   We'll be back shortly with even better content!</p>
+                <div class="maintenance-image"></div>
+                <p class="tagline">"Where common sense meets headlines"</p>
+                <p><strong>Please stand by...</strong></p>
+            </div>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=maintenance_html, status_code=503)
+    
+    response = await call_next(request)
+    return response
 
 # File Upload Route
 @api_router.post("/upload-image")
@@ -221,6 +360,63 @@ async def login(user_data: UserLogin):
 async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
+@api_router.post("/auth/change-password")
+async def change_password(password_data: PasswordChange, current_user: User = Depends(get_current_user)):
+    # Get current user from database
+    user = await db.users.find_one({"id": current_user.id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify current password
+    if not verify_password(password_data.current_password, user['password_hash']):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    # Hash new password
+    new_password_hash = hash_password(password_data.new_password)
+    
+    # Update password
+    await db.users.update_one(
+        {"id": current_user.id}, 
+        {"$set": {"password_hash": new_password_hash}}
+    )
+    
+    return {"message": "Password changed successfully"}
+
+# Settings Routes
+@api_router.get("/settings")
+async def get_settings(current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    settings = await db.settings.find_one()
+    if not settings:
+        # Create default settings
+        default_settings = SiteSettings()
+        await db.settings.insert_one(default_settings.dict())
+        return default_settings
+    
+    return SiteSettings(**settings)
+
+@api_router.post("/settings/maintenance")
+async def toggle_maintenance(maintenance_data: MaintenanceToggle, current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Update or create settings
+    update_data = {
+        "maintenance_mode": maintenance_data.maintenance_mode,
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    result = await db.settings.update_one(
+        {},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    status_text = "enabled" if maintenance_data.maintenance_mode else "disabled"
+    return {"message": f"Maintenance mode {status_text} successfully"}
+
 # Article Routes
 @api_router.post("/articles", response_model=Article)
 async def create_article(article_data: ArticleCreate, current_user: User = Depends(get_current_user)):
@@ -249,6 +445,31 @@ async def get_article(article_id: str):
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
     return Article(**article)
+
+@api_router.get("/articles/{article_id}/related")
+async def get_related_articles(article_id: str):
+    # Get current article to exclude it and get same category
+    current_article = await db.articles.find_one({"id": article_id})
+    if not current_article:
+        return []
+    
+    # Get other latest articles, prioritizing same category
+    related_articles = await db.articles.find({
+        "id": {"$ne": article_id},
+        "is_published": True,
+        "category": current_article.get("category")
+    }).sort("created_at", -1).limit(3).to_list(length=None)
+    
+    # If not enough same category, fill with other articles
+    if len(related_articles) < 3:
+        additional_articles = await db.articles.find({
+            "id": {"$ne": article_id},
+            "is_published": True,
+            "category": {"$ne": current_article.get("category")}
+        }).sort("created_at", -1).limit(3 - len(related_articles)).to_list(length=None)
+        related_articles.extend(additional_articles)
+    
+    return [Article(**article) for article in related_articles]
 
 @api_router.put("/articles/{article_id}", response_model=Article)
 async def update_article(article_id: str, article_data: ArticleUpdate, current_user: User = Depends(get_current_user)):
@@ -360,9 +581,10 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
         "categories": categories
     }
 
-# Initialize default admin user on startup
+# Initialize default admin user and settings on startup
 @app.on_event("startup")
-async def create_default_admin():
+async def create_defaults():
+    # Create default admin user
     admin_exists = await db.users.find_one({"role": "admin"})
     if not admin_exists:
         admin_user = UserCreate(
@@ -379,6 +601,13 @@ async def create_default_admin():
         
         await db.users.insert_one(user_doc)
         print("Default admin user created: username=admin, password=admin123")
+    
+    # Create default settings
+    settings_exists = await db.settings.find_one()
+    if not settings_exists:
+        default_settings = SiteSettings()
+        await db.settings.insert_one(default_settings.dict())
+        print("Default settings created")
 
 # Include the router in the main app
 app.include_router(api_router)
