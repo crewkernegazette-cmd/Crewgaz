@@ -877,7 +877,7 @@ def main():
     print(f"📊 FINAL RESULTS")
     print(f"Tests Run: {tester.tests_run}")
     print(f"Tests Passed: {tester.tests_passed}")
-    print(f"Tests Failed: {tester.tests_run - tester.tests_failed}")
+    print(f"Tests Failed: {tester.tests_run - tester.tests_passed}")
     print(f"Success Rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
     
     # Special focus on admin login results
