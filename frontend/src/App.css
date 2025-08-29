@@ -209,39 +209,53 @@ h1, h2, h3, h4, h5, h6 {
 .breaking-news-ticker {
   background: linear-gradient(90deg, var(--gazette-red), var(--gazette-dark-red));
   color: white;
-  padding: 1rem 0;
+  padding: 0.6rem 0;
   white-space: nowrap;
   overflow: hidden;
   position: relative;
-  border-top: 2px solid var(--gazette-cream);
-  border-bottom: 2px solid var(--gazette-cream);
+  border-top: 1px solid var(--gazette-cream);
+  border-bottom: 1px solid var(--gazette-cream);
+  display: flex;
+  align-items: center;
 }
 
 .breaking-badge {
   background: var(--gazette-cream);
   color: var(--gazette-red);
-  padding: 0.6rem 1.2rem;
+  padding: 0.4rem 1rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-right: 1rem;
   position: absolute;
-  left: 2rem;
+  left: 1.5rem;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
   font-family: 'Anton', sans-serif;
-  border-radius: 4px;
+  border-radius: 3px;
+  font-size: 0.9rem;
 }
 
 .ticker-content {
   display: inline-block;
-  padding-left: 200px;
+  padding-left: 180px;
   animation: scroll 50s linear infinite;
   font-weight: 500;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-family: 'Oswald', sans-serif;
   letter-spacing: 1px;
+}
+
+.ticker-link {
+  color: white;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.ticker-link:hover {
+  color: var(--gazette-cream);
+  text-decoration: underline;
 }
 
 @keyframes scroll {
