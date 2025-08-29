@@ -6,7 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -44,6 +44,11 @@ class ArticleCategory(str, Enum):
 class UserRole(str, Enum):
     ADMIN = "admin"
     EDITOR = "editor"
+
+class ContactStatus(str, Enum):
+    NEW = "new"
+    READ = "read"
+    REPLIED = "replied"
 
 # Models
 class User(BaseModel):
@@ -97,6 +102,21 @@ class ArticleUpdate(BaseModel):
     is_breaking: Optional[bool] = None
     is_published: Optional[bool] = None
     tags: Optional[List[str]] = None
+
+class Contact(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: EmailStr
+    inquiry: str
+    status: ContactStatus = ContactStatus.NEW
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ContactCreate(BaseModel):
+    email: EmailStr
+    inquiry: str
+
+class ContactUpdate(BaseModel):
+    status: Optional[ContactStatus] = None
 
 # Utility Functions
 def hash_password(password: str) -> str:
@@ -233,6 +253,45 @@ async def delete_article(article_id: str, current_user: User = Depends(get_curre
     await db.articles.delete_one({"id": article_id})
     return {"message": "Article deleted successfully"}
 
+# Contact Routes
+@api_router.post("/contact", response_model=Contact)
+async def submit_contact(contact_data: ContactCreate):
+    contact_obj = Contact(**contact_data.dict())
+    await db.contacts.insert_one(contact_obj.dict())
+    return contact_obj
+
+@api_router.get("/contacts", response_model=List[Contact])
+async def get_contacts(current_user: User = Depends(get_current_user), status: Optional[str] = None):
+    query = {}
+    if status:
+        query["status"] = status
+    
+    contacts = await db.contacts.find(query).sort("created_at", -1).to_list(length=None)
+    return [Contact(**contact) for contact in contacts]
+
+@api_router.put("/contacts/{contact_id}", response_model=Contact)
+async def update_contact_status(contact_id: str, contact_data: ContactUpdate, current_user: User = Depends(get_current_user)):
+    contact = await db.contacts.find_one({"id": contact_id})
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    
+    update_data = {k: v for k, v in contact_data.dict().items() if v is not None}
+    update_data['updated_at'] = datetime.now(timezone.utc)
+    
+    await db.contacts.update_one({"id": contact_id}, {"$set": update_data})
+    
+    updated_contact = await db.contacts.find_one({"id": contact_id})
+    return Contact(**updated_contact)
+
+@api_router.delete("/contacts/{contact_id}")
+async def delete_contact(contact_id: str, current_user: User = Depends(get_current_user)):
+    contact = await db.contacts.find_one({"id": contact_id})
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    
+    await db.contacts.delete_one({"id": contact_id})
+    return {"message": "Contact deleted successfully"}
+
 # Dashboard Routes
 @api_router.get("/dashboard/articles", response_model=List[Article])
 async def get_dashboard_articles(current_user: User = Depends(get_current_user)):
@@ -253,6 +312,10 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
     published_articles = await db.articles.count_documents({**query, "is_published": True})
     breaking_news = await db.articles.count_documents({**query, "is_breaking": True})
     
+    # Contact stats
+    total_contacts = await db.contacts.count_documents({})
+    new_contacts = await db.contacts.count_documents({"status": "new"})
+    
     # Category breakdown
     categories = {}
     for category in ArticleCategory:
@@ -263,6 +326,8 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
         "total_articles": total_articles,
         "published_articles": published_articles,
         "breaking_news": breaking_news,
+        "total_contacts": total_contacts,
+        "new_contacts": new_contacts,
         "categories": categories
     }
 

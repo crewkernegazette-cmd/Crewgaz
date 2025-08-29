@@ -63,6 +63,11 @@ const Footer = () => {
                   Comedy & Satire
                 </Link>
               </li>
+              <li>
+                <Link to="/contact" className="text-slate-400 hover:text-red-400 transition-colors">
+                  Contact Us
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -76,7 +81,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center text-slate-400">
                 <Mail className="w-4 h-4 mr-2" />
-                info@crewkernegazette.co.uk
+                CrewkerneGazette@gmail.com
               </li>
             </ul>
             
