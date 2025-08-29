@@ -12,7 +12,10 @@ import {
   Edit,
   Trash2,
   Save,
-  X
+  X,
+  Mail,
+  CheckCircle,
+  Clock
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -61,7 +64,7 @@ const DashboardOverview = () => {
       <h1 className="text-3xl font-bold text-white">Dashboard Overview</h1>
       
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-slate-400">Total Articles</CardTitle>
@@ -85,8 +88,15 @@ const DashboardOverview = () => {
         
         <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-400">Categories</CardTitle>
-            <div className="text-2xl font-bold text-blue-400">4</div>
+            <CardTitle className="text-sm font-medium text-slate-400">Total Contacts</CardTitle>
+            <div className="text-2xl font-bold text-blue-400">{stats.total_contacts || 0}</div>
+          </CardHeader>
+        </Card>
+        
+        <Card className="bg-slate-800/50 border-slate-700">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-slate-400">New Messages</CardTitle>
+            <div className="text-2xl font-bold text-orange-400">{stats.new_contacts || 0}</div>
           </CardHeader>
         </Card>
       </div>
@@ -142,7 +152,157 @@ const DashboardOverview = () => {
   );
 };
 
-// Articles Management Component
+// Contact Messages Component
+const ContactMessages = () => {
+  const [contacts, setContacts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  const fetchContacts = async () => {
+    try {
+      const response = await axios.get(`${API}/contacts`);
+      setContacts(response.data);
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateContactStatus = async (contactId, status) => {
+    try {
+      await axios.put(`${API}/contacts/${contactId}`, { status });
+      setContacts(contacts.map(contact => 
+        contact.id === contactId ? { ...contact, status } : contact
+      ));
+      toast.success('Contact status updated');
+    } catch (error) {
+      console.error('Error updating contact:', error);
+      toast.error('Failed to update contact status');
+    }
+  };
+
+  const deleteContact = async (contactId) => {
+    if (!window.confirm('Are you sure you want to delete this message?')) return;
+    
+    try {
+      await axios.delete(`${API}/contacts/${contactId}`);
+      setContacts(contacts.filter(c => c.id !== contactId));
+      toast.success('Message deleted successfully');
+    } catch (error) {
+      console.error('Error deleting contact:', error);
+      toast.error('Failed to delete message');
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'new':
+        return <Badge className="bg-orange-600">New</Badge>;
+      case 'read':
+        return <Badge className="bg-blue-600">Read</Badge>;
+      case 'replied':
+        return <Badge className="bg-green-600">Replied</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64"><div className="loading-spinner"></div></div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-white">Contact Messages</h1>
+        <Badge className="bg-slate-700 text-slate-300">
+          {contacts.filter(c => c.status === 'new').length} new messages
+        </Badge>
+      </div>
+
+      {contacts.length === 0 ? (
+        <Card className="bg-slate-800/50 border-slate-700">
+          <CardContent className="py-16 text-center">
+            <Mail className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-slate-300 mb-2">No messages yet</h3>
+            <p className="text-slate-400">Contact form submissions will appear here</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {contacts.map((contact) => (
+            <Card key={contact.id} className="bg-slate-800/50 border-slate-700">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold text-white">{contact.email}</h3>
+                      {getStatusBadge(contact.status)}
+                    </div>
+                    <div className="flex items-center text-sm text-slate-400 mb-4">
+                      <Clock className="w-4 h-4 mr-1" />
+                      {new Date(contact.created_at).toLocaleString()}
+                    </div>
+                    <div className="bg-slate-700/30 p-4 rounded-lg mb-4">
+                      <p className="text-slate-200 whitespace-pre-wrap">{contact.inquiry}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => updateContactStatus(contact.id, 'read')}
+                      disabled={contact.status === 'read'}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Mark as Read
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => updateContactStatus(contact.id, 'replied')}
+                      disabled={contact.status === 'replied'}
+                    >
+                      <Mail className="w-4 h-4 mr-1" />
+                      Mark as Replied
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.location.href = `mailto:${contact.email}`}
+                    >
+                      Reply via Email
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => deleteContact(contact.id)}
+                      className="text-red-400 border-red-400 hover:bg-red-400 hover:text-white"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Articles Management Component (keeping existing implementation)
 const ArticlesManager = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -252,7 +412,7 @@ const ArticlesManager = () => {
   );
 };
 
-// Article Editor Component
+// Article Editor Component (keeping existing implementation)
 const ArticleEditor = ({ articleId = null }) => {
   const [article, setArticle] = useState({
     title: '',
@@ -462,6 +622,7 @@ const Dashboard = () => {
     { path: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
     { path: '/dashboard/articles', icon: FileText, label: 'Articles' },
     { path: '/dashboard/create', icon: PlusCircle, label: 'Create Article' },
+    { path: '/dashboard/contacts', icon: Mail, label: 'Messages' },
     { path: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
@@ -497,6 +658,7 @@ const Dashboard = () => {
           <Route path="articles" element={<ArticlesManager />} />
           <Route path="create" element={<ArticleEditor />} />
           <Route path="edit/:id" element={<ArticleEditor articleId={location.pathname.split('/').pop()} />} />
+          <Route path="contacts" element={<ContactMessages />} />
           <Route path="analytics" element={<div className="text-white">Analytics coming soon...</div>} />
           <Route path="settings" element={<div className="text-white">Settings coming soon...</div>} />
           <Route path="*" element={<Navigate to="/dashboard" />} />

@@ -11,6 +11,7 @@ import NewsSection from './components/NewsSection';
 import MusicSection from './components/MusicSection';
 import DocumentariesSection from './components/DocumentariesSection';
 import ComedySection from './components/ComedySection';
+import ContactSection from './components/ContactSection';
 import ArticleDetail from './components/ArticleDetail';
 import Dashboard from './components/Dashboard';
 import LoginForm from './components/LoginForm';
@@ -93,6 +94,7 @@ function App() {
             <Route path="/music" element={<MusicSection />} />
             <Route path="/documentaries" element={<DocumentariesSection />} />
             <Route path="/comedy" element={<ComedySection />} />
+            <Route path="/contact" element={<ContactSection />} />
             <Route path="/article/:id" element={<ArticleDetail />} />
             <Route 
               path="/login" 
