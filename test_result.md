@@ -228,15 +228,18 @@
 
   - task: "Publisher selection in article editor"
     implemented: true
-    working: "unknown"
+    working: true
     file: "Dashboard.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "unknown"
           agent: "main"
           comment: "ArticleEditor includes publisher_name input field"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Publisher selection working correctly. Publisher name field present in article editor with default value 'The Crewkerne Gazette'. Field is editable and saves properly."
 
   - task: "Breaking news flag in article editor"
     implemented: true
