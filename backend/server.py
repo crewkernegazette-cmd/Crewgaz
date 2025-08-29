@@ -421,6 +421,26 @@ async def toggle_maintenance(maintenance_data: MaintenanceToggle, current_user: 
     status_text = "enabled" if maintenance_data.maintenance_mode else "disabled"
     return {"message": f"Maintenance mode {status_text} successfully"}
 
+@api_router.post("/settings/breaking-news-banner")
+async def toggle_breaking_news_banner(banner_data: BreakingNewsBannerToggle, current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Update or create settings
+    update_data = {
+        "show_breaking_news_banner": banner_data.show_breaking_news_banner,
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    result = await db.settings.update_one(
+        {},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    status_text = "enabled" if banner_data.show_breaking_news_banner else "disabled"
+    return {"message": f"Breaking news banner {status_text} successfully"}
+
 # Article Routes
 @api_router.post("/articles", response_model=Article)
 async def create_article(article_data: ArticleCreate, current_user: User = Depends(get_current_user)):
