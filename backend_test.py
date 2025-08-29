@@ -606,6 +606,16 @@ def main():
     tester.test_get_settings()
     tester.test_maintenance_mode_toggle()
     
+    # NEW FEATURE TESTS - Breaking News Banner Toggle & Image Upload
+    print("\n📋 NEW FEATURES - BREAKING NEWS BANNER & IMAGE UPLOAD")
+    print("-" * 60)
+    
+    tester.test_breaking_news_banner_toggle()
+    tester.test_public_settings_endpoint()
+    tester.test_settings_persistence()
+    tester.test_image_upload_url_format()
+    tester.test_unauthorized_breaking_news_banner_access()
+    
     # MEDIUM PRIORITY TESTS - Article Management Features
     print("\n📋 MEDIUM PRIORITY - ARTICLE MANAGEMENT FEATURES")
     print("-" * 55)
