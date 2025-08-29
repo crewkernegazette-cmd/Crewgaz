@@ -13,6 +13,16 @@ const DocumentariesSection = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Your actual documentary videos
+  const documentaryVideos = [
+    { id: 'Pw_LZkP6FLo', title: 'Documentary Investigation 1' },
+    { id: 'Ft1fQaLMMe8', title: 'Documentary Investigation 2' },
+    { id: 'XoOje2jhmXs', title: 'Documentary Investigation 3' },
+    { id: 'gOkQntFFHEE', title: 'Documentary Investigation 4' },
+    { id: 'VaLZELuZduA', title: 'Documentary Investigation 5' },
+    { id: 'rdYAcyba-Dw', title: 'Documentary Investigation 6' }
+  ];
+
   useEffect(() => {
     fetchDocumentaries();
   }, []);
@@ -57,11 +67,11 @@ const DocumentariesSection = () => {
         <div className="container">
           <div className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6 uppercase tracking-wider">
-              DEEP DIVES
+              DEEP DIVES & INVESTIGATIONS
             </h1>
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-              Investigative documentaries that expose the truth. Watch our latest 
-              documentary-style videos and deep investigations on YouTube.
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto mb-8">
+              In-depth explorations of history, crime, and the issues that matter most, told with style and substance. 
+              Documentary investigations that expose uncomfortable truths.
             </p>
             
             {/* YouTube Channel Link */}
@@ -73,7 +83,7 @@ const DocumentariesSection = () => {
                 className="btn btn-primary"
               >
                 <Youtube className="w-5 h-5 mr-2" />
-                Watch on YouTube
+                Watch All Documentaries
                 <ExternalLink className="w-4 h-4 ml-2" />
               </a>
             </div>
@@ -81,48 +91,48 @@ const DocumentariesSection = () => {
         </div>
       </section>
 
-      {/* Featured YouTube Section */}
+      {/* Documentary Videos Section */}
       <section className="py-16 bg-slate-800/50">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">LATEST DOCUMENTARIES</h2>
+            <h2 className="section-title">OUR INVESTIGATIONS</h2>
             <p className="section-subtitle">
-              Watch our investigative documentaries and exposé videos
+              Watch our documentary investigations and exposés — stories told with style and substance
             </p>
           </div>
 
-          {/* YouTube Channel Embed */}
-          <div className="max-w-4xl mx-auto mb-12">
-            <Card className="bg-slate-800/80 border-blue-600/30">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  <Youtube className="w-6 h-6 text-red-400 mr-3" />
-                  <h3 className="text-xl font-bold text-white">The Crewkerne Gazette Channel</h3>
-                </div>
-                <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden">
-                  <iframe 
-                    src="https://www.youtube.com/embed/videoseries?list=UULFolderIdHere" 
-                    width="100%" 
-                    height="100%" 
-                    frameBorder="0" 
-                    allowFullScreen
-                    className="rounded-lg"
-                    title="The Crewkerne Gazette Documentaries"
-                  />
-                </div>
-                <div className="mt-4 text-center">
-                  <a 
-                    href="https://m.youtube.com/@TheCrewkerneGazette" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-red-400 hover:text-red-300 flex items-center justify-center"
-                  >
-                    Visit our YouTube channel for all documentaries
-                    <ExternalLink className="w-4 h-4 ml-2" />
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {documentaryVideos.map((video, index) => (
+              <Card key={video.id} className="bg-slate-800/80 border-blue-600/30">
+                <CardContent className="p-6">
+                  <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden mb-4">
+                    <iframe 
+                      src={`https://www.youtube.com/embed/${video.id}`}
+                      width="100%" 
+                      height="100%" 
+                      frameBorder="0" 
+                      allowFullScreen
+                      className="rounded-lg"
+                      title={`The Crewkerne Gazette Documentary ${index + 1}`}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Badge className="bg-blue-600/80 text-white">
+                      INVESTIGATION {index + 1}
+                    </Badge>
+                    <a 
+                      href={`https://youtu.be/${video.id}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 text-sm flex items-center"
+                    >
+                      Watch Full Doc
+                      <ExternalLink className="w-3 h-3 ml-1" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           {/* Documentary Features */}
@@ -150,9 +160,9 @@ const DocumentariesSection = () => {
             <Card className="bg-slate-800/60 border-blue-600/30">
               <CardContent className="p-6 text-center">
                 <Youtube className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-white mb-2">WEEKLY RELEASES</h3>
+                <h3 className="text-lg font-bold text-white mb-2">REGULAR RELEASES</h3>
                 <p className="text-slate-300 text-sm">
-                  New documentary content every week, covering the issues that matter most to our community.
+                  New documentary content covering the issues that matter most to our community.
                 </p>
               </CardContent>
             </Card>
@@ -218,7 +228,7 @@ const DocumentariesSection = () => {
                     <div className="article-content">
                       <div className="flex items-center justify-between mb-3">
                         <Badge className="category-badge category-documentaries">
-                          Documentaries
+                          INVESTIGATION
                         </Badge>
                       </div>
                       <h3 className="article-title group-hover:text-blue-400 transition-colors">
@@ -254,18 +264,10 @@ const DocumentariesSection = () => {
               <h3 className="text-2xl font-semibold text-slate-300 mb-4">
                 MORE DOCUMENTARY CONTENT COMING SOON
               </h3>
-              <p className="text-slate-400 mb-6">
-                Check out our YouTube channel for the latest investigative documentaries and video content.
+              <p className="text-slate-400 mb-6 max-w-2xl mx-auto">
+                We're preparing behind-the-scenes content about our documentary investigations. 
+                In the meantime, watch our investigative documentaries above.
               </p>
-              <a 
-                href="https://m.youtube.com/@TheCrewkerneGazette" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="btn btn-primary"
-              >
-                <Youtube className="w-5 h-5 mr-2" />
-                Watch Now
-              </a>
             </div>
           )}
         </div>

@@ -13,6 +13,16 @@ const MusicSection = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Your actual music videos
+  const musicVideos = [
+    { id: 'kmNjVV1RzfU', title: 'Music Video 1' },
+    { id: 'dFyVT8DKisU', title: 'Music Video 2' },
+    { id: 'J23QKOvnyuc', title: 'Music Video 3' },
+    { id: 'r4Uxpb15dYI', title: 'Music Video 4' },
+    { id: '3OPnLmM1gUg', title: 'Music Video 5' },
+    { id: '_QSSSi1uS4Y', title: 'Music Video 6' }
+  ];
+
   useEffect(() => {
     fetchMusic();
   }, []);
@@ -91,23 +101,57 @@ const MusicSection = () => {
         </div>
       </section>
 
-      {/* Embedded Players Section */}
+      {/* Music Videos Section */}
       <section className="py-16 bg-slate-800/50">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">OUR SOUND</h2>
+            <h2 className="section-title">OUR MUSIC VIDEOS</h2>
             <p className="section-subtitle">
-              Culture that celebrates British life with all its grit, energy, and contradictions
+              Watch our latest tracks and performances — culture that celebrates British life
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            {/* Spotify Embed */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {musicVideos.map((video, index) => (
+              <Card key={video.id} className="bg-slate-800/80 border-red-600/30">
+                <CardContent className="p-6">
+                  <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden mb-4">
+                    <iframe 
+                      src={`https://www.youtube.com/embed/${video.id}`}
+                      width="100%" 
+                      height="100%" 
+                      frameBorder="0" 
+                      allowFullScreen
+                      className="rounded-lg"
+                      title={`The Crewkerne Gazette Music Video ${index + 1}`}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Badge className="category-badge category-music">
+                      TRACK {index + 1}
+                    </Badge>
+                    <a 
+                      href={`https://youtu.be/${video.id}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-red-400 hover:text-red-300 text-sm flex items-center"
+                    >
+                      Watch on YouTube
+                      <ExternalLink className="w-3 h-3 ml-1" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Spotify Player */}
+          <div className="max-w-4xl mx-auto mb-12">
             <Card className="bg-slate-800/80 border-red-600/30">
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
                   <Music2 className="w-6 h-6 text-green-400 mr-3" />
-                  <h3 className="text-xl font-bold text-white">Stream Our Music</h3>
+                  <h3 className="text-xl font-bold text-white">Stream Our Complete Catalog</h3>
                 </div>
                 <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden">
                   <iframe 
@@ -120,37 +164,6 @@ const MusicSection = () => {
                     loading="lazy"
                     className="rounded-lg"
                   />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* YouTube Embed */}
-            <Card className="bg-slate-800/80 border-red-600/30">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  <Youtube className="w-6 h-6 text-red-400 mr-3" />
-                  <h3 className="text-xl font-bold text-white">Music Videos</h3>
-                </div>
-                <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden">
-                  <iframe 
-                    src="https://www.youtube.com/embed/videoseries?list=UULFolderIdHere" 
-                    width="100%" 
-                    height="100%" 
-                    frameBorder="0" 
-                    allowFullScreen
-                    className="rounded-lg"
-                  />
-                </div>
-                <div className="mt-4">
-                  <a 
-                    href="https://m.youtube.com/@TheCrewkerneGazette" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-red-400 hover:text-red-300 text-sm flex items-center"
-                  >
-                    Visit our YouTube channel
-                    <ExternalLink className="w-3 h-3 ml-1" />
-                  </a>
                 </div>
               </CardContent>
             </Card>
@@ -260,28 +273,8 @@ const MusicSection = () => {
               </h3>
               <p className="text-slate-400 mb-6 max-w-2xl mx-auto">
                 We're creating content about our musical journey, the stories behind the songs, 
-                and the culture that shapes authentic British sound. In the meantime, dive into our tracks.
+                and the culture that shapes authentic British sound. In the meantime, dive into our tracks above.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a 
-                  href="https://open.spotify.com/artist/6iwYn8mBLB97HM21KSHsMa" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="btn btn-primary"
-                >
-                  <Music2 className="w-4 h-4 mr-2" />
-                  Spotify
-                </a>
-                <a 
-                  href="https://m.youtube.com/@TheCrewkerneGazette" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary"
-                >
-                  <Youtube className="w-4 h-4 mr-2" />
-                  YouTube
-                </a>
-              </div>
             </div>
           )}
         </div>
