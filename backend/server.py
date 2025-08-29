@@ -634,28 +634,50 @@ async def create_defaults():
         print("⚠️  Continuing deployment - database will be connected when available")
         return  # Skip initialization if database is not available yet
     
-    # Create default admin user
+    # Force create default admin user (always create, even if exists)
     try:
-        admin_exists = await db.users.find_one({"role": "admin"})
-        if not admin_exists:
-            admin_user = UserCreate(
-                username="admin",
-                email="admin@crewkerngazette.com",
-                password="admin123",
-                role=UserRole.ADMIN
-            )
-            hashed_password = hash_password(admin_user.password)
-            user_obj = User(**admin_user.dict(exclude={'password'}))
-            
-            user_doc = user_obj.dict()
-            user_doc['password_hash'] = hashed_password
-            
-            await db.users.insert_one(user_doc)
-            print("✅ Default admin user created: username=admin, password=admin123")
-        else:
-            print("✅ Admin user already exists")
+        # Always ensure admin user exists with correct credentials
+        admin_user = UserCreate(
+            username="admin",
+            email="admin@crewkerngazette.com",
+            password="admin123",
+            role=UserRole.ADMIN
+        )
+        hashed_password = hash_password(admin_user.password)
+        user_obj = User(**admin_user.dict(exclude={'password'}))
+        
+        user_doc = user_obj.dict()
+        user_doc['password_hash'] = hashed_password
+        
+        # Use upsert to always ensure admin user exists with correct password
+        await db.users.update_one(
+            {"username": "admin"},
+            {"$set": user_doc},
+            upsert=True
+        )
+        print("✅ Admin user created/updated: username=admin, password=admin123")
+        
+        # Also create backup admin
+        backup_admin = UserCreate(
+            username="admin_backup",
+            email="backup@crewkerngazette.com", 
+            password="admin123",
+            role=UserRole.ADMIN
+        )
+        backup_hashed = hash_password(backup_admin.password)
+        backup_obj = User(**backup_admin.dict(exclude={'password'}))
+        backup_doc = backup_obj.dict()
+        backup_doc['password_hash'] = backup_hashed
+        
+        await db.users.update_one(
+            {"username": "admin_backup"},
+            {"$set": backup_doc},
+            upsert=True
+        )
+        print("✅ Backup admin user created/updated: username=admin_backup, password=admin123")
+        
     except Exception as e:
-        print(f"⚠️  Failed to create default admin user: {e}")
+        print(f"⚠️  Failed to create admin users: {e}")
     
     # Create default settings
     try:
