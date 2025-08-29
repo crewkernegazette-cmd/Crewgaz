@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Clock, Play, Music as MusicIcon, ExternalLink, Youtube, Music2 } from 'lucide-react';
+import { Clock, Play, Music as MusicIcon, ExternalLink, Youtube, Music2, Users } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
@@ -57,11 +57,11 @@ const MusicSection = () => {
         <div className="container">
           <div className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6 uppercase tracking-wider">
-              SOUND & FURY
+              RAW & AUTHENTIC MUSIC
             </h1>
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-              Music that moves culture and changes minds. Listen to our latest tracks 
-              on Spotify and watch our music videos on YouTube.
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto mb-8">
+              A stage for the sounds and culture that reflect the people — raw, energetic, and authentic. 
+              Music that moves culture and changes minds, proudly from Somerset.
             </p>
             
             {/* Platform Links */}
@@ -95,9 +95,9 @@ const MusicSection = () => {
       <section className="py-16 bg-slate-800/50">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">LATEST TRACKS</h2>
+            <h2 className="section-title">OUR SOUND</h2>
             <p className="section-subtitle">
-              Stream our music directly from Spotify and YouTube
+              Culture that celebrates British life with all its grit, energy, and contradictions
             </p>
           </div>
 
@@ -107,7 +107,7 @@ const MusicSection = () => {
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
                   <Music2 className="w-6 h-6 text-green-400 mr-3" />
-                  <h3 className="text-xl font-bold text-white">Spotify Player</h3>
+                  <h3 className="text-xl font-bold text-white">Stream Our Music</h3>
                 </div>
                 <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden">
                   <iframe 
@@ -129,7 +129,7 @@ const MusicSection = () => {
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
                   <Youtube className="w-6 h-6 text-red-400 mr-3" />
-                  <h3 className="text-xl font-bold text-white">YouTube Channel</h3>
+                  <h3 className="text-xl font-bold text-white">Music Videos</h3>
                 </div>
                 <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden">
                   <iframe 
@@ -159,11 +159,11 @@ const MusicSection = () => {
           {/* Call to Action */}
           <div className="text-center">
             <h3 className="text-2xl font-bold text-white mb-4">
-              SUPPORT THE MOVEMENT
+              JOIN THE SOUND REVOLUTION
             </h3>
             <p className="text-slate-300 mb-6 max-w-2xl mx-auto">
-              Follow us on Spotify and subscribe to our YouTube channel to stay 
-              updated with our latest musical releases and exclusive content.
+              Follow us for music that doesn't compromise, doesn't conform, and doesn't apologize. 
+              This is culture as it should be — alive, authentic, and unapologetically British.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
@@ -172,6 +172,7 @@ const MusicSection = () => {
                 rel="noopener noreferrer"
                 className="btn btn-primary"
               >
+                <Users className="w-5 h-5 mr-2" />
                 Follow on Spotify
               </a>
               <a 
@@ -180,6 +181,7 @@ const MusicSection = () => {
                 rel="noopener noreferrer"
                 className="btn btn-secondary"
               >
+                <Users className="w-5 h-5 mr-2" />
                 Subscribe on YouTube
               </a>
             </div>
@@ -193,9 +195,9 @@ const MusicSection = () => {
           {articles.length > 0 && (
             <>
               <div className="section-header">
-                <h2 className="section-title">MUSIC COVERAGE</h2>
+                <h2 className="section-title">BEHIND THE MUSIC</h2>
                 <p className="section-subtitle">
-                  Behind the scenes, interviews, and commentary on our musical journey
+                  Stories from the studio, insights into our creative process, and the cultural commentary behind the sound
                 </p>
               </div>
 
@@ -220,7 +222,7 @@ const MusicSection = () => {
                     <div className="article-content">
                       <div className="flex items-center justify-between mb-3">
                         <Badge className="category-badge category-music">
-                          Music
+                          AUTHENTIC
                         </Badge>
                       </div>
                       <h3 className="article-title group-hover:text-purple-400 transition-colors">
@@ -254,10 +256,11 @@ const MusicSection = () => {
             <div className="text-center py-16">
               <MusicIcon className="w-16 h-16 text-slate-600 mx-auto mb-4" />
               <h3 className="text-2xl font-semibold text-slate-300 mb-4">
-                MORE MUSIC CONTENT COMING SOON
+                MORE MUSICAL CONTENT COMING SOON
               </h3>
-              <p className="text-slate-400 mb-6">
-                In the meantime, check out our latest tracks on Spotify and YouTube.
+              <p className="text-slate-400 mb-6 max-w-2xl mx-auto">
+                We're creating content about our musical journey, the stories behind the songs, 
+                and the culture that shapes authentic British sound. In the meantime, dive into our tracks.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a 

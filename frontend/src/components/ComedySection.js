@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Clock, Smile, Zap } from 'lucide-react';
+import { Clock, Smile, Zap, Laugh } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 
@@ -49,19 +49,31 @@ const ComedySection = () => {
       <section 
         className="relative py-24 bg-cover bg-center"
         style={{
-          backgroundImage: `linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8)), 
+          backgroundImage: `linear-gradient(135deg, rgba(17, 24, 39, 0.9), rgba(31, 41, 55, 0.8)), 
                            url('https://images.unsplash.com/photo-1527224857830-43a7acc85260')`
         }}
       >
         <div className="container">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4">
-              Comedy
+            <h1 className="text-5xl font-bold text-white mb-6 uppercase tracking-wider">
+              LEVITY & LAUGHTER
             </h1>
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-              Satirical takes, comedic sketches, and the humor that cuts through 
-              the noise to reveal uncomfortable truths.
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto mb-6">
+              Satire and sketches that bring levity and laughter while poking fun at the modern circus. 
+              Comedy with grit that dares to laugh at the absurdities of our times.
             </p>
+            <div className="flex flex-wrap justify-center gap-4 text-sm">
+              <Badge className="bg-orange-600/20 text-orange-300 border border-orange-600/30 px-4 py-2">
+                <Laugh className="w-4 h-4 mr-2" />
+                Satirical Edge
+              </Badge>
+              <Badge className="bg-orange-600/20 text-orange-300 border border-orange-600/30 px-4 py-2">
+                British Humour
+              </Badge>
+              <Badge className="bg-orange-600/20 text-orange-300 border border-orange-600/30 px-4 py-2">
+                No Sacred Cows
+              </Badge>
+            </div>
           </div>
         </div>
       </section>
@@ -73,11 +85,18 @@ const ComedySection = () => {
             <div className="text-center py-16">
               <Smile className="w-16 h-16 text-slate-600 mx-auto mb-4" />
               <h3 className="text-2xl font-semibold text-slate-300 mb-4">
-                No Comedy Content Yet
+                More Sharp Comedy Coming Soon
               </h3>
-              <p className="text-slate-400">
-                Get ready for satirical content and comedic takes on current events.
+              <p className="text-slate-400 max-w-2xl mx-auto mb-6">
+                We're preparing satirical content that doesn't pull punches. Comedy that reflects British life 
+                with all its contradictions — because sometimes you have to laugh to keep from crying.
               </p>
+              <p className="text-slate-300 text-lg mb-6">
+                "Humor that cuts deeper than any headline."
+              </p>
+              <Link to="/contact" className="text-orange-400 hover:text-orange-300 underline">
+                Got a comedic take on current events? Share it with us →
+              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 stagger-children">
@@ -100,7 +119,7 @@ const ComedySection = () => {
                   <div className="article-content">
                     <div className="flex items-center justify-between mb-3">
                       <Badge className="category-badge category-comedy">
-                        Comedy
+                        SATIRICAL
                       </Badge>
                     </div>
                     <h3 className="article-title group-hover:text-orange-400 transition-colors">
@@ -119,7 +138,7 @@ const ComedySection = () => {
                     <div className="mt-4">
                       <Link to={`/article/${article.id}`}>
                         <Button variant="outline" size="sm" className="w-full border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-white">
-                          Read & Laugh
+                          Have a Laugh
                         </Button>
                       </Link>
                     </div>
