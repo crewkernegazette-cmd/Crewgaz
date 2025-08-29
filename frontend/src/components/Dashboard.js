@@ -15,7 +15,9 @@ import {
   X,
   Mail,
   CheckCircle,
-  Clock
+  Clock,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
