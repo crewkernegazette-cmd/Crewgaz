@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { Button } from './ui/button';
-import { LogOut, User, Settings } from 'lucide-react';
+import { LogOut, Settings } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -21,12 +21,15 @@ const Navbar = () => {
       <div className="container">
         <div className="flex items-center justify-between py-4">
           {/* Logo */}
-          <Link to="/" className="gazette-title">
-            The Crewkerne Gazette
+          <Link to="/" className="gazette-logo">
+            <div className="gazette-logo-circle"></div>
+            <div className="gazette-logo-text">
+              The Crewkerne Gazette
+            </div>
           </Link>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-2">
             <Link 
               to="/" 
               className={`nav-link ${isActive('/') ? 'active' : ''}`}
@@ -59,12 +62,12 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* User Actions */}
-          <div className="flex items-center space-x-4">
+          {/* Admin Actions */}
+          <div className="flex items-center space-x-3">
             {user ? (
               <>
                 <Link to="/dashboard">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white">
                     <Settings className="w-4 h-4 mr-2" />
                     Dashboard
                   </Button>
@@ -80,11 +83,11 @@ const Navbar = () => {
                 </Button>
               </>
             ) : (
-              <Link to="/login">
-                <Button size="sm">
-                  <User className="w-4 h-4 mr-2" />
-                  Login
-                </Button>
+              <Link 
+                to="/login" 
+                className="nav-admin-link text-xs text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                Admin
               </Link>
             )}
           </div>
