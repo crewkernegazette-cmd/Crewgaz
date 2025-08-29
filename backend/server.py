@@ -24,20 +24,42 @@ load_dotenv(ROOT_DIR / '.env')
 UPLOAD_DIR = ROOT_DIR / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-# Force use test_database for production compatibility
+# MongoDB connection with fallback for different environments
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 db_name = os.environ.get('DB_NAME', 'test_database')
 if db_name == 'crewkerne_gazette':
     db_name = 'test_database'  # Override for production compatibility
 
-# Add connection options for better Atlas compatibility
-client = AsyncIOMotorClient(
-    mongo_url,
-    serverSelectionTimeoutMS=5000,
-    maxPoolSize=10,
-    retryWrites=True
-)
+# Try different MongoDB URLs for different environments
+client = None
+for url in [mongo_url, 'mongodb://mongo:27017', 'mongodb://localhost:27017']:
+    try:
+        print(f"🔗 Attempting MongoDB connection to: {url}")
+        client = AsyncIOMotorClient(
+            url,
+            serverSelectionTimeoutMS=3000,
+            maxPoolSize=10,
+            retryWrites=True
+        )
+        # Test the connection
+        client.admin.command('ping')
+        print(f"✅ Successfully connected to MongoDB: {url}")
+        break
+    except Exception as e:
+        print(f"❌ Failed to connect to {url}: {e}")
+        client = None
+        continue
+
+if client is None:
+    print("🚨 CRITICAL: Could not connect to MongoDB on any URL")
+    # Use localhost as fallback
+    client = AsyncIOMotorClient(
+        'mongodb://localhost:27017',
+        serverSelectionTimeoutMS=5000,
+        maxPoolSize=10,
+        retryWrites=True
+    )
+    
 db = client[db_name]
 
 # Create the main app without a prefix
