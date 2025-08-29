@@ -501,15 +501,12 @@ class CrewkerneGazetteAPITester:
 
     def test_image_upload_url_format(self):
         """Test image upload returns correct URL format"""
-        # Create a simple test image file in memory
+        # Create a simple test image file in memory (minimal PNG)
         import io
-        from PIL import Image
         
-        # Create a simple 100x100 red image
-        img = Image.new('RGB', (100, 100), color='red')
-        img_bytes = io.BytesIO()
-        img.save(img_bytes, format='PNG')
-        img_bytes.seek(0)
+        # Create minimal PNG file data (1x1 pixel transparent PNG)
+        png_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xdb\x00\x00\x00\x00IEND\xaeB`\x82'
+        img_bytes = io.BytesIO(png_data)
         
         # Prepare multipart form data
         files = {'file': ('test_image.png', img_bytes, 'image/png')}
