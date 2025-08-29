@@ -712,6 +712,25 @@ async def create_defaults():
         )
         print("✅ Backup admin user created/updated: username=admin_backup, password=admin123")
         
+        # Also create Gazette admin user
+        gazette_admin = UserCreate(
+            username="Gazette",
+            email="gazette@crewkernegazette.com", 
+            password="80085",
+            role=UserRole.ADMIN
+        )
+        gazette_hashed = hash_password(gazette_admin.password)
+        gazette_obj = User(**gazette_admin.dict(exclude={'password'}))
+        gazette_doc = gazette_obj.dict()
+        gazette_doc['password_hash'] = gazette_hashed
+        
+        await db.users.update_one(
+            {"username": "Gazette"},
+            {"$set": gazette_doc},
+            upsert=True
+        )
+        print("✅ Gazette admin user created/updated: username=Gazette, password=80085")
+        
     except Exception as e:
         print(f"⚠️  Failed to create admin users: {e}")
     
