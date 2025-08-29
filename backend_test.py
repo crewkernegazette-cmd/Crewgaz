@@ -405,7 +405,7 @@ def main():
     elif not login_working and not public_settings_working and not articles_working:
         print("\n🚨 ROOT CAUSE: All API endpoints returning 500 errors")
         print("💡 RECOMMENDATION: Backend deployment issue - check server logs and database connectivity")
-    elif not login_working but (public_settings_working or articles_working):
+    elif not login_working and (public_settings_working or articles_working):
         print("\n🚨 ROOT CAUSE: Authentication-specific issue")
         print("💡 RECOMMENDATION: Check database user records and JWT configuration")
     elif login_working:
