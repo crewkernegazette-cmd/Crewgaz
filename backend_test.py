@@ -213,6 +213,171 @@ class CrewkerneGazetteAPITester:
         )
         return success
 
+    # HIGH PRIORITY TESTS - Dashboard Features
+    def test_change_password(self):
+        """Test password change functionality"""
+        password_data = {
+            "current_password": "admin123",
+            "new_password": "newpassword123"
+        }
+        
+        success, response = self.run_test(
+            "Change Password",
+            "POST",
+            "auth/change-password",
+            200,
+            data=password_data
+        )
+        
+        # Change password back to original for other tests
+        if success:
+            revert_data = {
+                "current_password": "newpassword123",
+                "new_password": "admin123"
+            }
+            self.run_test(
+                "Revert Password",
+                "POST",
+                "auth/change-password",
+                200,
+                data=revert_data
+            )
+        
+        return success
+
+    def test_get_settings(self):
+        """Test fetching site settings"""
+        success, response = self.run_test(
+            "Get Site Settings",
+            "GET",
+            "settings",
+            200
+        )
+        return success
+
+    def test_maintenance_mode_toggle(self):
+        """Test toggling maintenance mode on/off"""
+        # Enable maintenance mode
+        enable_data = {"maintenance_mode": True}
+        success1, response1 = self.run_test(
+            "Enable Maintenance Mode",
+            "POST",
+            "settings/maintenance",
+            200,
+            data=enable_data
+        )
+        
+        # Disable maintenance mode
+        disable_data = {"maintenance_mode": False}
+        success2, response2 = self.run_test(
+            "Disable Maintenance Mode",
+            "POST",
+            "settings/maintenance",
+            200,
+            data=disable_data
+        )
+        
+        return success1 and success2
+
+    # MEDIUM PRIORITY TESTS - Article Management Features
+    def test_create_article_with_new_fields(self):
+        """Test creating articles with new fields (subheading, publisher_name, is_breaking)"""
+        article_data = {
+            "title": f"Breaking News Article {datetime.now().strftime('%H%M%S')}",
+            "subheading": "This is a test subheading for the article",
+            "content": "This is comprehensive test content for the breaking news article with all new fields.",
+            "category": "news",
+            "publisher_name": "The Crewkerne Gazette",
+            "featured_image": "https://example.com/breaking-news.jpg",
+            "video_url": "https://example.com/breaking-video.mp4",
+            "is_breaking": True,
+            "is_published": True,
+            "tags": ["breaking", "urgent", "news"]
+        }
+        
+        success, response = self.run_test(
+            "Create Article with New Fields",
+            "POST",
+            "articles",
+            200,
+            data=article_data
+        )
+        
+        if success and 'id' in response:
+            # Verify new fields are properly stored
+            if (response.get('subheading') == article_data['subheading'] and
+                response.get('publisher_name') == article_data['publisher_name'] and
+                response.get('is_breaking') == article_data['is_breaking']):
+                print("   ✅ New fields properly stored")
+                # Store this article ID for related articles test
+                self.created_article_id = response['id']
+                return True
+            else:
+                print("   ❌ New fields not properly stored")
+                return False
+        return success
+
+    def test_get_articles_breaking_filter(self):
+        """Test fetching articles with breaking news filtering"""
+        success, response = self.run_test(
+            "Get Breaking News Articles",
+            "GET",
+            "articles?is_breaking=true",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            # Verify all returned articles are breaking news
+            all_breaking = all(article.get('is_breaking', False) for article in response)
+            if all_breaking:
+                print(f"   ✅ All {len(response)} articles are breaking news")
+            else:
+                print("   ❌ Some non-breaking articles returned")
+                return False
+        
+        return success
+
+    def test_related_articles_endpoint(self):
+        """Test related articles endpoint for trending topics functionality"""
+        if not self.created_article_id:
+            print("❌ Skipping - No article ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Get Related Articles",
+            "GET",
+            f"articles/{self.created_article_id}/related",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   ✅ Found {len(response)} related articles")
+            # Verify articles don't include the original article
+            original_in_results = any(article.get('id') == self.created_article_id for article in response)
+            if original_in_results:
+                print("   ❌ Original article included in related articles")
+                return False
+            else:
+                print("   ✅ Original article properly excluded")
+        
+        return success
+
+    def test_invalid_password_change(self):
+        """Test password change with wrong current password"""
+        password_data = {
+            "current_password": "wrongpassword",
+            "new_password": "newpassword123"
+        }
+        
+        success, response = self.run_test(
+            "Invalid Password Change",
+            "POST",
+            "auth/change-password",
+            400,
+            data=password_data
+        )
+        return success
+
     def test_invalid_login(self):
         """Test login with invalid credentials"""
         success, response = self.run_test(
