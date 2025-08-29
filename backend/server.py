@@ -45,7 +45,7 @@ app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 api_router = APIRouter(prefix="/api")
 
 # JWT Configuration
-JWT_SECRET = os.environ.get('JWT_SECRET', 'crewkerne-gazette-secret-key-2024')
+JWT_SECRET = os.environ['JWT_SECRET']
 JWT_ALGORITHM = 'HS256'
 
 security = HTTPBearer()
