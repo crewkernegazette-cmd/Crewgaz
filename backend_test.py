@@ -390,8 +390,8 @@ class CrewkerneGazetteAPITester:
         return success
 
 def main():
-    print("🚀 Starting Crewkerne Gazette API Tests")
-    print("=" * 50)
+    print("🚀 Starting Crewkerne Gazette API Tests - Priority Focus")
+    print("=" * 60)
     
     tester = CrewkerneGazetteAPITester()
     
@@ -404,11 +404,33 @@ def main():
         return 1
     
     tester.test_auth_me()
+    
+    # HIGH PRIORITY TESTS - Core Dashboard Features
+    print("\n📋 HIGH PRIORITY - CORE DASHBOARD FEATURES")
+    print("-" * 50)
+    
+    tester.test_change_password()
+    tester.test_get_settings()
+    tester.test_maintenance_mode_toggle()
+    
+    # MEDIUM PRIORITY TESTS - Article Management Features
+    print("\n📋 MEDIUM PRIORITY - ARTICLE MANAGEMENT FEATURES")
+    print("-" * 55)
+    
+    tester.test_create_article_with_new_fields()
+    tester.test_get_articles_breaking_filter()
+    tester.test_related_articles_endpoint()
+    
+    # Additional Authentication & Validation Tests
+    print("\n📋 VALIDATION & ERROR HANDLING TESTS")
+    print("-" * 40)
+    
+    tester.test_invalid_password_change()
     tester.test_invalid_login()
     
-    # Article CRUD Tests
-    print("\n📋 ARTICLE CRUD TESTS")
-    print("-" * 30)
+    # Standard Article CRUD Tests
+    print("\n📋 STANDARD ARTICLE CRUD TESTS")
+    print("-" * 35)
     
     tester.test_create_article()
     tester.test_get_articles()
@@ -431,7 +453,7 @@ def main():
     tester.test_delete_article()
     
     # Final Results
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
     print(f"📊 FINAL RESULTS")
     print(f"Tests Run: {tester.tests_run}")
     print(f"Tests Passed: {tester.tests_passed}")
