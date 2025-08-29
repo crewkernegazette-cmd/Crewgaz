@@ -59,8 +59,6 @@ def get_mongodb_url():
 
 mongo_url = get_mongodb_url()
 db_name = os.environ.get('DB_NAME', 'test_database')
-if db_name == 'crewkerne_gazette':
-    db_name = 'test_database'  # Override for production compatibility
 
 print(f"🔗 Using MongoDB URL: {mongo_url}")
 print(f"🗄️  Using database: {db_name}")
