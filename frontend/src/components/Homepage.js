@@ -81,17 +81,17 @@ const Homepage = () => {
   return (
     <div>
       {/* Breaking News Ticker */}
-      {breakingNews.length > 0 && (
+      {breakingNews.length > 0 && showBanner && (
         <div className="breaking-news-ticker">
           <div className="breaking-badge">
             BREAKING
           </div>
           <div className="ticker-content">
             {breakingNews.map((news, index) => (
-              <span key={news.id}>
+              <Link key={news.id} to={`/article/${news.id}`} className="ticker-link">
                 {news.title}
                 {index < breakingNews.length - 1 && ' • '}
-              </span>
+              </Link>
             ))}
           </div>
         </div>
