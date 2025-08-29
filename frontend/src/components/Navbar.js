@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { Button } from './ui/button';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, MessageCircle } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -62,8 +62,17 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* User Actions - Only show if logged in */}
+          {/* Contact Button & User Actions */}
           <div className="flex items-center space-x-3">
+            {/* Prominent Contact Button */}
+            <Link to="/contact">
+              <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-semibold">
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Contact Us
+              </Button>
+            </Link>
+
+            {/* User Actions - Only show if logged in */}
             {user && (
               <>
                 <Link to="/dashboard">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Clock, ArrowRight, Users, Target, Globe } from 'lucide-react';
+import { Clock, ArrowRight, Users, Target, Globe, MessageCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Card, CardContent } from './ui/card';
@@ -99,14 +99,18 @@ const Homepage = () => {
           </p>
           <div className="hero-cta">
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="btn-primary">
-                <Target className="w-5 h-5 mr-2" />
-                Read The Truth
-              </Button>
-              <Button variant="outline" size="lg" className="btn-secondary">
-                <Users className="w-5 h-5 mr-2" />
-                Join Our Voice
-              </Button>
+              <Link to="/news">
+                <Button size="lg" className="btn-primary">
+                  <Target className="w-5 h-5 mr-2" />
+                  Read The Truth
+                </Button>
+              </Link>
+              <Link to="/contact">
+                <Button variant="outline" size="lg" className="btn-secondary">
+                  <MessageCircle className="w-5 h-5 mr-2" />
+                  Join Our Voice
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
