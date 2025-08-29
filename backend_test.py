@@ -2,6 +2,7 @@ import requests
 import sys
 from datetime import datetime
 import json
+import io
 
 class CrewkerneGazetteAPITester:
     def __init__(self, base_url="https://news-cms.preview.emergentagent.com"):
