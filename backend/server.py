@@ -24,26 +24,40 @@ load_dotenv(ROOT_DIR / '.env')
 UPLOAD_DIR = ROOT_DIR / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
-# MongoDB connection with environment-specific URL selection
-mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-
-# Detect if running in Emergent environment (container/cloud)
+# MongoDB connection with multiple fallback options for different environments
+import os
 import socket
-try:
-    # Try to resolve 'mongo' hostname - if it works, we're in a container environment
-    socket.gethostbyname('mongo')
-    is_container = True
-    default_mongo_url = 'mongodb://mongo:27017'
-    print("🐳 Detected container environment - using mongo service")
-except socket.gaierror:
-    is_container = False
-    default_mongo_url = 'mongodb://localhost:27017'
-    print("🏠 Detected local environment - using localhost")
 
-# Use environment-appropriate MongoDB URL
-if mongo_url == 'mongodb://localhost:27017' and is_container:
-    mongo_url = 'mongodb://mongo:27017'
+def get_mongodb_url():
+    """Get MongoDB URL based on environment"""
+    # Check if MONGO_URL is explicitly set
+    if 'MONGO_URL' in os.environ:
+        return os.environ['MONGO_URL']
+    
+    # Try different MongoDB hosts based on environment
+    mongodb_hosts = [
+        'mongodb://mongo:27017',           # Container/Kubernetes environment
+        'mongodb://localhost:27017',       # Local development
+        'mongodb://mongodb:27017',         # Alternative container name
+        'mongodb://127.0.0.1:27017',      # Local IP
+    ]
+    
+    for host in mongodb_hosts:
+        try:
+            # Extract hostname from MongoDB URL for testing
+            hostname = host.split('://')[1].split(':')[0]
+            socket.gethostbyname(hostname)
+            print(f"✅ MongoDB host {hostname} is resolvable")
+            return host
+        except socket.gaierror:
+            print(f"❌ MongoDB host {hostname} not found")
+            continue
+    
+    # Default fallback
+    print("⚠️  Using fallback MongoDB URL")
+    return 'mongodb://localhost:27017'
 
+mongo_url = get_mongodb_url()
 db_name = os.environ.get('DB_NAME', 'test_database')
 if db_name == 'crewkerne_gazette':
     db_name = 'test_database'  # Override for production compatibility
