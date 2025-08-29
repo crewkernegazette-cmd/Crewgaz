@@ -414,7 +414,7 @@ const ArticlesManager = () => {
   );
 };
 
-// Article Editor Component (keeping existing implementation)
+// Article Editor Component
 const ArticleEditor = ({ articleId = null }) => {
   const [article, setArticle] = useState({
     title: '',
@@ -428,6 +428,7 @@ const ArticleEditor = ({ articleId = null }) => {
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (articleId) {
@@ -445,6 +446,44 @@ const ArticleEditor = ({ articleId = null }) => {
       toast.error('Failed to load article');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await axios.post(`${API}/upload-image`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const imageUrl = `${process.env.REACT_APP_BACKEND_URL}${response.data.url}`;
+      setArticle({ ...article, featured_image: imageUrl });
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -545,16 +584,85 @@ const ArticleEditor = ({ articleId = null }) => {
               />
             </div>
 
-            {/* Featured Image */}
+            {/* Featured Image Upload */}
             <div>
-              <Label htmlFor="featured_image" className="text-slate-200">Featured Image URL</Label>
-              <Input
-                id="featured_image"
-                value={article.featured_image}
-                onChange={(e) => setArticle({ ...article, featured_image: e.target.value })}
-                className="bg-slate-700/50 border-slate-600 text-white"
-                placeholder="https://example.com/image.jpg"
-              />
+              <Label className="text-slate-200">Featured Image</Label>
+              <div className="space-y-4">
+                {/* Current Image Preview */}
+                {article.featured_image && (
+                  <div className="relative">
+                    <img 
+                      src={article.featured_image} 
+                      alt="Featured image preview" 
+                      className="w-full h-48 object-cover rounded-lg border border-slate-600"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setArticle({ ...article, featured_image: '' })}
+                      className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white border-red-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+
+                {/* Upload Options */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* File Upload */}
+                  <div>
+                    <Label htmlFor="image-upload" className="text-slate-300 text-sm">
+                      Upload Image File
+                    </Label>
+                    <div className="mt-2">
+                      <input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        disabled={uploadingImage}
+                      />
+                      <Label
+                        htmlFor="image-upload"
+                        className={`cursor-pointer inline-flex items-center px-4 py-2 border border-slate-600 rounded-md shadow-sm text-sm font-medium text-slate-200 bg-slate-700/50 hover:bg-slate-600/50 transition-colors ${
+                          uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        {uploadingImage ? (
+                          <>
+                            <div className="loading-spinner w-4 h-4 mr-2" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Choose Image
+                          </>
+                        )}
+                      </Label>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">
+                      JPG, PNG, GIF up to 5MB
+                    </p>
+                  </div>
+
+                  {/* URL Input */}
+                  <div>
+                    <Label htmlFor="image-url" className="text-slate-300 text-sm">
+                      Or Image URL
+                    </Label>
+                    <Input
+                      id="image-url"
+                      value={article.featured_image}
+                      onChange={(e) => setArticle({ ...article, featured_image: e.target.value })}
+                      className="bg-slate-700/50 border-slate-600 text-white mt-2"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Video URL */}
@@ -602,7 +710,7 @@ const ArticleEditor = ({ articleId = null }) => {
 
             <Button 
               type="submit" 
-              disabled={saving}
+              disabled={saving || uploadingImage}
               className="w-full bg-red-600 hover:bg-red-700"
             >
               <Save className="w-4 h-4 mr-2" />
