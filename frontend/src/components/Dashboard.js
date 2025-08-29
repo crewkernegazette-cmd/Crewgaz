@@ -83,6 +83,26 @@ const SettingsManager = () => {
     }
   };
 
+  const toggleBreakingNewsBanner = async () => {
+    setTogglingBanner(true);
+    try {
+      await axios.post(`${API}/settings/breaking-news-banner`, {
+        show_breaking_news_banner: !settings.show_breaking_news_banner
+      });
+      setSettings({ 
+        ...settings, 
+        show_breaking_news_banner: !settings.show_breaking_news_banner 
+      });
+      const status = !settings.show_breaking_news_banner ? 'enabled' : 'disabled';
+      toast.success(`Breaking news banner ${status}`);
+    } catch (error) {
+      console.error('Error toggling breaking news banner:', error);
+      toast.error('Failed to toggle breaking news banner');
+    } finally {
+      setTogglingBanner(false);
+    }
+  };
+
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     
