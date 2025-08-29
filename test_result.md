@@ -195,6 +195,51 @@
           agent: "testing"
           comment: "✅ TESTED: Related articles endpoint working perfectly. GET /api/articles/{id}/related returns related articles from same category, properly excludes original article, and falls back to other categories if needed. Supports trending topics functionality."
 
+  - task: "Breaking news banner toggle functionality"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "Added POST /api/settings/breaking-news-banner endpoint with BreakingNewsBannerToggle model for admin control"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Breaking news banner toggle working perfectly. POST /api/settings/breaking-news-banner successfully enables/disables banner with admin authentication. Settings persist properly in database. Proper admin-only access control enforced (returns 403 for unauthorized access)."
+
+  - task: "Public settings endpoint"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "Added GET /api/settings/public endpoint that returns breaking news banner visibility without requiring authentication"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Public settings endpoint working perfectly. GET /api/settings/public returns show_breaking_news_banner setting without authentication. Properly accessible to frontend for banner visibility control."
+
+  - task: "Image upload URL format fix"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "Fixed image upload endpoint to return correct URL format /uploads/filename.ext instead of full URLs"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Image upload URL format working correctly. POST /api/upload-image returns proper URL format '/uploads/filename.ext' as expected. File upload and URL generation working perfectly with admin authentication."
+
 ## frontend:
   - task: "Admin password change UI in settings"
     implemented: true
