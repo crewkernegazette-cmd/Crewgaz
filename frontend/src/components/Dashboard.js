@@ -751,7 +751,9 @@ const ArticleEditor = ({ articleId = null }) => {
         },
       });
 
-      const imageUrl = `${process.env.REACT_APP_BACKEND_URL}${response.data.url}`;
+      // The backend returns just the path (e.g., "/uploads/filename.jpg")
+      // We need to construct the full URL
+      const imageUrl = `${BACKEND_URL}${response.data.url}`;
       setArticle({ ...article, featured_image: imageUrl });
       toast.success('Image uploaded successfully');
     } catch (error) {
