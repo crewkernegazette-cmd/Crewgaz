@@ -395,10 +395,12 @@
   run_ui: false
 
 ## test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus: 
+    - "Production backend API deployment issue"
+  stuck_tasks:
+    - "Production backend API deployment issue"
   test_all: false
-  test_priority: "high_first"
+  test_priority: "critical_first"
 
 ## agent_communication:
     - agent: "main"
