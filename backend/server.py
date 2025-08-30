@@ -719,11 +719,89 @@ async def delete_article(article_id: str, current_user: User = Depends(get_curre
     return {"message": "Article deleted successfully"}
 
 # Contact Routes
+# Emergency storage - in-memory database replacement
+emergency_articles = []
+emergency_contacts = []
+emergency_settings = {
+    "maintenance_mode": False,
+    "show_breaking_news_banner": True
+}
+
 @api_router.post("/contact", response_model=Contact)
 async def submit_contact(contact_data: ContactCreate):
+    """Emergency contact form that works without database"""
     contact_obj = Contact(**contact_data.dict())
-    await db.contacts.insert_one(contact_obj.dict())
+    # Store in memory instead of database
+    emergency_contacts.append(contact_obj.dict())
     return contact_obj
+
+@api_router.get("/contacts", response_model=List[Contact])
+async def get_contacts(current_user: User = Depends(get_current_user), status: Optional[str] = None):
+    """Emergency contacts that work without database"""
+    contacts = emergency_contacts.copy()
+    if status:
+        contacts = [c for c in contacts if c.get("status") == status]
+    return [Contact(**contact) for contact in contacts]
+
+@api_router.post("/articles", response_model=Article)
+async def create_article(article_data: ArticleCreate, current_user: User = Depends(get_current_user)):
+    """Emergency article creation that works without database"""
+    article_dict = article_data.dict()
+    article_dict['author_id'] = current_user.id
+    article_dict['author_name'] = current_user.username
+    article_obj = Article(**article_dict)
+    
+    # Store in memory instead of database
+    emergency_articles.append(article_obj.dict())
+    return article_obj
+
+@api_router.get("/articles", response_model=List[Article])
+async def get_articles(category: Optional[str] = None, is_breaking: Optional[bool] = None, limit: int = 20):
+    """Emergency articles list that works without database"""
+    articles = emergency_articles.copy()
+    
+    if category:
+        articles = [a for a in articles if a.get("category") == category]
+    if is_breaking is not None:
+        articles = [a for a in articles if a.get("is_breaking") == is_breaking]
+    
+    # Sort by created_at descending and limit
+    articles = sorted(articles, key=lambda x: x.get("created_at", ""), reverse=True)[:limit]
+    return [Article(**article) for article in articles]
+
+@api_router.get("/dashboard/articles", response_model=List[Article])
+async def get_dashboard_articles(current_user: User = Depends(get_current_user)):
+    """Emergency dashboard articles that work without database"""
+    articles = emergency_articles.copy()
+    if current_user.role != UserRole.ADMIN:
+        articles = [a for a in articles if a.get("author_id") == current_user.id]
+    
+    articles = sorted(articles, key=lambda x: x.get("created_at", ""), reverse=True)
+    return [Article(**article) for article in articles]
+
+@api_router.get("/settings")
+async def get_settings(current_user: User = Depends(get_current_user)):
+    """Emergency settings that work without database"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return emergency_settings
+
+@api_router.post("/settings/maintenance")
+async def toggle_maintenance(maintenance_data: MaintenanceToggle, current_user: User = Depends(get_current_user)):
+    """Emergency maintenance toggle that works without database"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    emergency_settings["maintenance_mode"] = maintenance_data.maintenance_mode
+    status_text = "enabled" if maintenance_data.maintenance_mode else "disabled"
+    return {"message": f"Maintenance mode {status_text} successfully"}
+
+@api_router.get("/settings/public")
+async def get_public_settings():
+    """Emergency public settings that work without database"""
+    return {
+        "show_breaking_news_banner": emergency_settings.get("show_breaking_news_banner", True)
+    }
 
 @api_router.get("/contacts", response_model=List[Contact])
 async def get_contacts(current_user: User = Depends(get_current_user), status: Optional[str] = None):
