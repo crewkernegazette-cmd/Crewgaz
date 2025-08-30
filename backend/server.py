@@ -281,6 +281,30 @@ async def get_contacts(current_user: User = Depends(get_current_user)):
 async def get_public_settings():
     return {"show_breaking_news_banner": emergency_settings.get("show_breaking_news_banner", True)}
 
+@api_router.get("/settings")
+async def get_settings(current_user: User = Depends(get_current_user)):
+    """Get admin settings"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return emergency_settings
+
+@api_router.post("/settings/maintenance")
+async def toggle_maintenance(maintenance_data: MaintenanceToggle, current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    emergency_settings["maintenance_mode"] = maintenance_data.maintenance_mode
+    return {"message": f"Maintenance mode {'enabled' if maintenance_data.maintenance_mode else 'disabled'}"}
+
+@api_router.post("/settings/breaking-news-banner")
+async def toggle_breaking_news_banner(banner_data: dict, current_user: User = Depends(get_current_user)):
+    """Toggle breaking news banner"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    emergency_settings["show_breaking_news_banner"] = banner_data.get("show_breaking_news_banner", True)
+    status_text = "enabled" if banner_data.get("show_breaking_news_banner") else "disabled"
+    return {"message": f"Breaking news banner {status_text} successfully"}
+
 @api_router.post("/settings/maintenance")
 async def toggle_maintenance(maintenance_data: MaintenanceToggle, current_user: User = Depends(get_current_user)):
     if current_user.role != UserRole.ADMIN:
