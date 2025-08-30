@@ -405,10 +405,9 @@
 
 ## test_plan:
   current_focus: 
-    - "Local backend verification before production deployment"
-    - "Image upload functionality with base64 handling"
-    - "Social sharing and meta tags functionality"
-    - "Dashboard tagging system"
+    - "Production deployment of verified backend fixes"
+    - "Production environment configuration"
+    - "Final production testing after deployment"
   stuck_tasks:
     - "Production backend API deployment issue"
   test_all: false
