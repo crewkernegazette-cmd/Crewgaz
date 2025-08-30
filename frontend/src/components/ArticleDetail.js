@@ -266,9 +266,13 @@ const ArticleDetail = () => {
             {article.featured_image && (
               <div className="mb-8 rounded-lg overflow-hidden">
                 <img 
-                  src={article.featured_image} 
+                  src={fullImageUrl} 
                   alt={article.image_caption || article.title}
                   className="w-full h-96 object-cover"
+                  onError={(e) => {
+                    console.error('Image load error:', e);
+                    e.target.style.display = 'none';
+                  }}
                 />
                 {article.image_caption && (
                   <div className="bg-slate-800 p-4 text-sm text-slate-300 italic">
