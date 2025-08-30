@@ -708,19 +708,22 @@ const Dashboard = () => {
                       {creatingArticle ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Creating...
+                          {isEditing ? 'Updating...' : 'Creating...'}
                         </>
                       ) : (
-                        'Create Article'
+                        <>
+                          {isEditing ? <Save className="w-4 h-4 mr-2" /> : <PlusCircle className="w-4 h-4 mr-2" />}
+                          {isEditing ? 'Update Article' : 'Create Article'}
+                        </>
                       )}
                     </Button>
                     <Button 
                       type="button" 
                       variant="outline"
-                      onClick={resetForm}
+                      onClick={isEditing ? cancelEdit : resetForm}
                       className="border-slate-600 text-slate-300 hover:border-slate-400"
                     >
-                      Reset
+                      {isEditing ? 'Cancel' : 'Reset'}
                     </Button>
                   </div>
                 </form>
