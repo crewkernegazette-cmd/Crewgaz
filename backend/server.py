@@ -420,6 +420,39 @@ async def test_endpoint():
             "mongo_url": mongo_url.replace("mongodb://", "mongodb://***:***@") if "@" in mongo_url else mongo_url
         }
 
+@api_router.get("/auth-test")  
+async def auth_test_endpoint(current_user: User = Depends(get_current_user)):
+    """Test endpoint to check if authentication is working"""
+    return {
+        "status": "authenticated",
+        "user": {
+            "id": current_user.id,
+            "username": current_user.username,
+            "role": current_user.role,
+            "email": current_user.email
+        },
+        "message": "Authentication working correctly!"
+    }
+
+@api_router.get("/dashboard/emergency-stats")
+async def emergency_dashboard_stats():
+    """Dashboard stats that work without authentication for testing"""
+    return {
+        "total_articles": 0,
+        "published_articles": 0, 
+        "breaking_news": 0,
+        "total_contacts": 0,
+        "new_contacts": 0,
+        "categories": {
+            "news": 0,
+            "music": 0, 
+            "documentaries": 0,
+            "comedy": 0
+        },
+        "emergency_mode": True,
+        "message": "Emergency dashboard stats - no auth required"
+    }
+
 # Auth Routes
 @api_router.post("/auth/register", response_model=User)
 async def register(user_data: UserCreate):
