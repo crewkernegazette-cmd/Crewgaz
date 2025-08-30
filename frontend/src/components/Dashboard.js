@@ -781,6 +781,22 @@ const Dashboard = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditArticle(article)}
+                            className="border-blue-600 text-blue-400 hover:border-blue-400"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteArticle(article.id, article.title)}
+                            className="border-red-600 text-red-400 hover:border-red-400"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
