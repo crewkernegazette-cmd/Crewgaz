@@ -358,6 +358,41 @@ async def get_article_meta_html(article_id: str):
     
     raise HTTPException(status_code=404, detail="Article not found")
 
+@api_router.get("/articles/{article_id}/structured-data")
+async def get_article_structured_data(article_id: str):
+    """Generate structured data for an article"""
+    for article in emergency_articles:
+        if article.get("id") == article_id:
+            article_obj = Article(**article)
+            return {
+                "@context": "https://schema.org",
+                "@type": "NewsArticle",
+                "headline": article_obj.title,
+                "description": article_obj.subheading or article_obj.content[:160],
+                "image": article_obj.featured_image or "https://crewkernegazette.co.uk/logo.png",
+                "datePublished": article_obj.created_at.isoformat(),
+                "dateModified": article_obj.updated_at.isoformat(),
+                "author": {
+                    "@type": "Person",
+                    "name": article_obj.author_name or article_obj.publisher_name
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "The Crewkerne Gazette",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://crewkernegazette.co.uk/logo.png"
+                    }
+                },
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": f"https://crewkernegazette.co.uk/article/{article_id}"
+                },
+                "articleSection": article_obj.category,
+                "keywords": ", ".join(article_obj.tags) if article_obj.tags else article_obj.category
+            }
+    raise HTTPException(status_code=404, detail="Article not found")
+
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
     """Emergency dashboard stats"""
