@@ -495,14 +495,27 @@ const Dashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Create Article Tab */}
+          {/* Create/Edit Article Tab */}
           <TabsContent value="create" className="space-y-6">
             <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader>
-                <CardTitle className="text-white">Create New Article</CardTitle>
+                <CardTitle className="text-white flex items-center justify-between">
+                  {isEditing ? 'Edit Article' : 'Create New Article'}
+                  {isEditing && (
+                    <Button 
+                      onClick={cancelEdit}
+                      variant="outline"
+                      size="sm"
+                      className="border-slate-600 text-slate-400 hover:border-slate-400"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Cancel Edit
+                    </Button>
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleCreateArticle} className="space-y-6">
+                <form onSubmit={isEditing ? handleUpdateArticle : handleCreateArticle} className="space-y-6">
                   {/* Basic Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
