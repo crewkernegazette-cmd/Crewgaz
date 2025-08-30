@@ -196,11 +196,18 @@ async def submit_contact(contact_data: ContactCreate):
 
 @api_router.post("/articles", response_model=Article)
 async def create_article(article_data: ArticleCreate, current_user: User = Depends(get_current_user)):
+    print(f"📰 Creating article: {article_data.title}")
+    if article_data.featured_image:
+        print(f"🖼️  Article has image - Length: {len(article_data.featured_image)} chars")
+        print(f"🔤 Image start: {article_data.featured_image[:100]}...")
+    
     article_dict = article_data.dict()
     article_dict['author_id'] = current_user.id
     article_dict['author_name'] = current_user.username
     article_obj = Article(**article_dict)
     emergency_articles.append(article_obj.dict())
+    
+    print(f"✅ Article stored - Total articles: {len(emergency_articles)}")
     return article_obj
 
 @api_router.get("/articles", response_model=List[Article])
