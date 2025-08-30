@@ -151,6 +151,10 @@ class MaintenanceToggle(BaseModel):
 class BreakingNewsBanner(BaseModel):
     show_breaking_news_banner: bool
 
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=6)
+
 # Utility Functions
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
