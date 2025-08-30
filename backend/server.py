@@ -271,39 +271,91 @@ async def get_related_articles(article_id: str):
     
     return related
 
-@api_router.get("/articles/{article_id}/structured-data")
-async def get_article_structured_data(article_id: str):
-    """Generate structured data for an article"""
+@api_router.get("/articles/{article_id}/meta-html")
+async def get_article_meta_html(article_id: str):
+    """Generate static HTML with meta tags for social sharing crawlers"""
     for article in emergency_articles:
         if article.get("id") == article_id:
             article_obj = Article(**article)
-            return {
-                "@context": "https://schema.org",
-                "@type": "NewsArticle",
-                "headline": article_obj.title,
-                "description": article_obj.subheading or article_obj.content[:160],
-                "image": article_obj.featured_image or "https://crewkernegazette.co.uk/logo.png",
-                "datePublished": article_obj.created_at.isoformat(),
-                "dateModified": article_obj.updated_at.isoformat(),
-                "author": {
-                    "@type": "Person",
-                    "name": article_obj.author_name or article_obj.publisher_name
-                },
-                "publisher": {
-                    "@type": "Organization",
-                    "name": "The Crewkerne Gazette",
-                    "logo": {
-                        "@type": "ImageObject",
-                        "url": "https://crewkernegazette.co.uk/logo.png"
-                    }
-                },
-                "mainEntityOfPage": {
-                    "@type": "WebPage",
-                    "@id": f"https://crewkernegazette.co.uk/article/{article_id}"
-                },
-                "articleSection": article_obj.category,
-                "keywords": ", ".join(article_obj.tags) if article_obj.tags else article_obj.category
-            }
+            
+            # Generate meta tags HTML
+            meta_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Basic Meta Tags -->
+    <title>{article_obj.title} | The Crewkerne Gazette</title>
+    <meta name="description" content="{article_obj.subheading or article_obj.content[:160]}">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{article_obj.title}">
+    <meta property="og:description" content="{article_obj.subheading or article_obj.content[:160]}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_id}">
+    <meta property="og:image" content="{article_obj.featured_image or 'https://crewkernegazette.co.uk/logo.png'}">
+    <meta property="og:site_name" content="The Crewkerne Gazette">
+    <meta property="article:published_time" content="{article_obj.created_at.isoformat()}">
+    <meta property="article:author" content="{article_obj.author_name or article_obj.publisher_name}">
+    <meta property="article:section" content="{article_obj.category}">
+    <meta property="article:tag" content="{', '.join(article_obj.tags) if article_obj.tags else article_obj.category}">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{article_obj.title}">
+    <meta name="twitter:description" content="{article_obj.subheading or article_obj.content[:160]}">
+    <meta name="twitter:image" content="{article_obj.featured_image or 'https://crewkernegazette.co.uk/logo.png'}">
+    <meta name="twitter:site" content="@CrewkerneGazette">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://crewkernegazette.co.uk/article/{article_id}">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {{
+        "@context": "https://schema.org",
+        "@type": "NewsArticle",
+        "headline": "{article_obj.title}",
+        "description": "{article_obj.subheading or article_obj.content[:160]}",
+        "image": "{article_obj.featured_image or 'https://crewkernegazette.co.uk/logo.png'}",
+        "datePublished": "{article_obj.created_at.isoformat()}",
+        "dateModified": "{article_obj.updated_at.isoformat()}",
+        "author": {{
+            "@type": "Person",
+            "name": "{article_obj.author_name or article_obj.publisher_name}"
+        }},
+        "publisher": {{
+            "@type": "Organization",
+            "name": "The Crewkerne Gazette",
+            "logo": {{
+                "@type": "ImageObject",
+                "url": "https://crewkernegazette.co.uk/logo.png"
+            }}
+        }},
+        "mainEntityOfPage": {{
+            "@type": "WebPage",
+            "@id": "https://crewkernegazette.co.uk/article/{article_id}"
+        }},
+        "articleSection": "{article_obj.category}",
+        "keywords": "{', '.join(article_obj.tags) if article_obj.tags else article_obj.category}"
+    }}
+    </script>
+    
+    <!-- Redirect to React App -->
+    <script>
+        window.location.href = "https://crewkernegazette.co.uk/article/{article_id}";
+    </script>
+</head>
+<body>
+    <h1>{article_obj.title}</h1>
+    <p>{article_obj.subheading or article_obj.content[:160]}</p>
+    <p>Redirecting to full article...</p>
+</body>
+</html>"""
+            
+            return HTMLResponse(content=meta_html)
+    
     raise HTTPException(status_code=404, detail="Article not found")
 
 @api_router.get("/dashboard/stats")
