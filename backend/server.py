@@ -431,6 +431,24 @@ async def toggle_breaking_news_banner(banner_data: BreakingNewsBanner, current_u
     status_text = "enabled" if banner_data.show_breaking_news_banner else "disabled"
     return {"message": f"Breaking news banner {status_text} successfully"}
 
+@api_router.post("/auth/change-password")
+async def change_password(password_data: PasswordChangeRequest, current_user: User = Depends(get_current_user)):
+    """Change user password"""
+    if current_user.username not in emergency_users:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user = emergency_users[current_user.username]
+    
+    # Verify current password
+    if not verify_password(password_data.current_password, user['password_hash']):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    # Update password
+    user['password_hash'] = hash_password(password_data.new_password)
+    emergency_users[current_user.username] = user
+    
+    return {"message": "Password changed successfully"}
+
 @api_router.post("/upload-image")
 async def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
     print(f"🔍 Upload started - File: {file.filename}, Type: {file.content_type}, Size: {file.size}")
