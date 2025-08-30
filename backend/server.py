@@ -213,6 +213,37 @@ async def get_articles(category: Optional[str] = None, is_breaking: Optional[boo
     articles = sorted(articles, key=lambda x: x.get("created_at", ""), reverse=True)[:limit]
     return [Article(**article) for article in articles]
 
+@api_router.get("/articles/{article_id}", response_model=Article)
+async def get_article(article_id: str):
+    """Get individual article by ID"""
+    for article in emergency_articles:
+        if article.get("id") == article_id:
+            return Article(**article)
+    raise HTTPException(status_code=404, detail="Article not found")
+
+@api_router.get("/articles/{article_id}/related")
+async def get_related_articles(article_id: str):
+    """Get related articles"""
+    # Find current article
+    current_article = None
+    for article in emergency_articles:
+        if article.get("id") == article_id:
+            current_article = article
+            break
+    
+    if not current_article:
+        return []
+    
+    # Get other articles in same category
+    related = []
+    for article in emergency_articles:
+        if (article.get("id") != article_id and 
+            article.get("category") == current_article.get("category") and
+            len(related) < 3):
+            related.append(Article(**article))
+    
+    return related
+
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
     query_articles = emergency_articles.copy()
