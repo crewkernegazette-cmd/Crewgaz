@@ -627,6 +627,103 @@ emergency_articles.extend([
     }
 ])
 
+# Article page route for social media crawlers
+@app.get("/article/{article_id}")
+async def serve_article_page(article_id: str, request: Request):
+    """
+    Serve article page with proper meta tags for crawlers,
+    or redirect to React app for regular users
+    """
+    user_agent = request.headers.get('user-agent', '')
+    
+    if is_crawler(user_agent):
+        # Serve static HTML with meta tags for crawlers
+        try:
+            for article in emergency_articles:
+                if article.get("id") == article_id:
+                    article_obj = Article(**article)
+                    
+                    # Sanitize text content for HTML
+                    title_safe = article_obj.title.replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+                    description_safe = (article_obj.subheading or article_obj.content[:160]).replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+                    
+                    # Generate SEO-friendly meta HTML for crawlers
+                    meta_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Basic Meta Tags -->
+    <title>{title_safe} | The Crewkerne Gazette</title>
+    <meta name="description" content="{description_safe}">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{title_safe}">
+    <meta property="og:description" content="{description_safe}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_id}">
+    <meta property="og:image" content="{article_obj.featured_image or 'https://crewkernegazette.co.uk/logo.png'}">
+    <meta property="og:site_name" content="The Crewkerne Gazette">
+    <meta property="article:published_time" content="{article_obj.created_at.isoformat()}">
+    <meta property="article:author" content="{article_obj.author_name or article_obj.publisher_name}">
+    <meta property="article:section" content="{article_obj.category}">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{title_safe}">
+    <meta name="twitter:description" content="{description_safe}">
+    <meta name="twitter:image" content="{article_obj.featured_image or 'https://crewkernegazette.co.uk/logo.png'}">
+    <meta name="twitter:site" content="@CrewkerneGazette">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://crewkernegazette.co.uk/article/{article_id}">
+    
+    <!-- Redirect Script for Users -->
+    <script>
+        // If this is a user (not a crawler), redirect to the React app
+        if (navigator.userAgent && !{{'facebookexternalhit': 1, 'twitterbot': 1, 'linkedinbot': 1}}.some(bot => navigator.userAgent.toLowerCase().includes(bot))) {{
+            window.location.replace('https://crewkernegazette.co.uk/article/{article_id}');
+        }}
+    </script>
+</head>
+<body>
+    <h1>{title_safe}</h1>
+    {f"<h2>{(article_obj.subheading or '').replace('<', '&lt;').replace('>', '&gt;')}</h2>" if article_obj.subheading else ""}
+    <p>{article_obj.content[:300].replace('<', '&lt;').replace('>', '&gt;')}...</p>
+    <p><strong>Category:</strong> {article_obj.category}</p>
+    <p><strong>Published:</strong> {article_obj.created_at.strftime('%B %d, %Y')}</p>
+    <p><em>Read the full article at: <a href="https://crewkernegazette.co.uk/article/{article_id}">The Crewkerne Gazette</a></em></p>
+</body>
+</html>"""
+                    
+                    return HTMLResponse(content=meta_html)
+            
+            # Article not found - return 404
+            raise HTTPException(status_code=404, detail="Article not found")
+            
+        except Exception as e:
+            # Error generating meta HTML - return generic 404
+            raise HTTPException(status_code=404, detail="Article not found")
+    
+    else:
+        # For regular users, serve a simple HTML that redirects to React app
+        redirect_html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Loading Article...</title>
+    <script>
+        window.location.replace('https://crewkernegazette.co.uk/article/{article_id}');
+    </script>
+</head>
+<body>
+    <p>Loading article... If you're not redirected, <a href="https://crewkernegazette.co.uk/article/{article_id}">click here</a>.</p>
+</body>
+</html>"""
+        
+        return HTMLResponse(content=redirect_html)
+
 # Include router and middleware
 app.include_router(api_router)
 
