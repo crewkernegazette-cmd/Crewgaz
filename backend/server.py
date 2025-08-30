@@ -330,21 +330,27 @@ async def debug_settings():
 
 @api_router.post("/upload-image")
 async def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
+    print(f"🔍 Upload started - File: {file.filename}, Type: {file.content_type}, Size: {file.size}")
+    
     if not file.content_type.startswith('image/'):
         raise HTTPException(status_code=400, detail="File must be an image")
     
     # Read file content
     file_content = await file.read()
+    print(f"📁 File content read - Size: {len(file_content)} bytes")
     
     # Convert to base64
     import base64
     base64_string = base64.b64encode(file_content).decode('utf-8')
+    print(f"📝 Base64 created - Length: {len(base64_string)} characters")
+    print(f"🔤 Base64 start: {base64_string[:100]}...")
     
     # Create data URI for immediate use
     mime_type = file.content_type
     data_uri = f"data:{mime_type};base64,{base64_string}"
+    print(f"🌐 Data URI created - Total length: {len(data_uri)} characters")
     
-    return {"url": data_uri}
+    return {"url": data_uri, "debug": {"size": len(file_content), "base64_length": len(base64_string)}}
 
 # Remove the old uploads serving endpoint since we don't need it
 
