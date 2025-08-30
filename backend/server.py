@@ -627,12 +627,12 @@ emergency_articles.extend([
     }
 ])
 
-# Article page route for social media crawlers
+# Article page route for social media crawlers - MUST be defined before mounting static files
 @app.get("/article/{article_id}")
 async def serve_article_page(article_id: str, request: Request):
     """
     Serve article page with proper meta tags for crawlers,
-    or redirect to React app for regular users
+    or serve React app for regular users
     """
     user_agent = request.headers.get('user-agent', '')
     
@@ -678,20 +678,12 @@ async def serve_article_page(article_id: str, request: Request):
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://crewkernegazette.co.uk/article/{article_id}">
-    
-    <!-- Redirect Script for Users -->
-    <script>
-        // If this is a user (not a crawler), redirect to the React app
-        if (navigator.userAgent && !{{'facebookexternalhit': 1, 'twitterbot': 1, 'linkedinbot': 1}}.some(bot => navigator.userAgent.toLowerCase().includes(bot))) {{
-            window.location.replace('https://crewkernegazette.co.uk/article/{article_id}');
-        }}
-    </script>
 </head>
 <body>
     <h1>{title_safe}</h1>
     {f"<h2>{(article_obj.subheading or '').replace('<', '&lt;').replace('>', '&gt;')}</h2>" if article_obj.subheading else ""}
     <p>{article_obj.content[:300].replace('<', '&lt;').replace('>', '&gt;')}...</p>
-    <p><strong>Category:</strong> {article_obj.category}</p>
+    <p><strong>Category:</strong> {article_obj.category.value if hasattr(article_obj.category, 'value') else article_obj.category}</p>
     <p><strong>Published:</strong> {article_obj.created_at.strftime('%B %d, %Y')}</p>
     <p><em>Read the full article at: <a href="https://crewkernegazette.co.uk/article/{article_id}">The Crewkerne Gazette</a></em></p>
 </body>
@@ -707,22 +699,25 @@ async def serve_article_page(article_id: str, request: Request):
             raise HTTPException(status_code=404, detail="Article not found")
     
     else:
-        # For regular users, serve a simple HTML that redirects to React app
-        redirect_html = f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Loading Article...</title>
-    <script>
-        window.location.replace('https://crewkernegazette.co.uk/article/{article_id}');
-    </script>
-</head>
-<body>
-    <p>Loading article... If you're not redirected, <a href="https://crewkernegazette.co.uk/article/{article_id}">click here</a>.</p>
-</body>
-</html>"""
-        
-        return HTMLResponse(content=redirect_html)
+        # For regular users, serve the React app's index.html
+        try:
+            frontend_path = Path("../frontend/build/index.html")
+            if frontend_path.exists():
+                with open(frontend_path, 'r', encoding='utf-8') as f:
+                    html_content = f.read()
+                return HTMLResponse(content=html_content)
+            else:
+                # Fallback redirect if build not found
+                raise HTTPException(
+                    status_code=302,
+                    headers={"Location": f"/"}
+                )
+        except Exception:
+            # Fallback to homepage
+            raise HTTPException(
+                status_code=302,
+                headers={"Location": f"/"}
+            )
 
 # Include router and middleware
 app.include_router(api_router)
