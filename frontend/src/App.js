@@ -120,6 +120,7 @@ function App() {
                 path="/dashboard/*" 
                 element={user ? <Dashboard /> : <Navigate to="/login" />} 
               />
+              <Route path="/debug" element={<Debug />} />
             </Routes>
             <Footer />
             <Toaster />
