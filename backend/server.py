@@ -667,7 +667,7 @@ async def serve_article_page(article_id: str, request: Request):
     <meta property="og:site_name" content="The Crewkerne Gazette">
     <meta property="article:published_time" content="{article_obj.created_at.isoformat()}">
     <meta property="article:author" content="{article_obj.author_name or article_obj.publisher_name}">
-    <meta property="article:section" content="{article_obj.category}">
+    <meta property="article:section" content="{article_obj.category.value if hasattr(article_obj.category, 'value') else article_obj.category}">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
