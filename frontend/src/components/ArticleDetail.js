@@ -258,7 +258,7 @@ const ArticleDetail = () => {
                     variant="outline" 
                     size="sm" 
                     onClick={() => shareArticle('twitter')}
-                    className="border-slate-600 text-slate-400 hover:border-slate-400"
+                    className="border-slate-600 text-slate-400 hover:border-blue-400 hover:text-blue-400 transition-colors"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Twitter
@@ -267,9 +267,19 @@ const ArticleDetail = () => {
                     variant="outline" 
                     size="sm" 
                     onClick={() => shareArticle('facebook')}
-                    className="border-slate-600 text-slate-400 hover:border-slate-400"
+                    className="border-slate-600 text-slate-400 hover:border-blue-600 hover:text-blue-600 transition-colors"
                   >
+                    <Share2 className="w-4 h-4 mr-2" />
                     Facebook
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => shareArticle('linkedin')}
+                    className="border-slate-600 text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    LinkedIn
                   </Button>
                   <Button 
                     variant="outline" 
@@ -277,6 +287,7 @@ const ArticleDetail = () => {
                     onClick={() => shareArticle()}
                     className="border-slate-600 text-slate-400 hover:border-slate-400"
                   >
+                    <Share2 className="w-4 h-4 mr-2" />
                     Copy Link
                   </Button>
                 </div>
