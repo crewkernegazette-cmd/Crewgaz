@@ -21,7 +21,10 @@ import {
   Tag,
   Image as ImageIcon,
   Video,
-  AlertTriangle
+  AlertTriangle,
+  Edit,
+  Trash2,
+  Save
 } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
