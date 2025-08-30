@@ -81,12 +81,12 @@ const ArticleDetail = () => {
       "@type": "NewsArticle",
       "headline": article.title,
       "description": article.subheading || article.content.substring(0, 160),
-      "image": article.featured_image ? getFullImageUrl(article.featured_image) : `${window.location.origin}/logo.png`,
+      "image": fullImageUrl || `${window.location.origin}/logo.png`,
       "datePublished": article.created_at,
       "dateModified": article.updated_at || article.created_at,
       "author": {
         "@type": "Person",
-        "name": article.author_name || "The Crewkerne Gazette"
+        "name": article.author_name || article.publisher_name || "The Crewkerne Gazette"
       },
       "publisher": {
         "@type": "Organization", 
@@ -99,7 +99,9 @@ const ArticleDetail = () => {
       "mainEntityOfPage": {
         "@type": "WebPage",
         "@id": window.location.href
-      }
+      },
+      "articleSection": article.category,
+      "keywords": article.tags?.join(", ") || article.category
     };
   };
 
