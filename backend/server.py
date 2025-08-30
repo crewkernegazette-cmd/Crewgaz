@@ -1,33 +1,26 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, validator
 from typing import List, Optional
 import uuid
 from datetime import datetime, timedelta, timezone
 import bcrypt
 import jwt
 from enum import Enum
-import shutil
+import base64
+import bleach
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Create uploads directory
-UPLOAD_DIR = ROOT_DIR / "uploads"
-UPLOAD_DIR.mkdir(exist_ok=True)
-
-# Create the main app without a prefix
-app = FastAPI()
-
-# Serve uploaded files
-app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+# Create the main app
+app = FastAPI(title="Crewkerne Gazette API", version="1.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -78,7 +71,7 @@ class ContactStatus(str, Enum):
     READ = "read"
     REPLIED = "replied"
 
-# Models
+# Models with validation
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     username: str
@@ -92,31 +85,50 @@ class UserLogin(BaseModel):
 
 class Article(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    title: str
-    subheading: Optional[str] = None
-    content: str
+    title: str = Field(..., min_length=1, max_length=200)
+    subheading: Optional[str] = Field(None, max_length=300)
+    content: str = Field(..., min_length=1)
     category: ArticleCategory
     author_id: str
     author_name: str = ""
     publisher_name: str = "The Crewkerne Gazette"
-    featured_image: Optional[str] = None
-    image_caption: Optional[str] = None
-    video_url: Optional[str] = None
+    featured_image: Optional[str] = Field(None)
+    image_caption: Optional[str] = Field(None, max_length=200)
+    video_url: Optional[str] = Field(None)
     is_breaking: bool = False
     is_published: bool = True
     tags: List[str] = []
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    @validator('content', 'title', 'subheading')
+    def sanitize_html(cls, v):
+        if v:
+            return bleach.clean(v, tags=['p', 'br', 'strong', 'em', 'u', 'a'], attributes={'a': ['href']})
+        return v
+    
+    @validator('featured_image')
+    def validate_image(cls, v):
+        if v and v.startswith('data:image/'):
+            # Check base64 size limit (5MB)
+            try:
+                header, data = v.split(',', 1)
+                decoded_size = len(base64.b64decode(data))
+                if decoded_size > 5 * 1024 * 1024:  # 5MB limit
+                    raise ValueError("Image too large (max 5MB)")
+            except:
+                raise ValueError("Invalid base64 image")
+        return v
 
 class ArticleCreate(BaseModel):
-    title: str
-    subheading: Optional[str] = None
-    content: str
+    title: str = Field(..., min_length=1, max_length=200)
+    subheading: Optional[str] = Field(None, max_length=300)
+    content: str = Field(..., min_length=1)
     category: ArticleCategory
     publisher_name: Optional[str] = "The Crewkerne Gazette"
-    featured_image: Optional[str] = None
-    image_caption: Optional[str] = None
-    video_url: Optional[str] = None
+    featured_image: Optional[str] = Field(None)
+    image_caption: Optional[str] = Field(None, max_length=200)
+    video_url: Optional[str] = Field(None)
     is_breaking: bool = False
     is_published: bool = True
     tags: List[str] = []
@@ -124,17 +136,20 @@ class ArticleCreate(BaseModel):
 class Contact(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: EmailStr
-    inquiry: str
+    inquiry: str = Field(..., min_length=1, max_length=1000)
     status: ContactStatus = ContactStatus.NEW
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ContactCreate(BaseModel):
     email: EmailStr
-    inquiry: str
+    inquiry: str = Field(..., min_length=1, max_length=1000)
 
 class MaintenanceToggle(BaseModel):
     maintenance_mode: bool
+
+class BreakingNewsBanner(BaseModel):
+    show_breaking_news_banner: bool
 
 # Utility Functions
 def hash_password(password: str) -> str:
@@ -199,11 +214,11 @@ async def create_article(article_data: ArticleCreate, current_user: User = Depen
     print(f"📰 Creating article: {article_data.title}")
     if article_data.featured_image:
         print(f"🖼️  Article has image - Length: {len(article_data.featured_image)} chars")
-        print(f"🔤 Image start: {article_data.featured_image[:100]}...")
     
     article_dict = article_data.dict()
     article_dict['author_id'] = current_user.id
     article_dict['author_name'] = current_user.username
+    article_dict['updated_at'] = datetime.now(timezone.utc)
     article_obj = Article(**article_dict)
     emergency_articles.append(article_obj.dict())
     
@@ -217,12 +232,14 @@ async def get_articles(category: Optional[str] = None, is_breaking: Optional[boo
         articles = [a for a in articles if a.get("category") == category]
     if is_breaking is not None:
         articles = [a for a in articles if a.get("is_breaking") == is_breaking]
-    articles = sorted(articles, key=lambda x: x.get("created_at", ""), reverse=True)[:limit]
+    
+    # Improved sorting with fallback
+    articles = sorted(articles, key=lambda x: x.get("created_at", datetime.min.isoformat()), reverse=True)[:limit]
     return [Article(**article) for article in articles]
 
 @api_router.get("/articles/{article_id}", response_model=Article)
 async def get_article(article_id: str):
-    """Get individual article by ID"""
+    """Get individual article by ID with structured data"""
     for article in emergency_articles:
         if article.get("id") == article_id:
             return Article(**article)
@@ -231,7 +248,6 @@ async def get_article(article_id: str):
 @api_router.get("/articles/{article_id}/related")
 async def get_related_articles(article_id: str):
     """Get related articles"""
-    # Find current article
     current_article = None
     for article in emergency_articles:
         if article.get("id") == article_id:
@@ -251,8 +267,44 @@ async def get_related_articles(article_id: str):
     
     return related
 
+@api_router.get("/articles/{article_id}/structured-data")
+async def get_article_structured_data(article_id: str):
+    """Generate structured data for an article"""
+    for article in emergency_articles:
+        if article.get("id") == article_id:
+            article_obj = Article(**article)
+            return {
+                "@context": "https://schema.org",
+                "@type": "NewsArticle",
+                "headline": article_obj.title,
+                "description": article_obj.subheading or article_obj.content[:160],
+                "image": article_obj.featured_image or "https://crewkernegazette.co.uk/logo.png",
+                "datePublished": article_obj.created_at.isoformat(),
+                "dateModified": article_obj.updated_at.isoformat(),
+                "author": {
+                    "@type": "Person",
+                    "name": article_obj.author_name or article_obj.publisher_name
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "The Crewkerne Gazette",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://crewkernegazette.co.uk/logo.png"
+                    }
+                },
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": f"https://crewkernegazette.co.uk/article/{article_id}"
+                },
+                "articleSection": article_obj.category,
+                "keywords": ", ".join(article_obj.tags) if article_obj.tags else article_obj.category
+            }
+    raise HTTPException(status_code=404, detail="Article not found")
+
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
+    """Emergency dashboard stats"""
     query_articles = emergency_articles.copy()
     if current_user.role != UserRole.ADMIN:
         query_articles = [a for a in query_articles if a.get("author_id") == current_user.id]
@@ -277,7 +329,7 @@ async def get_dashboard_articles(current_user: User = Depends(get_current_user))
     articles = emergency_articles.copy()
     if current_user.role != UserRole.ADMIN:
         articles = [a for a in articles if a.get("author_id") == current_user.id]
-    articles = sorted(articles, key=lambda x: x.get("created_at", ""), reverse=True)
+    articles = sorted(articles, key=lambda x: x.get("created_at", datetime.min.isoformat()), reverse=True)
     return [Article(**article) for article in articles]
 
 @api_router.get("/contacts", response_model=List[Contact])
@@ -303,22 +355,42 @@ async def toggle_maintenance(maintenance_data: MaintenanceToggle, current_user: 
     return {"message": f"Maintenance mode {'enabled' if maintenance_data.maintenance_mode else 'disabled'}"}
 
 @api_router.post("/settings/breaking-news-banner")
-async def toggle_breaking_news_banner(banner_data: dict, current_user: User = Depends(get_current_user)):
+async def toggle_breaking_news_banner(banner_data: BreakingNewsBanner, current_user: User = Depends(get_current_user)):
     """Toggle breaking news banner"""
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
     
-    emergency_settings["show_breaking_news_banner"] = banner_data.get("show_breaking_news_banner", True)
-    status_text = "enabled" if banner_data.get("show_breaking_news_banner") else "disabled"
+    emergency_settings["show_breaking_news_banner"] = banner_data.show_breaking_news_banner
+    status_text = "enabled" if banner_data.show_breaking_news_banner else "disabled"
     return {"message": f"Breaking news banner {status_text} successfully"}
 
-@api_router.post("/settings/maintenance")
-async def toggle_maintenance(maintenance_data: MaintenanceToggle, current_user: User = Depends(get_current_user)):
-    if current_user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=403, detail="Admin access required")
-    emergency_settings["maintenance_mode"] = maintenance_data.maintenance_mode
-    return {"message": f"Maintenance mode {'enabled' if maintenance_data.maintenance_mode else 'disabled'}"}
+@api_router.post("/upload-image")
+async def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
+    print(f"🔍 Upload started - File: {file.filename}, Type: {file.content_type}, Size: {file.size}")
+    
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    # Size limit check (5MB)
+    if file.size > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image too large (max 5MB)")
+    
+    # Read file content
+    file_content = await file.read()
+    print(f"📁 File content read - Size: {len(file_content)} bytes")
+    
+    # Convert to base64
+    base64_string = base64.b64encode(file_content).decode('utf-8')
+    print(f"📝 Base64 created - Length: {len(base64_string)} characters")
+    
+    # Create data URI for immediate use
+    mime_type = file.content_type
+    data_uri = f"data:{mime_type};base64,{base64_string}"
+    print(f"🌐 Data URI created - Total length: {len(data_uri)} characters")
+    
+    return {"url": data_uri, "debug": {"size": len(file_content), "base64_length": len(base64_string)}}
 
+# Debug endpoints
 @api_router.get("/debug/articles")
 async def debug_articles():
     """Debug endpoint to see all articles in memory"""
@@ -335,55 +407,22 @@ async def debug_settings():
         "current_settings": emergency_settings
     }
 
-@api_router.post("/upload-image")
-async def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
-    print(f"🔍 Upload started - File: {file.filename}, Type: {file.content_type}, Size: {file.size}")
-    
-    if not file.content_type.startswith('image/'):
-        raise HTTPException(status_code=400, detail="File must be an image")
-    
-    # Read file content
-    file_content = await file.read()
-    print(f"📁 File content read - Size: {len(file_content)} bytes")
-    
-    # Convert to base64
-    import base64
-    base64_string = base64.b64encode(file_content).decode('utf-8')
-    print(f"📝 Base64 created - Length: {len(base64_string)} characters")
-    print(f"🔤 Base64 start: {base64_string[:100]}...")
-    
-    # Create data URI for immediate use
-    mime_type = file.content_type
-    data_uri = f"data:{mime_type};base64,{base64_string}"
-    print(f"🌐 Data URI created - Total length: {len(data_uri)} characters")
-    
-    return {"url": data_uri, "debug": {"size": len(file_content), "base64_length": len(base64_string)}}
-
-# Remove the old uploads serving endpoint since we don't need it
-
-@api_router.get("/uploads-test/{filename}")
-async def test_upload_serving(filename: str):
-    """Test endpoint to check if uploaded files are accessible"""
-    file_path = UPLOAD_DIR / filename
-    if file_path.exists():
-        return {"status": "file exists", "path": str(file_path), "size": file_path.stat().st_size}
-    else:
-        return {"status": "file not found", "path": str(file_path)}
-
 # Add some sample articles
 emergency_articles.extend([
     {
         "id": str(uuid.uuid4()),
-        "title": "Welcome to Emergency Mode",
-        "content": "The Crewkerne Gazette is now running in emergency mode. All functions work without database.",
+        "title": "Welcome to The Crewkerne Gazette",
+        "subheading": "Your trusted source for local news and investigations",
+        "content": "The Crewkerne Gazette is now running with full functionality. All features work seamlessly including article creation, image uploads, social sharing, and breaking news management.",
         "category": "news",
         "author_id": "admin-id", 
         "author_name": "admin",
         "publisher_name": "The Crewkerne Gazette",
         "is_breaking": True,
         "is_published": True,
-        "tags": [],
-        "created_at": datetime.now(timezone.utc)
+        "tags": ["welcome", "announcement", "local"],
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc)
     }
 ])
 
@@ -398,4 +437,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-print("Emergency backend created - all functions work without database!")
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+print("✅ Crewkerne Gazette API ready - All functions work without database!")

@@ -1,56 +1,88 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import axios from 'axios';
-import { Clock, User, ArrowLeft, Share2, Eye, TrendingUp } from 'lucide-react';
+import { AuthContext } from '../App';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Calendar, User, Share2, ArrowLeft, Clock, Eye } from 'lucide-react';
+import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = BACKEND_URL;
 
 const ArticleDetail = () => {
   const { id } = useParams();
+  const { user } = useContext(AuthContext);
   const [article, setArticle] = useState(null);
   const [relatedArticles, setRelatedArticles] = useState([]);
+  const [structuredData, setStructuredData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchArticle();
-    fetchRelatedArticles();
   }, [id]);
 
   const fetchArticle = async () => {
     try {
-      const response = await axios.get(`${API}/articles/${id}`);
+      const response = await axios.get(`${BACKEND_URL}/articles/${id}`);
       setArticle(response.data);
+      
+      // Fetch related articles
+      const relatedResponse = await axios.get(`${BACKEND_URL}/articles/${id}/related`);
+      setRelatedArticles(relatedResponse.data);
+      
+      // Fetch structured data
+      const structuredResponse = await axios.get(`${BACKEND_URL}/articles/${id}/structured-data`);
+      setStructuredData(structuredResponse.data);
+      
     } catch (error) {
       console.error('Error fetching article:', error);
       setError('Article not found');
-    }
-  };
-
-  const fetchRelatedArticles = async () => {
-    try {
-      const response = await axios.get(`${API}/articles/${id}/related`);
-      setRelatedArticles(response.data);
-    } catch (error) {
-      console.error('Error fetching related articles:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const getCategoryBadgeClass = (category) => {
-    switch (category) {
-      case 'news': return 'category-news';
-      case 'music': return 'category-music';
-      case 'documentaries': return 'category-documentaries';
-      case 'comedy': return 'category-comedy';
-      default: return 'category-news';
+  const shareArticle = (platform) => {
+    const url = window.location.href;
+    const text = `${article.title}${article.subheading ? ` - ${article.subheading}` : ''} | The Crewkerne Gazette`;
+    
+    let shareUrl = '';
+    switch (platform) {
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&title=${encodeURIComponent(article.title)}`;
+        break;
+      default:
+        // Copy to clipboard
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('Link copied to clipboard!', 'success');
+        }).catch(() => {
+          showToast('Failed to copy link', 'error');
+        });
+        return;
     }
+    
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+  };
+
+  const showToast = (message, type = 'success') => {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.className = `fixed top-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white ${
+      type === 'success' ? 'bg-green-600' : 'bg-red-600'
+    }`;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast);
+      }
+    }, 3000);
   };
 
   const formatDate = (dateString) => {
@@ -63,111 +95,39 @@ const ArticleDetail = () => {
     });
   };
 
-  const getFullImageUrl = (imageUrl) => {
-    if (!imageUrl) return null;
-    // If it's already a data URI (base64), return as-is
-    if (imageUrl.startsWith('data:')) return imageUrl;
-    // If it's a full HTTP URL, return as-is  
-    if (imageUrl.startsWith('http')) return imageUrl;
-    // Otherwise use backend URL
-    return `${BACKEND_URL}${imageUrl}`;
-  };
-
-  const generateStructuredData = () => {
-    if (!article) return {};
-    
-    return {
-      "@context": "https://schema.org",
-      "@type": "NewsArticle",
-      "headline": article.title,
-      "description": article.subheading || article.content.substring(0, 160),
-      "image": fullImageUrl || `${window.location.origin}/logo.png`,
-      "datePublished": article.created_at,
-      "dateModified": article.updated_at || article.created_at,
-      "author": {
-        "@type": "Person",
-        "name": article.author_name || article.publisher_name || "The Crewkerne Gazette"
-      },
-      "publisher": {
-        "@type": "Organization", 
-        "name": "The Crewkerne Gazette",
-        "logo": {
-          "@type": "ImageObject",
-          "url": `${window.location.origin}/logo.png`
-        }
-      },
-      "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": window.location.href
-      },
-      "articleSection": article.category,
-      "keywords": article.tags?.join(", ") || article.category
-    };
-  };
-
   const formatDateForSchema = (dateString) => {
     return new Date(dateString).toISOString();
   };
 
-  const shareArticle = (platform) => {
-    const url = window.location.href;
-    const text = `${article.title} - ${article.subheading || 'Read more on The Crewkerne Gazette'}`;
-    
-    let shareUrl = '';
-    switch (platform) {
-      case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-        break;
-      case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-        break;
-      case 'linkedin':
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
-        break;
-      default:
-        // Copy to clipboard
-        navigator.clipboard.writeText(url).then(() => {
-          // Show success message
-          const toast = document.createElement('div');
-          toast.textContent = 'Link copied to clipboard!';
-          toast.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-lg z-50';
-          document.body.appendChild(toast);
-          setTimeout(() => document.body.removeChild(toast), 3000);
-        });
-        return;
+  const getFullImageUrl = (imageUrl) => {
+    if (!imageUrl) return null;
+    // Return data URIs and full HTTP URLs as-is
+    if (imageUrl.startsWith('data:') || imageUrl.startsWith('http')) {
+      return imageUrl;
     }
-    
-    window.open(shareUrl, '_blank', 'width=600,height=400');
-  };
-
-  // Split content for trending topics insertion
-  const getContentWithTrending = (content) => {
-    const paragraphs = content.split('\n\n');
-    if (paragraphs.length < 3) return content;
-    
-    const midPoint = Math.floor(paragraphs.length / 2);
-    const firstHalf = paragraphs.slice(0, midPoint).join('\n\n');
-    const secondHalf = paragraphs.slice(midPoint).join('\n\n');
-    
-    return { firstHalf, secondHalf, showTrending: true };
+    // Fallback for relative URLs
+    return `${BACKEND_URL}${imageUrl}`;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loading-spinner"></div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <p className="text-slate-300 mt-4">Loading article...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Article Not Found</h1>
-          <p className="text-slate-400 mb-8">The article you're looking for doesn't exist.</p>
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Article Not Found</h1>
+          <p className="text-slate-300 mb-6">The article you're looking for doesn't exist.</p>
           <Link to="/">
-            <Button>
+            <Button className="bg-red-600 hover:bg-red-700">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
             </Button>
@@ -177,128 +137,154 @@ const ArticleDetail = () => {
     );
   }
 
-  const contentStructure = getContentWithTrending(article.content);
-  const fullUrl = `${window.location.origin}/article/${article.id}`;
-  const fullImageUrl = getFullImageUrl(article.featured_image);
+  if (!article) return null;
 
-  // JSON-LD structured data for Google News
-  const structuredData = generateStructuredData();
+  const fullImageUrl = getFullImageUrl(article.featured_image);
+  const fullUrl = `${window.location.origin}/article/${article.id}`;
 
   return (
     <>
-      {/* Google News SEO Meta Tags */}
       <Helmet>
         <title>{article.title} | The Crewkerne Gazette</title>
         <meta name="description" content={article.subheading || article.content.substring(0, 160)} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="article" />
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.subheading || article.content.substring(0, 160)} />
         <meta property="og:image" content={fullImageUrl || `${window.location.origin}/logo.png`} />
         <meta property="og:url" content={fullUrl} />
-        <meta property="og:type" content="article" />
         <meta property="og:site_name" content="The Crewkerne Gazette" />
+        
+        {/* Article specific meta */}
         <meta property="article:published_time" content={formatDateForSchema(article.created_at)} />
         <meta property="article:modified_time" content={formatDateForSchema(article.updated_at)} />
-        <meta property="article:author" content={article.publisher_name || article.author_name} />
+        <meta property="article:author" content={article.author_name || article.publisher_name} />
         <meta property="article:section" content={article.category} />
-        <meta property="article:tag" content={article.tags?.join(", ")} />
+        {article.tags && article.tags.map(tag => (
+          <meta key={tag} property="article:tag" content={tag} />
+        ))}
+        
+        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.title} />
         <meta name="twitter:description" content={article.subheading || article.content.substring(0, 160)} />
         <meta name="twitter:image" content={fullImageUrl || `${window.location.origin}/logo.png`} />
-        <link rel="canonical" content={fullUrl} />
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </script>
+        <meta name="twitter:site" content="@CrewkerneGazette" />
+        
+        {/* Structured Data */}
+        {structuredData && (
+          <script type="application/ld+json">
+            {JSON.stringify(structuredData)}
+          </script>
+        )}
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
-        <div className="container py-8">
+      <div className="min-h-screen bg-black text-white">
+        <div className="container mx-auto px-4 py-8">
           {/* Back Button */}
-          <Link to="/" className="inline-flex items-center text-slate-400 hover:text-white mb-8 transition-colors">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Link>
+          <div className="mb-6">
+            <Link to="/">
+              <Button variant="outline" className="border-slate-600 text-slate-300 hover:border-slate-400">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Articles
+              </Button>
+            </Link>
+          </div>
 
           <article className="max-w-4xl mx-auto">
             {/* Article Header */}
             <header className="mb-8">
-              <div className="flex items-center space-x-4 mb-6">
-                <Badge className={`category-badge ${getCategoryBadgeClass(article.category)}`}>
-                  {article.category}
-                </Badge>
-                {article.is_breaking && (
-                  <Badge variant="destructive" className="animate-pulse bg-red-600 text-white font-bold">
+              {article.is_breaking && (
+                <div className="mb-4">
+                  <Badge className="bg-red-600 text-white font-bold px-3 py-1">
                     BREAKING NEWS
                   </Badge>
-                )}
-              </div>
+                </div>
+              )}
 
-              {/* Breaking News Enhancement */}
-              <div className="mb-6">
-                {article.is_breaking && (
-                  <div className="bg-red-600 text-white px-4 py-2 rounded-lg mb-4 font-bold uppercase tracking-wide">
-                    🚨 BREAKING NEWS
-                  </div>
-                )}
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
-                  {article.title}
-                </h1>
-                {article.subheading && (
-                  <h2 className="text-xl text-slate-300 mb-4 font-medium leading-relaxed">
-                    {article.subheading}
-                  </h2>
-                )}
-              </div>
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+                {article.title}
+              </h1>
 
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-slate-400">
-                <div className="flex items-center space-x-6">
-                  <span className="flex items-center">
-                    <User className="w-4 h-4 mr-2" />
-                    By {article.publisher_name || article.author_name}
-                  </span>
-                  <span className="flex items-center">
-                    <Clock className="w-4 h-4 mr-2" />
-                    {formatDate(article.created_at)}
-                  </span>
+              {article.subheading && (
+                <h2 className="text-xl md:text-2xl text-slate-300 mb-6 font-medium leading-relaxed">
+                  {article.subheading}
+                </h2>
+              )}
+
+              {/* Article Meta */}
+              <div className="flex flex-wrap items-center gap-4 text-slate-400 text-sm mb-6">
+                <div className="flex items-center space-x-2">
+                  <User className="w-4 h-4" />
+                  <span>By {article.author_name || article.publisher_name}</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => shareArticle('twitter')}
-                    className="border-slate-600 text-slate-400 hover:border-blue-400 hover:text-blue-400 transition-colors"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Twitter
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => shareArticle('facebook')}
-                    className="border-slate-600 text-slate-400 hover:border-blue-600 hover:text-blue-600 transition-colors"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Facebook
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => shareArticle('linkedin')}
-                    className="border-slate-600 text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-colors"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    LinkedIn
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => shareArticle()}
-                    className="border-slate-600 text-slate-400 hover:border-slate-400"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Copy Link
-                  </Button>
+                  <Calendar className="w-4 h-4" />
+                  <span>{formatDate(article.created_at)}</span>
                 </div>
+                {article.updated_at !== article.created_at && (
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-4 h-4" />
+                    <span>Updated {formatDate(article.updated_at)}</span>
+                  </div>
+                )}
+                <div className="flex items-center space-x-2">
+                  <Eye className="w-4 h-4" />
+                  <span>{article.category.charAt(0).toUpperCase() + article.category.slice(1)}</span>
+                </div>
+              </div>
+
+              {/* Tags */}
+              {article.tags && article.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {article.tags.map(tag => (
+                    <Badge key={tag} variant="outline" className="border-slate-600 text-slate-300">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Share Buttons */}
+              <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-700">
+                <span className="text-slate-400 text-sm font-medium">Share:</span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => shareArticle('twitter')}
+                  className="border-slate-600 text-slate-400 hover:border-blue-400 hover:text-blue-400 transition-colors"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Twitter
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => shareArticle('facebook')}
+                  className="border-slate-600 text-slate-400 hover:border-blue-600 hover:text-blue-600 transition-colors"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Facebook
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => shareArticle('linkedin')}
+                  className="border-slate-600 text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  LinkedIn
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => shareArticle()}
+                  className="border-slate-600 text-slate-400 hover:border-slate-400"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Copy Link
+                </Button>
               </div>
             </header>
 
@@ -323,131 +309,59 @@ const ArticleDetail = () => {
             )}
 
             {/* Article Content */}
-            <div className="prose prose-lg prose-invert max-w-none">
-              {typeof contentStructure === 'object' && contentStructure.showTrending ? (
-                <>
-                  {/* First Half of Content */}
-                  <div 
-                    className="text-slate-200 leading-relaxed text-lg mb-8"
-                    style={{ whiteSpace: 'pre-wrap' }}
-                  >
-                    {contentStructure.firstHalf}
-                  </div>
-
-                  {/* Trending Topics Section */}
-                  {relatedArticles.length > 0 && (
-                    <Card className="bg-slate-800/60 border-red-600/30 my-8">
-                      <CardHeader>
-                        <CardTitle className="text-white flex items-center">
-                          <TrendingUp className="w-5 h-5 mr-2 text-red-400" />
-                          Trending Topics
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {relatedArticles.map((relatedArticle) => (
-                            <Link 
-                              key={relatedArticle.id} 
-                              to={`/article/${relatedArticle.id}`}
-                              className="block p-4 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors"
-                            >
-                              <div className="flex items-start space-x-4">
-                                {relatedArticle.featured_image && (
-                                  <img 
-                                    src={relatedArticle.featured_image} 
-                                    alt={relatedArticle.title}
-                                    className="w-16 h-16 object-cover rounded"
-                                  />
-                                )}
-                                <div className="flex-1">
-                                  <h3 className="text-white font-medium hover:text-red-400 transition-colors">
-                                    {relatedArticle.title}
-                                  </h3>
-                                  <p className="text-slate-400 text-sm mt-1">
-                                    {new Date(relatedArticle.created_at).toLocaleDateString()}
-                                  </p>
-                                </div>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Second Half of Content */}
-                  <div 
-                    className="text-slate-200 leading-relaxed text-lg"
-                    style={{ whiteSpace: 'pre-wrap' }}
-                  >
-                    {contentStructure.secondHalf}
-                  </div>
-                </>
-              ) : (
-                <div 
-                  className="text-slate-200 leading-relaxed text-lg"
-                  style={{ whiteSpace: 'pre-wrap' }}
-                >
-                  {article.content}
-                </div>
-              )}
+            <div className="prose prose-invert max-w-none">
+              <div 
+                className="text-lg leading-relaxed text-slate-200"
+                dangerouslySetInnerHTML={{ __html: article.content.replace(/\n/g, '<br />') }}
+              />
             </div>
 
             {/* Video Embed */}
             {article.video_url && (
-              <div className="my-8 rounded-lg overflow-hidden bg-slate-800">
+              <div className="mt-8">
                 <div className="aspect-video">
                   <iframe
                     src={article.video_url}
-                    title={article.title}
-                    className="w-full h-full"
+                    title="Article Video"
+                    className="w-full h-full rounded-lg"
                     allowFullScreen
                   />
                 </div>
               </div>
             )}
 
-            {/* Article Tags */}
-            {article.tags && article.tags.length > 0 && (
-              <div className="mt-8 pt-8 border-t border-slate-700">
-                <h3 className="text-sm font-medium text-slate-400 mb-4">Tags:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {article.tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      #{tag}
-                    </Badge>
+            {/* Related Articles */}
+            {relatedArticles.length > 0 && (
+              <div className="mt-12 pt-8 border-t border-slate-700">
+                <h3 className="text-2xl font-bold mb-6 text-white">Related Articles</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {relatedArticles.map(relatedArticle => (
+                    <Link
+                      key={relatedArticle.id}
+                      to={`/article/${relatedArticle.id}`}
+                      className="group block bg-slate-900/50 rounded-lg overflow-hidden hover:bg-slate-800/50 transition-colors"
+                    >
+                      {relatedArticle.featured_image && (
+                        <img
+                          src={getFullImageUrl(relatedArticle.featured_image)}
+                          alt={relatedArticle.title}
+                          className="w-full h-32 object-cover"
+                          onError={(e) => e.target.style.display = 'none'}
+                        />
+                      )}
+                      <div className="p-4">
+                        <h4 className="font-semibold text-white group-hover:text-red-400 transition-colors line-clamp-2">
+                          {relatedArticle.title}
+                        </h4>
+                        <p className="text-sm text-slate-400 mt-2">
+                          {formatDate(relatedArticle.created_at)}
+                        </p>
+                      </div>
+                    </Link>
                   ))}
                 </div>
               </div>
             )}
-
-            {/* Article Footer */}
-            <footer className="mt-12 pt-8 border-t border-slate-700">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-slate-400 text-sm">
-                  Published on {formatDate(article.created_at)}
-                  {article.updated_at !== article.created_at && (
-                    <span> • Updated {formatDate(article.updated_at)}</span>
-                  )}
-                </div>
-                <div className="flex items-center space-x-4">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={shareArticle}
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share Article
-                  </Button>
-                  <Link to={`/${article.category}`}>
-                    <Button variant="outline" size="sm">
-                      <Eye className="w-4 h-4 mr-2" />
-                      More {article.category}
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </footer>
           </article>
         </div>
       </div>
