@@ -25,7 +25,7 @@ Your social sharing issue has been **completely resolved**! The backend now serv
      - **Branch:** `main`
      - **Build Command:** 
        ```
-       cd frontend && npm install && npm run build && cd ../backend && pip install -r requirements.txt
+       cd frontend && npm install --legacy-peer-deps && npm run build && cd ../backend && pip install -r requirements.txt
        ```
      - **Start Command:**
        ```
