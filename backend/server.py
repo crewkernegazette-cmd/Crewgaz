@@ -417,6 +417,41 @@ async def register(user_data: UserCreate):
     await db.users.insert_one(user_doc)
     return user_obj
 
+@api_router.post("/auth/emergency-login")
+async def emergency_login(user_data: UserLogin):
+    """Emergency login that bypasses database - for production debugging"""
+    # Hardcoded admin credentials that work without database
+    if user_data.username == "Gazette" and user_data.password == "80085":
+        # Create token without database lookup
+        token = create_jwt_token("emergency-admin-id", "Gazette", "admin")
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "user": {
+                "id": "emergency-admin-id",
+                "username": "Gazette", 
+                "email": "gazette@crewkernegazette.com",
+                "role": "admin",
+                "created_at": "2025-08-30T00:00:00.000000"
+            }
+        }
+    elif user_data.username == "admin" and user_data.password == "admin123":
+        # Create token without database lookup
+        token = create_jwt_token("emergency-admin-id-2", "admin", "admin")
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "user": {
+                "id": "emergency-admin-id-2",
+                "username": "admin", 
+                "email": "admin@crewkernegazette.com",
+                "role": "admin",
+                "created_at": "2025-08-30T00:00:00.000000"
+            }
+        }
+    else:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
 @api_router.post("/auth/login")
 async def login(user_data: UserLogin):
     # Find user
