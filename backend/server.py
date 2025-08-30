@@ -157,6 +157,34 @@ class PasswordChangeRequest(BaseModel):
     new_password: str = Field(..., min_length=6)
 
 # Utility Functions
+def is_crawler(user_agent: str) -> bool:
+    """Detect if the request is from a social media crawler or bot"""
+    if not user_agent:
+        return False
+    
+    user_agent_lower = user_agent.lower()
+    crawlers = [
+        'facebookexternalhit',  # Facebook
+        'twitterbot',           # Twitter
+        'linkedinbot',          # LinkedIn  
+        'whatsapp',             # WhatsApp
+        'telegrambot',          # Telegram
+        'slackbot',             # Slack
+        'discordbot',           # Discord
+        'googlebot',            # Google
+        'bingbot',              # Bing
+        'yandexbot',            # Yandex
+        'pinterest',            # Pinterest
+        'redditbot',            # Reddit
+        'applebot',             # Apple
+        'skypeuripreview',      # Skype
+        'vkshare',              # VKontakte
+        'tumblr',               # Tumblr
+        'chatwork'              # ChatWork
+    ]
+    
+    return any(crawler in user_agent_lower for crawler in crawlers)
+
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
