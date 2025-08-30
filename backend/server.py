@@ -649,6 +649,31 @@ async def serve_article_page(article_id: str, request: Request):
                     title_safe = article_obj.title.replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
                     description_safe = (article_obj.subheading or article_obj.content[:160]).replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
                     
+                    # Calculate image dimensions for better social sharing
+                    image_width_tag = ''
+                    image_height_tag = ''
+                    image_url = article_obj.featured_image or 'https://crewkernegazette.co.uk/logo.png'
+                    
+                    if article_obj.featured_image and article_obj.featured_image.startswith('data:image/'):
+                        try:
+                            # Extract base64 data
+                            header, data = article_obj.featured_image.split(',', 1)
+                            image_data = base64.b64decode(data)
+                            # Get dimensions with PIL
+                            img = Image.open(io.BytesIO(image_data))
+                            image_width_tag = f'    <meta property="og:image:width" content="{img.width}">'
+                            image_height_tag = f'    <meta property="og:image:height" content="{img.height}">'
+                            print(f"📏 Image dimensions calculated: {img.width}x{img.height}")
+                        except Exception as e:
+                            print(f"⚠️ Failed to get image dimensions: {e}")
+                            # Fallback to standard social media dimensions
+                            image_width_tag = '    <meta property="og:image:width" content="1200">'
+                            image_height_tag = '    <meta property="og:image:height" content="630">'
+                    else:
+                        # Default dimensions for external images
+                        image_width_tag = '    <meta property="og:image:width" content="1200">'
+                        image_height_tag = '    <meta property="og:image:height" content="630">'
+                    
                     # Generate SEO-friendly meta HTML for crawlers
                     meta_html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -665,7 +690,9 @@ async def serve_article_page(article_id: str, request: Request):
     <meta property="og:description" content="{description_safe}">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_id}">
-    <meta property="og:image" content="{article_obj.featured_image or 'https://crewkernegazette.co.uk/logo.png'}">
+    <meta property="og:image" content="{image_url}">
+{image_width_tag}
+{image_height_tag}
     <meta property="og:site_name" content="The Crewkerne Gazette">
     <meta property="article:published_time" content="{article_obj.created_at.isoformat()}">
     <meta property="article:author" content="{article_obj.author_name or article_obj.publisher_name}">
@@ -675,7 +702,7 @@ async def serve_article_page(article_id: str, request: Request):
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{title_safe}">
     <meta name="twitter:description" content="{description_safe}">
-    <meta name="twitter:image" content="{article_obj.featured_image or 'https://crewkernegazette.co.uk/logo.png'}">
+    <meta name="twitter:image" content="{image_url}">
     <meta name="twitter:site" content="@CrewkerneGazette">
     
     <!-- Canonical URL -->
