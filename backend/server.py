@@ -312,6 +312,22 @@ async def toggle_maintenance(maintenance_data: MaintenanceToggle, current_user: 
     emergency_settings["maintenance_mode"] = maintenance_data.maintenance_mode
     return {"message": f"Maintenance mode {'enabled' if maintenance_data.maintenance_mode else 'disabled'}"}
 
+@api_router.get("/debug/articles")
+async def debug_articles():
+    """Debug endpoint to see all articles in memory"""
+    return {
+        "total_articles": len(emergency_articles),
+        "articles": emergency_articles,
+        "sample_article_ids": [a.get("id") for a in emergency_articles[:5]]
+    }
+
+@api_router.get("/debug/settings")
+async def debug_settings():
+    """Debug endpoint to see current settings"""
+    return {
+        "current_settings": emergency_settings
+    }
+
 @api_router.post("/upload-image")
 async def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
     if not file.content_type.startswith('image/'):
