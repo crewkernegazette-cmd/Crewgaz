@@ -67,17 +67,27 @@ const ArticleDetail = () => {
     return new Date(dateString).toISOString();
   };
 
-  const shareArticle = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: article.title,
-        text: article.content.substring(0, 100) + '...',
-        url: window.location.href,
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+  const shareArticle = (platform) => {
+    const url = window.location.href;
+    const text = `${article.title} - ${article.subheading || 'Read more on The Crewkerne Gazette'}`;
+    
+    let shareUrl = '';
+    switch (platform) {
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+        break;
+      default:
+        navigator.clipboard.writeText(url);
+        return;
     }
+    
+    window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
   // Split content for trending topics insertion
