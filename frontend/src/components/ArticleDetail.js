@@ -54,13 +54,52 @@ const ArticleDetail = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-GB', {
       year: 'numeric',
-      month: 'long',
+      month: 'long', 
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const getFullImageUrl = (imageUrl) => {
+    if (!imageUrl) return null;
+    if (imageUrl.startsWith('http')) return imageUrl;
+    if (imageUrl.startsWith('/uploads/')) {
+      return `${window.location.origin}${imageUrl}`;
+    }
+    return `${BACKEND_URL}${imageUrl}`;
+  };
+
+  const generateStructuredData = () => {
+    if (!article) return {};
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": article.title,
+      "description": article.subheading || article.content.substring(0, 160),
+      "image": article.featured_image ? getFullImageUrl(article.featured_image) : `${window.location.origin}/logo.png`,
+      "datePublished": article.created_at,
+      "dateModified": article.updated_at || article.created_at,
+      "author": {
+        "@type": "Person",
+        "name": article.author_name || "The Crewkerne Gazette"
+      },
+      "publisher": {
+        "@type": "Organization", 
+        "name": "The Crewkerne Gazette",
+        "logo": {
+          "@type": "ImageObject",
+          "url": `${window.location.origin}/logo.png`
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": window.location.href
+      }
+    };
   };
 
   const formatDateForSchema = (dateString) => {
