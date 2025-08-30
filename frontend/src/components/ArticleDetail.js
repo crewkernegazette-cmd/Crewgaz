@@ -181,7 +181,7 @@ const ArticleDetail = () => {
         <meta name="description" content={article.subheading || article.content.substring(0, 160)} />
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.subheading || article.content.substring(0, 160)} />
-        <meta property="og:image" content={article.featured_image} />
+        <meta property="og:image" content={fullImageUrl || `${window.location.origin}/logo.png`} />
         <meta property="og:url" content={fullUrl} />
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content="The Crewkerne Gazette" />
@@ -193,7 +193,7 @@ const ArticleDetail = () => {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.title} />
         <meta name="twitter:description" content={article.subheading || article.content.substring(0, 160)} />
-        <meta name="twitter:image" content={article.featured_image} />
+        <meta name="twitter:image" content={fullImageUrl || `${window.location.origin}/logo.png`} />
         <link rel="canonical" content={fullUrl} />
         <script type="application/ld+json">
           {JSON.stringify(structuredData)}
