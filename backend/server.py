@@ -365,6 +365,37 @@ async def upload_image(file: UploadFile = File(...), current_user: User = Depend
     file_url = f"/uploads/{unique_filename}"
     return {"url": file_url}
 
+# Test endpoint for production debugging
+@api_router.get("/test")
+async def test_endpoint():
+    try:
+        # Test database connection
+        await client.admin.command('ping')
+        db_status = "✅ Connected"
+        
+        # Test user collection
+        user_count = await db.users.count_documents({})
+        admin_exists = await db.users.find_one({"username": "admin"}) is not None
+        gazette_exists = await db.users.find_one({"username": "Gazette"}) is not None
+        
+        return {
+            "status": "success",
+            "database": db_status,
+            "database_name": db_name,
+            "mongo_url": mongo_url.replace("mongodb://", "mongodb://***:***@") if "@" in mongo_url else mongo_url,
+            "users_count": user_count,
+            "admin_exists": admin_exists,
+            "gazette_exists": gazette_exists,
+            "message": "Production backend is working!"
+        }
+    except Exception as e:
+        return {
+            "status": "error", 
+            "error": str(e),
+            "database_name": db_name,
+            "mongo_url": mongo_url.replace("mongodb://", "mongodb://***:***@") if "@" in mongo_url else mongo_url
+        }
+
 # Auth Routes
 @api_router.post("/auth/register", response_model=User)
 async def register(user_data: UserCreate):
