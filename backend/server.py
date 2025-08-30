@@ -16,6 +16,8 @@ import jwt
 from enum import Enum
 import base64
 import bleach
+from PIL import Image
+import io
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
