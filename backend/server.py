@@ -30,11 +30,11 @@ import socket
 
 def get_mongodb_url():
     """Get MongoDB URL based on environment"""
-    # Check if MONGO_URL is explicitly set
-    if 'MONGO_URL' in os.environ:
+    # If MONGO_URL is explicitly set, use it (production Atlas URL)
+    if 'MONGO_URL' in os.environ and os.environ['MONGO_URL']:
         return os.environ['MONGO_URL']
     
-    # Try different MongoDB hosts based on environment
+    # Try different MongoDB hosts based on environment detection
     mongodb_hosts = [
         'mongodb://mongo:27017',           # Container/Kubernetes environment
         'mongodb://localhost:27017',       # Local development
