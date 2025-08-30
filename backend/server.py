@@ -847,51 +847,37 @@ async def get_dashboard_articles(current_user: User = Depends(get_current_user))
 
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
-    try:
-        # Try normal database operations first
-        query = {}
-        if current_user.role != UserRole.ADMIN:
-            query["author_id"] = current_user.id
-        
-        total_articles = await db.articles.count_documents(query)
-        published_articles = await db.articles.count_documents({**query, "is_published": True})
-        breaking_news = await db.articles.count_documents({**query, "is_breaking": True})
-        
-        # Contact stats
-        total_contacts = await db.contacts.count_documents({})
-        new_contacts = await db.contacts.count_documents({"status": "new"})
-        
-        # Category breakdown
-        categories = {}
-        for category in ArticleCategory:
-            count = await db.articles.count_documents({**query, "category": category.value})
-            categories[category.value] = count
-        
-        return {
-            "total_articles": total_articles,
-            "published_articles": published_articles,
-            "breaking_news": breaking_news,
-            "total_contacts": total_contacts,
-            "new_contacts": new_contacts,
-            "categories": categories
-        }
-    except Exception as e:
-        # Emergency fallback stats (if database fails)
-        return {
-            "total_articles": 0,
-            "published_articles": 0,
-            "breaking_news": 0,
-            "total_contacts": 0,
-            "new_contacts": 0,
-            "categories": {
-                "news": 0,
-                "music": 0,
-                "documentaries": 0,
-                "comedy": 0
-            },
-            "emergency_mode": True,
-            "message": "Using emergency stats - database unavailable"
-        }
+    """Emergency dashboard stats that work without database"""
+    query_articles = emergency_articles.copy()
+    
+    if current_user.role != UserRole.ADMIN:
+        query_articles = [a for a in query_articles if a.get("author_id") == current_user.id]
+    
+    total_articles = len(query_articles)
+    published_articles = len([a for a in query_articles if a.get("is_published", True)])
+    breaking_news = len([a for a in query_articles if a.get("is_breaking", False)])
+    
+    total_contacts = len(emergency_contacts)
+    new_contacts = len([c for c in emergency_contacts if c.get("status") == "new"])
+    
+    # Category breakdown
+    categories = {
+        "news": len([a for a in query_articles if a.get("category") == "news"]),
+        "music": len([a for a in query_articles if a.get("category") == "music"]), 
+        "documentaries": len([a for a in query_articles if a.get("category") == "documentaries"]),
+        "comedy": len([a for a in query_articles if a.get("category") == "comedy"])
+    }
+    
+    return {
+        "total_articles": total_articles,
+        "published_articles": published_articles,
+        "breaking_news": breaking_news,
+        "total_contacts": total_contacts,
+        "new_contacts": new_contacts,
+        "categories": categories,
+        "emergency_mode": True,
+        "message": "Emergency mode active - data stored in memory"
+    }
 
 # Initialize default admin user and settings on startup
 @app.on_event("startup")
