@@ -340,14 +340,18 @@ async def upload_image(file: UploadFile = File(...), current_user: User = Depend
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    # Return full URL that works in production
-    base_url = os.environ.get('BACKEND_BASE_URL', '')
-    if base_url:
-        full_url = f"{base_url}/uploads/{unique_filename}"
-    else:
-        full_url = f"/uploads/{unique_filename}"
+    # Return API-routed URL that will work in production
+    return {"url": f"/api/uploads/{unique_filename}"}
+
+@api_router.get("/uploads/{filename}")
+async def serve_upload(filename: str):
+    """Serve uploaded images through API route"""
+    file_path = UPLOAD_DIR / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
     
-    return {"url": full_url}
+    from fastapi.responses import FileResponse
+    return FileResponse(file_path)
 
 @api_router.get("/uploads-test/{filename}")
 async def test_upload_serving(filename: str):
