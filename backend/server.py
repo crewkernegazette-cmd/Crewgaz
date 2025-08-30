@@ -332,6 +332,69 @@ async def get_dashboard_articles(current_user: User = Depends(get_current_user))
     articles = sorted(articles, key=lambda x: x.get("created_at", datetime.min.isoformat()), reverse=True)
     return [Article(**article) for article in articles]
 
+@api_router.put("/articles/{article_id}", response_model=Article)
+async def update_article(article_id: str, article_data: ArticleCreate, current_user: User = Depends(get_current_user)):
+    """Update an existing article"""
+    # Find the article to update
+    article_index = None
+    for i, article in enumerate(emergency_articles):
+        if article.get("id") == article_id:
+            article_index = i
+            break
+    
+    if article_index is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+    
+    # Check permissions
+    existing_article = emergency_articles[article_index]
+    if current_user.role != UserRole.ADMIN and existing_article.get("author_id") != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only edit your own articles")
+    
+    # Update the article
+    updated_article = {
+        **existing_article,  # Keep existing fields
+        "title": article_data.title,
+        "subheading": article_data.subheading,
+        "content": article_data.content,
+        "category": article_data.category,
+        "publisher_name": article_data.publisher_name or "The Crewkerne Gazette",
+        "featured_image": article_data.featured_image,
+        "image_caption": article_data.image_caption,
+        "video_url": article_data.video_url,
+        "is_breaking": article_data.is_breaking,
+        "is_published": article_data.is_published,
+        "tags": article_data.tags,
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    # Replace the article in emergency storage
+    emergency_articles[article_index] = updated_article
+    
+    return Article(**updated_article)
+
+@api_router.delete("/articles/{article_id}")
+async def delete_article(article_id: str, current_user: User = Depends(get_current_user)):
+    """Delete an article"""
+    # Find the article to delete
+    article_index = None
+    for i, article in enumerate(emergency_articles):
+        if article.get("id") == article_id:
+            article_index = i
+            break
+    
+    if article_index is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+    
+    # Check permissions
+    existing_article = emergency_articles[article_index]
+    if current_user.role != UserRole.ADMIN and existing_article.get("author_id") != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only delete your own articles")
+    
+    # Remove the article from emergency storage
+    deleted_article = emergency_articles.pop(article_index)
+    
+    return {"message": "Article deleted successfully", "deleted_article_id": article_id}
+
 @api_router.get("/contacts", response_model=List[Contact])
 async def get_contacts(current_user: User = Depends(get_current_user)):
     return [Contact(**contact) for contact in emergency_contacts]
