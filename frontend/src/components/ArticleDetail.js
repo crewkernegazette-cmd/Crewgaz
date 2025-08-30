@@ -168,35 +168,10 @@ const ArticleDetail = () => {
 
   const contentStructure = getContentWithTrending(article.content);
   const fullUrl = `${window.location.origin}/article/${article.id}`;
+  const fullImageUrl = getFullImageUrl(article.featured_image);
 
   // JSON-LD structured data for Google News
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "NewsArticle",
-    "headline": article.title,
-    "description": article.subheading || article.content.substring(0, 160),
-    "image": article.featured_image ? [article.featured_image] : undefined,
-    "datePublished": formatDateForSchema(article.created_at),
-    "dateModified": formatDateForSchema(article.updated_at),
-    "author": {
-      "@type": "Person",
-      "name": article.publisher_name || article.author_name
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "The Crewkerne Gazette",
-      "logo": {
-        "@type": "ImageObject",
-        "url": `${window.location.origin}/gazette-logo.png`
-      }
-    },
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": fullUrl
-    },
-    "articleSection": article.category,
-    "keywords": article.tags?.join(", ")
-  };
+  const structuredData = generateStructuredData();
 
   return (
     <>
