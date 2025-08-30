@@ -72,15 +72,6 @@ const Navbar = () => {
               </Button>
             </Link>
 
-            {/* STAFF LOGIN BUTTON - DEPLOYMENT TEST */}
-            {!user && (
-              <Link to="/login">
-                <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold border-2 border-black">
-                  🔑 STAFF LOGIN
-                </Button>
-              </Link>
-            )}
-
             {/* User Actions - Only show if logged in */}
             {user && (
               <>
