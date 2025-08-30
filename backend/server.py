@@ -700,19 +700,24 @@ async def serve_article_page(article_id: str, request: Request):
     
     else:
         # For regular users, serve the React app's index.html
+        print(f"🔍 Regular user request for article {article_id}, user-agent: {user_agent}")
         try:
             frontend_path = Path("../frontend/build/index.html")
+            print(f"📁 Checking frontend path: {frontend_path.absolute()}, exists: {frontend_path.exists()}")
             if frontend_path.exists():
                 with open(frontend_path, 'r', encoding='utf-8') as f:
                     html_content = f.read()
+                print(f"📄 Serving React app HTML ({len(html_content)} chars)")
                 return HTMLResponse(content=html_content)
             else:
+                print("❌ Frontend build not found, redirecting to homepage")
                 # Fallback redirect if build not found
                 raise HTTPException(
                     status_code=302,
                     headers={"Location": f"/"}
                 )
-        except Exception:
+        except Exception as e:
+            print(f"❌ Error serving React app: {e}")
             # Fallback to homepage
             raise HTTPException(
                 status_code=302,
