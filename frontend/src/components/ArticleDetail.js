@@ -66,9 +66,7 @@ const ArticleDetail = () => {
   const getFullImageUrl = (imageUrl) => {
     if (!imageUrl) return null;
     if (imageUrl.startsWith('http')) return imageUrl;
-    if (imageUrl.startsWith('/uploads/')) {
-      return `${window.location.origin}${imageUrl}`;
-    }
+    // Use backend URL for all image serving
     return `${BACKEND_URL}${imageUrl}`;
   };
 
