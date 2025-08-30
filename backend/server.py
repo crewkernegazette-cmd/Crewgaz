@@ -340,7 +340,23 @@ async def upload_image(file: UploadFile = File(...), current_user: User = Depend
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    return {"url": f"/uploads/{unique_filename}"}
+    # Return full URL that works in production
+    base_url = os.environ.get('BACKEND_BASE_URL', '')
+    if base_url:
+        full_url = f"{base_url}/uploads/{unique_filename}"
+    else:
+        full_url = f"/uploads/{unique_filename}"
+    
+    return {"url": full_url}
+
+@api_router.get("/uploads-test/{filename}")
+async def test_upload_serving(filename: str):
+    """Test endpoint to check if uploaded files are accessible"""
+    file_path = UPLOAD_DIR / filename
+    if file_path.exists():
+        return {"status": "file exists", "path": str(file_path), "size": file_path.stat().st_size}
+    else:
+        return {"status": "file not found", "path": str(file_path)}
 
 # Add some sample articles
 emergency_articles.extend([
