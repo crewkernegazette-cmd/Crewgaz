@@ -250,15 +250,33 @@ const ArticleDetail = () => {
                     {formatDate(article.created_at)}
                   </span>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={shareArticle}
-                  className="border-slate-600 text-slate-400 hover:border-slate-400"
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Share
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => shareArticle('twitter')}
+                    className="border-slate-600 text-slate-400 hover:border-slate-400"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Twitter
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => shareArticle('facebook')}
+                    className="border-slate-600 text-slate-400 hover:border-slate-400"
+                  >
+                    Facebook
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => shareArticle()}
+                    className="border-slate-600 text-slate-400 hover:border-slate-400"
+                  >
+                    Copy Link
+                  </Button>
+                </div>
               </div>
             </header>
 
