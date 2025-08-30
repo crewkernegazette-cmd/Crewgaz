@@ -16,6 +16,7 @@ import ContactSection from './components/ContactSection';
 import ArticleDetail from './components/ArticleDetail';
 import Dashboard from './components/Dashboard';
 import LoginForm from './components/LoginForm';
+import Debug from './components/Debug';
 import { Toaster } from './components/ui/sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
