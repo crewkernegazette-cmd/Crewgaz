@@ -728,20 +728,23 @@ const ArticleEditor = ({ articleId = null }) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    console.log('🔍 Image upload started:', file.name, file.type, file.size);
+
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
       return;
     }
 
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size must be less than 5MB');
+    // Validate file size (10MB max for base64)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image size must be less than 10MB');
       return;
     }
 
     setUploadingImage(true);
     try {
+      // Method 1: Use backend upload (base64 conversion)
       const formData = new FormData();
       formData.append('file', file);
 
@@ -751,17 +754,71 @@ const ArticleEditor = ({ articleId = null }) => {
         },
       });
 
-      // The backend returns just the path (e.g., "/uploads/filename.jpg")
-      // We need to construct the full URL
-      const imageUrl = `${BACKEND_URL}${response.data.url}`;
+      console.log('📡 Backend response:', response.data);
+      
+      // Backend now returns data URI directly - use as-is
+      const imageUrl = response.data.url;
+      console.log('🖼️  Setting image URL:', imageUrl.substring(0, 100) + '...');
+      
       setArticle({ ...article, featured_image: imageUrl });
       toast.success('Image uploaded successfully');
     } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
+      console.error('❌ Error uploading image:', error);
+      
+      // Fallback: Client-side compression and base64 conversion
+      console.log('🔄 Trying client-side fallback...');
+      try {
+        const compressedDataUrl = await compressImage(file);
+        console.log('✅ Client-side compression successful:', compressedDataUrl.substring(0, 100) + '...');
+        setArticle({ ...article, featured_image: compressedDataUrl });
+        toast.success('Image processed successfully (fallback)');
+      } catch (fallbackError) {
+        console.error('❌ Fallback also failed:', fallbackError);
+        toast.error('Failed to process image');
+      }
     } finally {
       setUploadingImage(false);
     }
+  };
+
+  // Client-side image compression function
+  const compressImage = (file, maxWidth = 800, quality = 0.8) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Calculate new dimensions
+          let { width, height } = img;
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Draw and compress
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          
+          console.log('🎨 Image compressed:', {
+            original: file.size,
+            compressed: compressedDataUrl.length,
+            ratio: (compressedDataUrl.length / file.size * 100).toFixed(1) + '%'
+          });
+          
+          resolve(compressedDataUrl);
+        };
+        img.onerror = reject;
+        img.src = event.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleSubmit = async (e) => {
