@@ -727,6 +727,10 @@ async def serve_article_page(article_id: str, request: Request):
 # Include router and middleware
 app.include_router(api_router)
 
+# Mount frontend static files - this must come AFTER the API routes
+# so that our /article/{id} route takes priority over frontend routing
+app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="frontend")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
