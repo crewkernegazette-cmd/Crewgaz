@@ -263,6 +263,84 @@ const Dashboard = () => {
     }
   };
 
+  const handleEditArticle = (articleToEdit) => {
+    setEditingArticle(articleToEdit);
+    setIsEditing(true);
+    setArticle({
+      title: articleToEdit.title,
+      subheading: articleToEdit.subheading || '',
+      content: articleToEdit.content,
+      category: articleToEdit.category,
+      publisher_name: articleToEdit.publisher_name || 'The Crewkerne Gazette',
+      featured_image: articleToEdit.featured_image || '',
+      image_caption: articleToEdit.image_caption || '',
+      video_url: articleToEdit.video_url || '',
+      is_breaking: articleToEdit.is_breaking || false,
+      is_published: articleToEdit.is_published !== false, // Default to true
+      tags: articleToEdit.tags || []
+    });
+    setActiveTab('create'); // Switch to create tab for editing
+  };
+
+  const handleUpdateArticle = async (e) => {
+    e.preventDefault();
+    
+    if (!editingArticle) return;
+    
+    // Validation
+    if (!article.title.trim()) {
+      toast.error('Please enter a title');
+      return;
+    }
+    if (!article.content.trim()) {
+      toast.error('Please enter content');
+      return;
+    }
+
+    setCreatingArticle(true);
+    try {
+      console.log('📝 Updating article:', editingArticle.id, article.title);
+      const response = await axios.put(`${API}/articles/${editingArticle.id}`, article);
+      console.log('✅ Article updated:', response.data);
+      
+      toast.success('Article updated successfully!');
+      resetForm();
+      setIsEditing(false);
+      setEditingArticle(null);
+      fetchDashboardData(); // Refresh data
+      setActiveTab('articles'); // Switch to articles tab
+    } catch (error) {
+      console.error('❌ Error updating article:', error);
+      toast.error('Failed to update article');
+    } finally {
+      setCreatingArticle(false);
+    }
+  };
+
+  const handleDeleteArticle = async (articleId, articleTitle) => {
+    if (!window.confirm(`Are you sure you want to delete "${articleTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      console.log('🗑️ Deleting article:', articleId);
+      await axios.delete(`${API}/articles/${articleId}`);
+      console.log('✅ Article deleted:', articleId);
+      
+      toast.success('Article deleted successfully!');
+      fetchDashboardData(); // Refresh data
+    } catch (error) {
+      console.error('❌ Error deleting article:', error);
+      toast.error('Failed to delete article');
+    }
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
+    setEditingArticle(null);
+    resetForm();
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-GB', {
       year: 'numeric',
