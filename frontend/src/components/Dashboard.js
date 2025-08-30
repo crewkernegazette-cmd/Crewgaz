@@ -52,6 +52,8 @@ const Dashboard = () => {
     is_published: true,
     tags: []
   });
+  const [editingArticle, setEditingArticle] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
   
   // UI states
   const [uploadingImage, setUploadingImage] = useState(false);
