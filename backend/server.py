@@ -333,25 +333,20 @@ async def upload_image(file: UploadFile = File(...), current_user: User = Depend
     if not file.content_type.startswith('image/'):
         raise HTTPException(status_code=400, detail="File must be an image")
     
-    file_extension = file.filename.split('.')[-1]
-    unique_filename = f"{uuid.uuid4()}.{file_extension}"
-    file_path = UPLOAD_DIR / unique_filename
+    # Read file content
+    file_content = await file.read()
     
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # Convert to base64
+    import base64
+    base64_string = base64.b64encode(file_content).decode('utf-8')
     
-    # Return API-routed URL that will work in production
-    return {"url": f"/api/uploads/{unique_filename}"}
+    # Create data URI for immediate use
+    mime_type = file.content_type
+    data_uri = f"data:{mime_type};base64,{base64_string}"
+    
+    return {"url": data_uri}
 
-@api_router.get("/uploads/{filename}")
-async def serve_upload(filename: str):
-    """Serve uploaded images through API route"""
-    file_path = UPLOAD_DIR / filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
-    
-    from fastapi.responses import FileResponse
-    return FileResponse(file_path)
+# Remove the old uploads serving endpoint since we don't need it
 
 @api_router.get("/uploads-test/{filename}")
 async def test_upload_serving(filename: str):
