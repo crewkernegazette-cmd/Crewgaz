@@ -65,8 +65,11 @@ const ArticleDetail = () => {
 
   const getFullImageUrl = (imageUrl) => {
     if (!imageUrl) return null;
+    // If it's already a data URI (base64), return as-is
+    if (imageUrl.startsWith('data:')) return imageUrl;
+    // If it's a full HTTP URL, return as-is  
     if (imageUrl.startsWith('http')) return imageUrl;
-    // Use backend URL for all image serving
+    // Otherwise use backend URL
     return `${BACKEND_URL}${imageUrl}`;
   };
 
