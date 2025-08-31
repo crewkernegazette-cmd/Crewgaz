@@ -31,8 +31,13 @@ const ContactSection = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log('🔄 Form submit event triggered');
+    // CRITICAL: Prevent default form submission that causes page navigation
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    console.log('🔄 Form submit event triggered - preventDefault called');
     console.log('📤 REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
     console.log('📤 REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
     console.log('📤 Final API URL:', API);
@@ -43,19 +48,25 @@ const ContactSection = () => {
       message: formData.message 
     });
     
+    // Early exit if already loading to prevent double submission
+    if (loading) {
+      console.log('⏳ Already loading, ignoring duplicate submission');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setSuccess(false);
 
-    // Validate required fields
-    if (!formData.name?.trim() || !formData.email?.trim() || !formData.message?.trim()) {
-      setError('Please fill in all required fields');
-      toast.error('Please fill in all required fields');
-      setLoading(false);
-      return;
-    }
-
     try {
+      // Validate required fields
+      if (!formData.name?.trim() || !formData.email?.trim() || !formData.message?.trim()) {
+        console.log('❌ Validation failed: Missing required fields');
+        setError('Please fill in all required fields');
+        toast.error('Please fill in all required fields');
+        return; // Early return - loading will be set to false in finally
+      }
+
       const requestData = {
         name: formData.name.trim(),
         email: formData.email.trim(),
@@ -69,46 +80,63 @@ const ContactSection = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        timeout: 10000 // 10 second timeout
+        timeout: 15000 // 15 second timeout
       });
       
       console.log('✅ Contact submission successful:', response.status, response.data);
+      
+      // Success handling
       setSuccess(true);
+      setError(''); // Clear any previous errors
       setFormData({ name: '', email: '', message: '' });
-      toast.success('Message sent! We\'ll get back to you soon.');
+      
+      // Success notification
+      try {
+        toast.success('Message sent! We\'ll get back to you soon.');
+      } catch (toastError) {
+        console.error('❌ Toast success error:', toastError);
+        alert('Message sent successfully!');
+      }
       
     } catch (error) {
       console.error('❌ Contact submission failed:', error);
+      console.error('❌ Error type:', typeof error);
       console.error('❌ Error stack:', error.stack);
       console.error('❌ Error details:', {
         status: error.response?.status,
         statusText: error.response?.statusText,
         data: error.response?.data,
         message: error.message,
-        config: error.config ? {
-          url: error.config.url,
-          method: error.config.method,
-          headers: error.config.headers
-        } : null
+        name: error.name,
+        code: error.code
       });
       
-      let errorMessage = 'Failed to send - try again';
+      // Error handling
+      let errorMessage = 'Failed to send message. Please try again.';
       if (error.response?.data?.detail) {
         errorMessage = error.response.data.detail;
+      } else if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.code === 'TIMEOUT' || error.message.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again.';
       } else if (error.message) {
         errorMessage = error.message;
       }
       
       setError(errorMessage);
+      setSuccess(false); // Ensure success is false on error
       
+      // Error notification
       try {
-        toast.error('Failed to send - try again');
+        toast.error(errorMessage);
       } catch (toastError) {
         console.error('❌ Toast error:', toastError);
-        // Fallback alert if toast fails
-        alert('Failed to send message - please try again');
+        alert(`Error: ${errorMessage}`);
       }
+      
     } finally {
+      // CRITICAL: Always reset loading state to prevent stuck blue screen
+      console.log('🔄 Resetting loading state');
       setLoading(false);
     }
   };
