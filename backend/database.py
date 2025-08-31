@@ -152,6 +152,8 @@ def get_db():
 def init_database():
     """Create tables and initial data with enhanced seeding"""
     logger.info("🔄 Starting database initialization...")
+    seeding_status = "success"
+    last_error = None
     
     try:
         # Test database connection first
@@ -160,7 +162,9 @@ def init_database():
             logger.info("✅ Database connection successful")
     except Exception as e:
         logger.error(f"❌ Database connection failed: {e}")
-        return
+        seeding_status = "failure"
+        last_error = str(e)
+        return seeding_status, last_error
     
     Base.metadata.create_all(bind=engine)
     logger.info("✅ Database tables created/verified")
