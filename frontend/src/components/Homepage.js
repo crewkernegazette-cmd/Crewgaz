@@ -27,7 +27,7 @@ const Homepage = () => {
 
   const fetchPublicSettings = async () => {
     try {
-      const response = await axios.get(`${API}/settings/public`);
+      const response = await axios.get(`${API}/api/settings/public`);
       setShowBanner(response.data.show_breaking_news_banner);
     } catch (error) {
       console.error('Error fetching public settings:', error);
