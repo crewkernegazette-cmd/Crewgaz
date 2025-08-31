@@ -840,11 +840,22 @@ async def create_article(
             # Continue without image rather than failing
             pass
     
-    # Parse tags
+    # Parse tags - support both comma-separated and JSON format
     try:
-        tags_list = json.loads(tags) if tags else []
+        if tags.startswith('[') and tags.endswith(']'):
+            tags_list = json.loads(tags) if tags else []
+        else:
+            tags_list = [tag.strip() for tag in tags.split(',') if tag.strip()] if tags else []
     except:
         tags_list = [tag.strip() for tag in tags.split(',') if tag.strip()] if tags else []
+    
+    # Parse category labels
+    try:
+        category_labels_list = json.loads(category_labels) if category_labels else []
+        # Validate category labels against available options
+        valid_category_labels = [label for label in category_labels_list if label in AVAILABLE_CATEGORY_LABELS]
+    except:
+        valid_category_labels = []
     
     # Sanitize content
     cleaned_content = bleach.clean(
