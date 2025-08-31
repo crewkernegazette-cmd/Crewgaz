@@ -14,8 +14,9 @@ const API = BACKEND_URL;
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
-    inquiry: ''
+    message: ''
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
