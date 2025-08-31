@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File, Request, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -19,6 +19,9 @@ import bleach
 from PIL import Image
 import io
 import json
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 # Database imports
 from sqlalchemy.orm import Session
