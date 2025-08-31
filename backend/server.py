@@ -715,12 +715,14 @@ async def create_article(
         strip=True
     )
     
-    # Generate UUID for the article
+    # Generate UUID and slug for the article
     article_uuid = str(uuid.uuid4())
+    article_slug = generate_slug(title, db)
     
     # Create database article
     db_article = DBArticle(
         uuid=article_uuid,
+        slug=article_slug,
         title=title,
         subheading=subheading,
         content=cleaned_content,
