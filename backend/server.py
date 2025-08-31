@@ -1028,11 +1028,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Global variables for debug info
+SEEDING_STATUS = "unknown"
+LAST_ERROR = None
+
 # Startup event
 @app.on_event("startup")
 async def startup_event():
     """Initialize database on startup"""
-    init_database()
+    global SEEDING_STATUS, LAST_ERROR
+    try:
+        status, error = init_database()
+        SEEDING_STATUS = status or "success"
+        LAST_ERROR = error
+        logger.info(f"📊 Database seeding status: {SEEDING_STATUS}")
+        if error:
+            logger.error(f"📊 Last error: {error}")
+    except Exception as e:
+        SEEDING_STATUS = "failure"
+        LAST_ERROR = str(e)
+        logger.error(f"❌ Startup database initialization failed: {e}")
+    
     print("✅ Crewkerne Gazette PostgreSQL API ready!")
 
 if __name__ == "__main__":
