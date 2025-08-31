@@ -94,7 +94,7 @@ const Dashboard = () => {
       ]);
 
       setStats(statsRes.data);
-      setArticles(articlesRes.data);
+      setArticles(articlesRes.data || []); // Ensure it's always an array
       setContacts(contactsRes.data.contacts || contactsRes.data || []); // Handle both old and new response formats
       setSettings(settingsRes.data);
     } catch (error) {
