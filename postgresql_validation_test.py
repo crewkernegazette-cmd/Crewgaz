@@ -268,13 +268,12 @@ class PostgreSQLValidationTester:
                 "is_published": True
             }
             
-            success_simple, _ = self.run_test(
+            success_simple, _ = self.run_test_form_data(
                 "Simple Article Creation (No 500 Error)",
                 "POST",
                 "articles",
                 200,
-                data=simple_article,
-                headers={'Content-Type': 'application/json'},
+                form_data=simple_article,
                 description="Ensure article creation no longer returns 500 errors"
             )
         else:
