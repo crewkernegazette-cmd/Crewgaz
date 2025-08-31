@@ -33,6 +33,7 @@ const ContactSection = () => {
     e.preventDefault();
     console.log('🔄 Form submit event triggered');
     console.log('📤 API URL:', API);
+    console.log('📤 Full API endpoint:', `${API}/contacts`);
     console.log('📤 Submitting contact to /api/contacts:', { 
       name: formData.name, 
       email: formData.email, 
