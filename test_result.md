@@ -564,11 +564,10 @@
 
 ## test_plan:
   current_focus: 
-    - "Article category labels system backend"
     - "Homepage redesign and category labels UI"
   stuck_tasks: []
   test_all: false
-  test_priority: "category_labels_system_testing"
+  test_priority: "frontend_category_labels_implementation"
 
 ## agent_communication:
     - agent: "main"
