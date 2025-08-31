@@ -432,7 +432,7 @@ class CategoryLabelsAPITester:
         empty_article_data = {
             "title": f"Test Empty Categories - {datetime.now().strftime('%H:%M:%S')}",
             "content": "Testing article creation with empty category labels.",
-            "category": "NEWS",
+            "category": "news",  # Use lowercase as required by backend
             "category_labels": json.dumps([]),
             "is_published": True
         }
