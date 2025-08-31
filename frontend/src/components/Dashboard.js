@@ -914,6 +914,27 @@ const Dashboard = () => {
                               </span>
                             )}
                           </div>
+                          
+                          {/* Category Labels Display */}
+                          {article.category_labels && article.category_labels.length > 0 && (
+                            <div className="mt-2">
+                              <div className="flex flex-wrap gap-1">
+                                {article.category_labels.slice(0, 3).map((label, index) => (
+                                  <Badge
+                                    key={index}
+                                    className="bg-red-600/20 text-red-300 border border-red-600/30 text-xs px-2 py-1"
+                                  >
+                                    {label}
+                                  </Badge>
+                                ))}
+                                {article.category_labels.length > 3 && (
+                                  <Badge className="bg-slate-600/20 text-slate-300 border border-slate-600/30 text-xs px-2 py-1">
+                                    +{article.category_labels.length - 3}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center space-x-2">
                           <Button
