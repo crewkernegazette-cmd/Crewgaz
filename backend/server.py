@@ -327,7 +327,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <p>The requested article could not be found. Please check the URL or visit our <a href="https://crewkernegazette.co.uk/">homepage</a>.</p>
 </body>
 </html>"""
-                return HTMLResponse(content=default_meta_html, status_code=404)
+                return HTMLResponse(content=default_meta_html, status_code=200)
             
             # Convert to Pydantic model
             article_obj = Article(
