@@ -94,6 +94,7 @@ class Article(BaseModel):
     image_caption: Optional[str] = None
     video_url: Optional[str] = None
     tags: List[str] = []
+    category_labels: List[str] = []  # New field for article category labels
     is_breaking: bool = False
     is_published: bool = True
     created_at: Optional[datetime] = None
