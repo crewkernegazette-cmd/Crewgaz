@@ -10,7 +10,8 @@ import { Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = BACKEND_URL;
+const API_URL = process.env.REACT_APP_API_URL || '/api';
+const API = BACKEND_URL || API_URL;
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
