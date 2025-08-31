@@ -1196,37 +1196,7 @@ async def get_contacts(current_user: User = Depends(get_current_user), db: Sessi
         logger.error(f"❌ CONTACTS: Database error: {db_error}")
         raise HTTPException(status_code=500, detail=f"Error retrieving contacts: {str(db_error)}")
 
-@api_router.get("/contacts/debug")
-async def debug_contacts(current_user: User = Depends(get_current_user)):
-    """Debug endpoint to check contact system status"""
-    if current_user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=403, detail="Admin access required")
-    
-    debug_info = {
-        "database_contacts_available": False,
-        "database_contact_count": 0,
-        "emergency_contacts_available": False,
-        "emergency_contact_count": 0,
-        "total_contacts": 0
-    }
-    
-    # Check database contacts
-    try:
-        db = next(get_db())
-        db_contacts = db.query(DBContact).all()
-        debug_info["database_contacts_available"] = True
-        debug_info["database_contact_count"] = len(db_contacts)
-    except Exception as e:
-        debug_info["database_error"] = str(e)
-    
-    # Check emergency contacts
-    if hasattr(create_contact, 'emergency_contacts'):
-        debug_info["emergency_contacts_available"] = True
-        debug_info["emergency_contact_count"] = len(create_contact.emergency_contacts)
-    
-    debug_info["total_contacts"] = debug_info["database_contact_count"] + debug_info["emergency_contact_count"]
-    
-    return debug_info
+
 
 # Settings Routes
 @api_router.get("/settings")
