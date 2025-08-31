@@ -114,6 +114,22 @@ const ContactSection = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
+                    <Label htmlFor="name" className="text-slate-200 font-semibold">
+                      Your Name
+                    </Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      type="text"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="Your full name"
+                      className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-500 focus:border-red-600"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="email" className="text-slate-200 font-semibold">
                       Your Email Address
                     </Label>
