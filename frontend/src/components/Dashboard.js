@@ -341,7 +341,8 @@ const Dashboard = () => {
       video_url: articleToEdit.video_url || '',
       is_breaking: articleToEdit.is_breaking || false,
       is_published: articleToEdit.is_published !== false, // Default to true
-      tags: articleToEdit.tags || []
+      tags: articleToEdit.tags || [],
+      category_labels: articleToEdit.category_labels || []
     });
     setActiveTab('create'); // Switch to create tab for editing
   };
