@@ -362,21 +362,22 @@ const Dashboard = () => {
     }
   };
 
-  const handleDeleteArticle = async (articleId, articleTitle) => {
+  const handleDeleteArticle = async (articleSlug, articleTitle) => {
     if (!window.confirm(`Are you sure you want to delete "${articleTitle}"? This action cannot be undone.`)) {
       return;
     }
 
     try {
-      console.log('🗑️ Deleting article:', articleId);
-      await axios.delete(`${API}/articles/${articleId}`);
-      console.log('✅ Article deleted:', articleId);
+      console.log('🗑️ Deleting article:', articleSlug, articleTitle);
+      await axios.delete(`${API}/articles/by-slug/${articleSlug}`);
+      console.log('✅ Article deleted:', articleSlug);
       
       toast.success('Article deleted successfully!');
       fetchDashboardData(); // Refresh data
     } catch (error) {
       console.error('❌ Error deleting article:', error);
-      toast.error('Failed to delete article');
+      const errorMsg = error.response?.data?.detail || 'Failed to delete article';
+      toast.error(errorMsg);
     }
   };
 
