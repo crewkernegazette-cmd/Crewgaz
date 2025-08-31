@@ -1,0 +1,5 @@
+Looking in indexes: https://pypi.org/simple, https://d33sy5i8bnduwe.cloudfront.net/simple/
+Requirement already satisfied: cloudinary in /root/.venv/lib/python3.11/site-packages (1.44.1)
+Requirement already satisfied: six in /root/.venv/lib/python3.11/site-packages (from cloudinary) (1.17.0)
+Requirement already satisfied: urllib3>=1.26.5 in /root/.venv/lib/python3.11/site-packages (from cloudinary) (2.5.0)
+Requirement already satisfied: certifi in /root/.venv/lib/python3.11/site-packages (from cloudinary) (2025.8.3)
