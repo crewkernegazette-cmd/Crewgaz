@@ -96,6 +96,68 @@ class PostgreSQLValidationTester:
             self.log_test_result(name, False, f"Error: {str(e)}")
             return False, {}
 
+    def run_test_form_data(self, name, method, endpoint, expected_status, form_data=None, description=""):
+        """Run a test with form data (for article creation)"""
+        url = f"{self.api_url}/{endpoint}"
+        test_headers = {}
+        
+        if self.token:
+            test_headers['Authorization'] = f'Bearer {self.token}'
+
+        self.tests_run += 1
+        print(f"\n🔍 Test {self.tests_run}: {name}")
+        if description:
+            print(f"   📝 {description}")
+        print(f"   🌐 URL: {url}")
+        print(f"   📤 Method: {method} (Form Data)")
+        
+        try:
+            if method == 'POST':
+                response = requests.post(url, data=form_data, headers=test_headers, timeout=30)
+            else:
+                raise ValueError(f"Form data method {method} not supported")
+
+            print(f"   📥 Status: {response.status_code}")
+            
+            success = response.status_code == expected_status
+            if success:
+                self.tests_passed += 1
+                print(f"   ✅ PASSED")
+                try:
+                    response_data = response.json()
+                    if isinstance(response_data, dict) and len(str(response_data)) < 300:
+                        print(f"   📋 Response: {response_data}")
+                    elif isinstance(response_data, list):
+                        print(f"   📋 Response: List with {len(response_data)} items")
+                    self.log_test_result(name, True, f"Status {response.status_code}")
+                    return success, response_data
+                except:
+                    self.log_test_result(name, True, f"Status {response.status_code}")
+                    return success, {}
+            else:
+                print(f"   ❌ FAILED - Expected {expected_status}, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   ⚠️  Error: {error_data}")
+                    self.log_test_result(name, False, f"Status {response.status_code}: {error_data}")
+                except:
+                    print(f"   ⚠️  Error: {response.text}")
+                    self.log_test_result(name, False, f"Status {response.status_code}: {response.text}")
+                return False, {}
+
+        except requests.exceptions.ConnectionError as e:
+            print(f"   ❌ FAILED - Connection Error: {str(e)}")
+            self.log_test_result(name, False, f"Connection Error: {str(e)}")
+            return False, {}
+        except requests.exceptions.Timeout as e:
+            print(f"   ❌ FAILED - Timeout Error: {str(e)}")
+            self.log_test_result(name, False, f"Timeout Error: {str(e)}")
+            return False, {}
+        except Exception as e:
+            print(f"   ❌ FAILED - Error: {str(e)}")
+            self.log_test_result(name, False, f"Error: {str(e)}")
+            return False, {}
+
     def test_1_admin_authentication(self):
         """Test 1: Admin login (admin/admin123) to verify emergency authentication and database user creation"""
         print("\n" + "="*80)
