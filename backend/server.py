@@ -194,19 +194,26 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         if not username:
             raise HTTPException(status_code=401, detail="Invalid token")
         
-        # Try database first
+        # Try database first (create our own session to handle failures gracefully)
         try:
-            db_user = db.query(DBUser).filter(DBUser.username == username).first()
-            if db_user:
-                logger.debug(f"🔐 User validation: Database user found for {username}")
-                return User(
-                    id=db_user.id,
-                    username=db_user.username,
-                    email=db_user.email,
-                    role=db_user.role,
-                    is_active=db_user.is_active,
-                    created_at=db_user.created_at
-                )
+            from database import SessionLocal
+            db = SessionLocal()
+            try:
+                db_user = db.query(DBUser).filter(DBUser.username == username).first()
+                if db_user:
+                    logger.debug(f"🔐 User validation: Database user found for {username}")
+                    user_obj = User(
+                        id=db_user.id,
+                        username=db_user.username,
+                        email=db_user.email,
+                        role=db_user.role,
+                        is_active=db_user.is_active,
+                        created_at=db_user.created_at
+                    )
+                    db.close()
+                    return user_obj
+            finally:
+                db.close()
         except Exception as db_error:
             logger.warning(f"🆘 Database user lookup failed: {db_error}")
         
