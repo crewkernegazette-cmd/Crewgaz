@@ -105,7 +105,8 @@ class DBArticle(Base):
     __tablename__ = "articles"
     
     id = Column(Integer, primary_key=True, index=True)
-    uuid = Column(String(36), unique=True, index=True, nullable=False)  # Keep UUID for URLs
+    uuid = Column(String(36), unique=True, index=True, nullable=False)  # Keep UUID for internal use
+    slug = Column(String(255), unique=True, index=True, nullable=False)  # SEO-friendly URL slug
     title = Column(String(255), nullable=False)
     subheading = Column(String(500), nullable=True)
     content = Column(Text, nullable=False)
