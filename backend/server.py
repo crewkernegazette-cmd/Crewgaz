@@ -1167,53 +1167,34 @@ async def test_contact_endpoint(contact_data: ContactCreate):
         }
     }
 
-@api_router.get("/contacts", response_model=List[Contact])
+@api_router.get("/contacts")
 async def get_contacts(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    """Get all contact messages (admin only) - includes database and emergency contacts"""
+    """Get all contact messages (admin only)"""
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
     
     logger.info("📋 CONTACTS: Admin requesting contact list")
-    contacts = []
     
-    # Try to get database contacts first
     try:
         db_contacts = db.query(DBContact).order_by(DBContact.created_at.desc()).all()
         logger.info(f"📋 CONTACTS: Found {len(db_contacts)} database contacts")
         
+        contacts = []
         for db_contact in db_contacts:
-            contact = Contact(
-                id=db_contact.id,
-                name=db_contact.name,
-                email=db_contact.email,
-                message=db_contact.message,
-                created_at=db_contact.created_at
-            )
-            contacts.append(contact)
-            
+            contacts.append({
+                "id": db_contact.id,
+                "name": db_contact.name,
+                "email": db_contact.email,
+                "message": db_contact.message,
+                "created_at": db_contact.created_at.isoformat()
+            })
+        
+        logger.info(f"📋 CONTACTS: Returning {len(contacts)} contacts to dashboard")
+        return {"contacts": contacts, "total": len(contacts)}
+        
     except Exception as db_error:
         logger.error(f"❌ CONTACTS: Database error: {db_error}")
-        logger.info("🆘 CONTACTS: Using emergency fallback for contact retrieval")
-    
-    # Add emergency contacts if any exist
-    if hasattr(create_contact, 'emergency_contacts') and create_contact.emergency_contacts:
-        logger.info(f"🆘 CONTACTS: Found {len(create_contact.emergency_contacts)} emergency contacts")
-        
-        for emergency_contact in create_contact.emergency_contacts:
-            contact = Contact(
-                id=emergency_contact['id'],
-                name=emergency_contact['name'],
-                email=emergency_contact['email'],
-                message=f"[EMERGENCY BACKUP] {emergency_contact['message']}",
-                created_at=emergency_contact['created_at']
-            )
-            contacts.append(contact)
-    
-    # Sort all contacts by creation date (newest first)
-    contacts.sort(key=lambda x: x.created_at, reverse=True)
-    
-    logger.info(f"📋 CONTACTS: Returning {len(contacts)} total contacts to dashboard")
-    return contacts
+        raise HTTPException(status_code=500, detail=f"Error retrieving contacts: {str(db_error)}")
 
 @api_router.get("/contacts/debug")
 async def debug_contacts(current_user: User = Depends(get_current_user)):
