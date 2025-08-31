@@ -156,10 +156,16 @@ const ContactSection = () => {
       {loading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-slate-800 p-6 rounded-lg shadow-xl text-white">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 mb-3">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600"></div>
               <span>Sending your message...</span>
             </div>
+            <button 
+              onClick={resetForm}
+              className="text-xs text-slate-400 hover:text-white underline"
+            >
+              Cancel / Reset
+            </button>
           </div>
         </div>
       )}
