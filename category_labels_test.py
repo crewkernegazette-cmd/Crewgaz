@@ -166,7 +166,7 @@ class CategoryLabelsAPITester:
         article_data = {
             "title": f"Test Article with Category Labels - {datetime.now().strftime('%H:%M:%S')}",
             "content": "This is a test article to verify category labels functionality. The article should be created with multiple category labels and they should be properly stored and retrieved.",
-            "category": "NEWS",
+            "category": "news",  # Use lowercase as required by backend
             "subheading": "Testing the new category labels system implementation",
             "publisher_name": "The Crewkerne Gazette",
             "category_labels": test_categories,
