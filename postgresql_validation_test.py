@@ -205,38 +205,25 @@ class PostgreSQLValidationTester:
         
         # Test 3b: Article creation with category_labels field
         if self.token:
-            article_data = {
+            # The backend expects form data, not JSON
+            form_data = {
                 "title": "PostgreSQL Test Article",
                 "content": "This is a test article to verify PostgreSQL database connectivity and category labels functionality.",
                 "category": "NEWS",
                 "subheading": "Testing database connectivity after PostgreSQL fixes",
                 "publisher_name": "The Crewkerne Gazette",
-                "category_labels": ["News", "Straight Talking"],
+                "category_labels": json.dumps(["News", "Straight Talking"]),
                 "is_breaking": False,
                 "is_published": True,
-                "tags": ["test", "postgresql", "database"]
+                "tags": "test,postgresql,database"
             }
             
-            # Convert to form data for the endpoint
-            form_data = {
-                "title": article_data["title"],
-                "content": article_data["content"],
-                "category": article_data["category"],
-                "subheading": article_data["subheading"],
-                "publisher_name": article_data["publisher_name"],
-                "category_labels": json.dumps(article_data["category_labels"]),
-                "is_breaking": article_data["is_breaking"],
-                "is_published": article_data["is_published"],
-                "tags": ",".join(article_data["tags"])
-            }
-            
-            success_create, create_response = self.run_test(
+            success_create, create_response = self.run_test_form_data(
                 "Article Creation with Category Labels",
                 "POST",
                 "articles",
                 200,
-                data=form_data,
-                headers={'Content-Type': 'application/json'},
+                form_data=form_data,
                 description="Test article creation with category_labels field"
             )
             
