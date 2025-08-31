@@ -278,7 +278,46 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
         try:
             db_article = db.query(DBArticle).filter(DBArticle.slug == article_slug).first()
             if not db_article:
-                raise HTTPException(status_code=404, detail="Article not found")
+                logger.warning(f"📄 Article not found for slug: {article_slug}")
+                # Return basic 404 HTML with meta tags instead of raising exception
+                # This prevents "Bad Response Code" in Facebook debugger
+                default_meta_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Basic Meta Tags -->
+    <title>Article Not Found | The Crewkerne Gazette</title>
+    <meta name="description" content="The requested article could not be found on The Crewkerne Gazette.">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Article Not Found | The Crewkerne Gazette">
+    <meta property="og:description" content="The requested article could not be found.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_slug}">
+    <meta property="og:image" content="https://crewkernegazette.co.uk/logo.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:site_name" content="The Crewkerne Gazette">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Article Not Found | The Crewkerne Gazette">
+    <meta name="twitter:description" content="The requested article could not be found.">
+    <meta name="twitter:image" content="https://crewkernegazette.co.uk/logo.png">
+    <meta name="twitter:site" content="@CrewkerneGazette">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://crewkernegazette.co.uk/">
+</head>
+<body>
+    <h1>Article Not Found</h1>
+    <p>The requested article could not be found. Please check the URL or visit our <a href="https://crewkernegazette.co.uk/">homepage</a>.</p>
+</body>
+</html>"""
+                return HTMLResponse(content=default_meta_html, status_code=404)
             
             # Convert to Pydantic model
             article_obj = Article(
