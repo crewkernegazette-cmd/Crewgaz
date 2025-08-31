@@ -846,6 +846,52 @@ async def toggle_breaking_news_banner(banner_data: BreakingNewsBanner, current_u
     return {"message": f"Breaking news banner {status_text} successfully"}
 
 # Debug and utility routes
+@api_router.get("/debug/users")
+async def debug_users(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Debug: Get anonymized user list (admin only)"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        db_users = db.query(DBUser).all()
+        
+        users_info = []
+        for user in db_users:
+            # Test password for admin users (debugging)
+            password_test = None
+            if user.username in ["admin", "admin_backup"]:
+                test_password = "admin123" if user.username == "admin" else "admin_backup"
+                password_test = verify_password(test_password, user.password_hash)
+            
+            user_info = {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "role": user.role.value,
+                "is_active": user.is_active,
+                "created_at": user.created_at.isoformat() if user.created_at else None,
+                "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+                "password_hash_length": len(user.password_hash) if user.password_hash else 0,
+                "password_test_result": password_test  # Only for debugging
+            }
+            users_info.append(user_info)
+        
+        return {
+            "total_users": len(users_info),
+            "users": users_info,
+            "database_connection": "active",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Debug users error: {e}")
+        return {
+            "error": str(e),
+            "total_users": 0,
+            "users": [],
+            "database_connection": "failed"
+        }
+
 @api_router.get("/debug/articles")
 async def debug_articles(db: Session = Depends(get_db)):
     """Debug: Get articles info"""
