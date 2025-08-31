@@ -863,6 +863,51 @@ async def toggle_breaking_news_banner(banner_data: BreakingNewsBanner, current_u
     return {"message": f"Breaking news banner {status_text} successfully"}
 
 # Debug and utility routes
+@api_router.get("/debug/auth")
+async def debug_auth(db: Session = Depends(get_db)):
+    """Debug: Get anonymized auth info (no auth required)"""
+    try:
+        # Get all users (safe info only)
+        db_users = db.query(DBUser).all()
+        
+        users_info = []
+        for user in db_users:
+            users_info.append({
+                "username": user.username,
+                "role": user.role.value if user.role else "unknown"
+            })
+        
+        # Test database connection
+        db_connected = True
+        try:
+            db.query(DBUser).first()
+        except Exception:
+            db_connected = False
+        
+        # Get seeding status (would need to be stored globally)
+        seeding_status = "unknown"  # We'll update this when we call init_database
+        last_error = None
+        
+        return {
+            "users": users_info,
+            "seeding_status": seeding_status,
+            "last_error": last_error,
+            "db_connected": db_connected,
+            "total_users": len(users_info),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Debug auth error: {e}")
+        return {
+            "users": [],
+            "seeding_status": "error",
+            "last_error": str(e),
+            "db_connected": False,
+            "total_users": 0,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
 @api_router.get("/debug/users")
 async def debug_users(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Debug: Get anonymized user list (admin only)"""
