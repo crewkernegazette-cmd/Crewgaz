@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Database URL from environment variable with SSL support
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://crewkerne_user:crewkerne_pass@localhost/crewkerne_gazette')
+DATABASE_URL = os.getenv('DATABASE_URL')
 
 # Force-append SSL mode for production (required for Render Postgres)
 if DATABASE_URL:
