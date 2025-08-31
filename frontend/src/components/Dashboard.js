@@ -267,7 +267,7 @@ const Dashboard = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('access_token');
-      await axios.put(`${API}/settings`, settings, {
+      await axios.put(`${API}/api/settings`, settings, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
