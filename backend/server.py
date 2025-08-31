@@ -405,6 +405,8 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <meta property="og:image" content="{image_url}">
 {image_width_tag}
 {image_height_tag}
+{image_type_tag}
+    <meta property="og:image:secure_url" content="{image_url}"
     <meta property="og:site_name" content="The Crewkerne Gazette">
     <meta property="article:published_time" content="{article_obj.created_at.isoformat()}">
     <meta property="article:author" content="{article_obj.author_name or article_obj.publisher_name}">
