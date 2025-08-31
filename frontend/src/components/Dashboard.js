@@ -249,7 +249,7 @@ const Dashboard = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('access_token');
       await axios.delete(`${API}/articles/${articleSlug}`, {
         headers: {
           'Authorization': `Bearer ${token}`
