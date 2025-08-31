@@ -38,6 +38,9 @@ const NewsSection = () => {
     });
   };
 
+  // Debug logging in render
+  console.warn('NewsSection render - Articles state:', articles, 'Type:', typeof articles, 'IsArray:', Array.isArray(articles));
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
