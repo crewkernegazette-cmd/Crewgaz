@@ -18,9 +18,13 @@ const NewsSection = () => {
   const fetchNews = async () => {
     try {
       const response = await axios.get(`${API}/articles?category=news&limit=12`);
-      setArticles(response.data);
+      const articlesData = Array.isArray(response.data) ? response.data : [];
+      setArticles(articlesData);
+      console.warn('NewsSection - Articles state after fetch:', articlesData);
     } catch (error) {
       console.error('Error fetching news:', error);
+      setArticles([]); // Ensure it's always an array
+      console.warn('NewsSection - Articles state set to empty array due to error');
     } finally {
       setLoading(false);
     }
