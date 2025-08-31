@@ -92,7 +92,7 @@ const Dashboard = () => {
 
       setStats(statsRes.data);
       setArticles(articlesRes.data);
-      setContacts(contactsRes.data);
+      setContacts(contactsRes.data.contacts || contactsRes.data || []); // Handle both old and new response formats
       setSettings(settingsRes.data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
