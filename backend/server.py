@@ -745,6 +745,7 @@ async def create_article(
     return Article(
         id=db_article.id,
         uuid=db_article.uuid,
+        slug=db_article.slug,
         title=db_article.title,
         subheading=db_article.subheading,
         content=db_article.content,
