@@ -629,16 +629,17 @@ async def get_articles(limit: int = 10, category: Optional[str] = None, db: Sess
     
     return articles
 
-@api_router.get("/articles/{article_uuid}", response_model=Article)
-async def get_article(article_uuid: str, db: Session = Depends(get_db)):
-    """Get article by UUID"""
-    db_article = db.query(DBArticle).filter(DBArticle.uuid == article_uuid).first()
+@api_router.get("/articles/{article_slug}", response_model=Article)
+async def get_article(article_slug: str, db: Session = Depends(get_db)):
+    """Get article by slug"""
+    db_article = db.query(DBArticle).filter(DBArticle.slug == article_slug).first()
     if not db_article:
         raise HTTPException(status_code=404, detail="Article not found")
     
     return Article(
         id=db_article.id,
         uuid=db_article.uuid,
+        slug=db_article.slug,
         title=db_article.title,
         subheading=db_article.subheading,
         content=db_article.content,
