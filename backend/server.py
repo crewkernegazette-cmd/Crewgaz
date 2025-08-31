@@ -978,24 +978,35 @@ async def get_dashboard_articles(current_user: User = Depends(get_current_user))
 # Contact Routes
 @api_router.post("/contacts", response_model=Contact)
 async def create_contact(contact_data: ContactCreate, db: Session = Depends(get_db)):
-    """Create contact message"""
-    db_contact = DBContact(
-        name=contact_data.name,
-        email=contact_data.email,
-        message=contact_data.message
-    )
-    
-    db.add(db_contact)
-    db.commit()
-    db.refresh(db_contact)
-    
-    return Contact(
-        id=db_contact.id,
-        name=db_contact.name,
-        email=db_contact.email,
-        message=db_contact.message,
-        created_at=db_contact.created_at
-    )
+    """Create contact message (public endpoint)"""
+    try:
+        logger.info(f"📧 Contact submitted from {contact_data.email}")
+        logger.debug(f"Contact details: name={contact_data.name}, message_length={len(contact_data.message)}")
+        
+        db_contact = DBContact(
+            name=contact_data.name,
+            email=contact_data.email,
+            message=contact_data.message
+        )
+        
+        db.add(db_contact)
+        db.commit()
+        db.refresh(db_contact)
+        
+        logger.info(f"✅ Contact message saved with ID: {db_contact.id}")
+        
+        return Contact(
+            id=db_contact.id,
+            name=db_contact.name,
+            email=db_contact.email,
+            message=db_contact.message,
+            created_at=db_contact.created_at
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to save contact message: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to submit contact message")
 
 @api_router.get("/contacts", response_model=List[Contact])
 async def get_contacts(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
