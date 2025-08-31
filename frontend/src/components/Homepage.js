@@ -41,7 +41,9 @@ const Homepage = () => {
     try {
       console.warn('Fetching articles...');
       // Simple article fetch to avoid crashes
-      const response = await axios.get(`${API}/api/articles?limit=8`);
+      const response = await axios.get(`${API_BASE}/api/articles?limit=8`, {
+        withCredentials: true
+      });
       
       // Ensure we always have arrays, never null
       const articlesData = Array.isArray(response.data) ? response.data : [];
