@@ -33,7 +33,7 @@ const Debug = () => {
     }
     
     // Test 5: Test API call with auth
-    if (user && localStorage.getItem('token')) {
+    if (user && localStorage.getItem('access_token')) {
       try {
         const response = await axios.get(`${BACKEND_URL}/dashboard/stats`);
         results.authApiWorks = true;
