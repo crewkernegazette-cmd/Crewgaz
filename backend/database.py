@@ -9,6 +9,8 @@ from enum import Enum
 import os
 import bcrypt
 import logging
+import re
+import unicodedata
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
