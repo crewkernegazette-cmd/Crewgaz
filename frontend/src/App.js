@@ -20,8 +20,7 @@ import Debug from './components/Debug';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from './components/ui/sonner';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://crewkernegazette.co.uk';
-const API = BACKEND_URL;
+import { API_BASE } from './config/api';
 
 // Auth Context
 export const AuthContext = React.createContext();
