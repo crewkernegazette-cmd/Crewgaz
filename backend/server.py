@@ -426,6 +426,43 @@ async def change_password(password_data: PasswordChangeRequest, current_user: Us
     
     return {"message": "Password changed successfully"}
 
+# Image Upload Routes
+@api_router.post("/upload-image")
+async def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
+    """Upload image to Cloudinary"""
+    try:
+        # Validate file type
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        
+        # Read file content
+        contents = await file.read()
+        
+        # Upload to Cloudinary
+        upload_result = cloudinary.uploader.upload(
+            contents,
+            folder="crewkerne-gazette",
+            resource_type="image",
+            transformation=[
+                {"width": 1200, "height": 630, "crop": "limit"},
+                {"quality": "auto"},
+                {"format": "auto"}
+            ]
+        )
+        
+        return {
+            "url": upload_result['secure_url'],
+            "public_id": upload_result['public_id'],
+            "width": upload_result.get('width'),
+            "height": upload_result.get('height'),
+            "format": upload_result.get('format'),
+            "bytes": upload_result.get('bytes')
+        }
+        
+    except Exception as e:
+        logger.error(f"Image upload error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")
+
 # Article Routes
 @api_router.get("/articles", response_model=List[Article])
 async def get_articles(limit: int = 10, category: Optional[str] = None, db: Session = Depends(get_db)):
