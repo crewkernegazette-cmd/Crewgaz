@@ -145,79 +145,72 @@ const Homepage = () => {
         </div>
       )}
 
-      {/* Hero Section */}
-      <div className="hero-section">
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">
-              CREWKERNE
-              <span className="hero-subtitle">GAZETTE</span>
-            </h1>
-            <p className="hero-description">
-              The voice of Crewkerne and beyond. Real news, real stories, real impact.
-            </p>
-            <Button className="cta-button">
-              Subscribe Now
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Latest News & Features Section */}
-      <div className="content-section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">LATEST NEWS & FEATURES</h2>
-            <p className="section-subtitle">
-              Leading with hard-hitting news, plus the culture and stories that matter.
-              British life as it's lived — with all its grit, humor, and contradictions.
-            </p>
-          </div>
-
-          <div className="articles-grid">
-            {Array.isArray(articles) && articles.length > 0 ? (
-              articles.map((article) => (
-                <Link key={article.id} to={`/article/${article.slug || article.id}`} className="article-card group">
+      {/* Clean Articles Section - GB News Style */}
+      <div className="py-8 bg-slate-900">
+        <div className="container mx-auto px-4">
+          {Array.isArray(articles) && articles.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {articles.map((article) => (
+                <Link 
+                  key={article.id} 
+                  to={`/article/${article.slug || article.id}`} 
+                  className="group bg-slate-800 rounded-lg overflow-hidden hover:bg-slate-700 transition-colors"
+                >
                   {article.featured_image && (
-                    <div className="article-image">
-                      <img src={article.featured_image} alt={article.title} />
+                    <div className="aspect-video overflow-hidden">
+                      <img 
+                        src={article.featured_image} 
+                        alt={article.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
                     </div>
                   )}
-                  <div className="article-content">
-                    <div className="flex items-center justify-between mb-4">
-                      <Badge className={`category-badge ${getCategoryBadgeClass(article.category)}`}>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge className="bg-red-600 text-white text-xs px-2 py-1">
                         {article.category.toUpperCase()}
                       </Badge>
                       {article.is_breaking && (
-                        <div className="breaking-alert">
-                          URGENT
-                        </div>
+                        <Badge className="bg-red-700 text-white text-xs px-2 py-1 animate-pulse">
+                          BREAKING
+                        </Badge>
                       )}
                     </div>
                     
                     {/* Category Labels */}
                     {renderCategoryLabels(article.category_labels)}
                     
-                    <h3 className="article-title">{article.title}</h3>
-                    <p className="article-excerpt">
-                      {article.content.substring(0, 140)}...
+                    <h3 className="text-white font-bold text-lg mb-2 group-hover:text-red-400 transition-colors line-clamp-2">
+                      {article.title}
+                    </h3>
+                    
+                    {article.subheading && (
+                      <p className="text-slate-300 text-sm mb-2">
+                        {article.subheading}
+                      </p>
+                    )}
+                    
+                    <p className="text-slate-400 text-sm mb-3 line-clamp-2">
+                      {article.content.substring(0, 120)}...
                     </p>
-                    <div className="article-meta">
+                    
+                    <div className="flex items-center justify-between text-xs text-slate-500">
                       <span className="flex items-center">
                         <Clock className="w-3 h-3 mr-1" />
                         {formatDate(article.created_at)}
                       </span>
-                      <span className="font-bold">{article.author_name}</span>
+                      <span>{article.author_name}</span>
                     </div>
                   </div>
                 </Link>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-8">
-                <p className="text-slate-400">No articles available at the moment.</p>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <h2 className="text-white text-2xl font-bold mb-4">Latest News Coming Soon</h2>
+              <p className="text-slate-400">We're preparing the latest stories for you.</p>
+            </div>
+          )}
         </div>
       </div>
 
