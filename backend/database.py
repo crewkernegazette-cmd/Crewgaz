@@ -107,10 +107,14 @@ def init_database():
     # Create initial admin user and settings
     db = SessionLocal()
     try:
+        # Check if any users exist first
+        existing_users_count = db.query(DBUser).count()
+        print(f"📊 Existing users in database: {existing_users_count}")
+        
         # Check if admin user exists
         admin_user = db.query(DBUser).filter(DBUser.username == "admin").first()
         if not admin_user:
-            from server import hash_password
+            print("👤 Creating admin user...")
             admin_user = DBUser(
                 username="admin",
                 email="admin@crewkernegazette.co.uk",
@@ -118,11 +122,14 @@ def init_database():
                 role=UserRole.ADMIN
             )
             db.add(admin_user)
+            print("✅ Admin user created with username: admin, password: admin123")
+        else:
+            print("✅ Admin user already exists")
         
         # Check if admin_backup user exists
         backup_user = db.query(DBUser).filter(DBUser.username == "admin_backup").first()
         if not backup_user:
-            from server import hash_password
+            print("👤 Creating backup admin user...")
             backup_user = DBUser(
                 username="admin_backup", 
                 email="backup@crewkernegazette.co.uk",
@@ -130,6 +137,9 @@ def init_database():
                 role=UserRole.ADMIN
             )
             db.add(backup_user)
+            print("✅ Backup admin user created")
+        else:
+            print("✅ Backup admin user already exists")
             
         # Create default settings
         settings_defaults = [
@@ -145,10 +155,23 @@ def init_database():
                 db.add(setting)
         
         db.commit()
+        
+        # Verify users were created
+        final_user_count = db.query(DBUser).count()
+        print(f"📊 Total users after initialization: {final_user_count}")
+        
+        # Test password hashing
+        test_admin = db.query(DBUser).filter(DBUser.username == "admin").first()
+        if test_admin:
+            password_check = verify_password("admin123", test_admin.password_hash)
+            print(f"🔐 Password verification test: {'✅ PASS' if password_check else '❌ FAIL'}")
+        
         print("✅ Database initialized successfully")
         
     except Exception as e:
         print(f"❌ Error initializing database: {e}")
+        import traceback
+        traceback.print_exc()
         db.rollback()
     finally:
         db.close()
