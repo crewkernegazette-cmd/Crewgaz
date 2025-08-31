@@ -1070,10 +1070,10 @@ async def get_dashboard_articles(current_user: User = Depends(get_current_user))
 @api_router.post("/contacts", response_model=Contact)
 async def create_contact(contact_data: ContactCreate, db: Session = Depends(get_db)):
     """Create contact message (public endpoint)"""
+    logger.info(f"📧 Contact received from {contact_data.email}")
+    logger.info(f"📋 Contact details: name='{contact_data.name}', email='{contact_data.email}', message_length={len(contact_data.message)}")
+    
     try:
-        logger.info(f"📧 Contact submitted from {contact_data.email}")
-        logger.debug(f"Contact details: name={contact_data.name}, message_length={len(contact_data.message)}")
-        
         db_contact = DBContact(
             name=contact_data.name,
             email=contact_data.email,
@@ -1084,9 +1084,9 @@ async def create_contact(contact_data: ContactCreate, db: Session = Depends(get_
         db.commit()
         db.refresh(db_contact)
         
-        logger.info(f"✅ Contact message saved with ID: {db_contact.id}")
+        logger.info(f"✅ Contact message saved to database with ID: {db_contact.id}")
         
-        return Contact(
+        contact_response = Contact(
             id=db_contact.id,
             name=db_contact.name,
             email=db_contact.email,
@@ -1094,10 +1094,21 @@ async def create_contact(contact_data: ContactCreate, db: Session = Depends(get_
             created_at=db_contact.created_at
         )
         
+        return contact_response
+        
     except Exception as e:
-        logger.error(f"❌ Failed to save contact message: {e}")
+        logger.error(f"❌ Database error saving contact message: {e}")
+        logger.error(f"❌ Exception type: {type(e).__name__}")
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to submit contact message")
+        
+        # Log the full contact data for manual recovery if needed
+        logger.error(f"❌ CONTACT DATA FOR MANUAL RECOVERY: name='{contact_data.name}', email='{contact_data.email}', message='{contact_data.message}'")
+        
+        # Return 500 error with detailed message
+        raise HTTPException(
+            status_code=500, 
+            detail="Server error - contact message could not be saved. Please try again or contact support directly."
+        )
 
 @api_router.get("/contacts", response_model=List[Contact])
 async def get_contacts(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
