@@ -79,6 +79,47 @@ def verify_password(password: str, password_hash: str) -> bool:
             logger.error(f"❌ Fallback verification failed: {e2}")
             return False
 
+def generate_slug(title: str, db_session=None) -> str:
+    """Generate SEO-friendly slug from article title"""
+    # Normalize unicode characters
+    slug = unicodedata.normalize('NFKD', title)
+    
+    # Convert to lowercase and replace spaces with hyphens
+    slug = slug.lower().replace(' ', '-')
+    
+    # Remove non-alphanumeric characters except hyphens
+    slug = re.sub(r'[^a-z0-9\-]', '', slug)
+    
+    # Remove multiple consecutive hyphens
+    slug = re.sub(r'-+', '-', slug)
+    
+    # Remove leading/trailing hyphens
+    slug = slug.strip('-')
+    
+    # Truncate to 100 characters
+    slug = slug[:100]
+    
+    # Ensure slug is not empty
+    if not slug:
+        slug = 'article'
+    
+    # Check for uniqueness if database session provided
+    if db_session:
+        original_slug = slug
+        counter = 1
+        
+        while db_session.query(DBArticle).filter(DBArticle.slug == slug).first():
+            slug = f"{original_slug}-{counter}"
+            counter += 1
+            
+            # Prevent infinite loops
+            if counter > 1000:
+                slug = f"{original_slug}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                break
+    
+    logger.info(f"📝 Generated slug: '{title}' -> '{slug}'")
+    return slug
+
 # Enums
 class ArticleCategory(str, Enum):
     NEWS = "news"
