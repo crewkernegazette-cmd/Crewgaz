@@ -589,7 +589,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
 
 # Authentication Routes
 @api_router.post("/auth/login")
-async def login(user_data: LoginRequest, db: Session = Depends(get_db)):
+async def login(user_data: LoginRequest, response: Response, db: Session = Depends(get_db)):
     """Login user - prioritize database, fallback to emergency"""
     logger.info(f"🔐 Login attempt for user: {user_data.username}")
     
