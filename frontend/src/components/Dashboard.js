@@ -39,6 +39,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [articles, setArticles] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [availableCategoryLabels, setAvailableCategoryLabels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
