@@ -180,7 +180,7 @@ const Homepage = () => {
                     {/* Category Labels */}
                     {renderCategoryLabels(article.category_labels)}
                     
-                    <h3 className="text-white font-bold text-lg mb-2 group-hover:text-red-400 transition-colors line-clamp-2">
+                    <h3 className="text-white font-bold text-lg mb-2 group-hover:text-red-400 transition-colors">
                       {article.title}
                     </h3>
                     
@@ -190,7 +190,7 @@ const Homepage = () => {
                       </p>
                     )}
                     
-                    <p className="text-slate-400 text-sm mb-3 line-clamp-2">
+                    <p className="text-slate-400 text-sm mb-3">
                       {article.content.substring(0, 120)}...
                     </p>
                     
