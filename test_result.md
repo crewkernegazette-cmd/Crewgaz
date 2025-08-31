@@ -561,12 +561,11 @@
 
 ## test_plan:
   current_focus: 
-    - "Article slug system and SEO optimization"
-    - "Complete article creation and display flow"
-  stuck_tasks:
-    - "Database schema update for slug field" 
+    - "Article category labels system backend"
+    - "Homepage redesign and category labels UI"
+  stuck_tasks: []
   test_all: false
-  test_priority: "article_slug_system_testing"
+  test_priority: "category_labels_system_testing"
 
 ## agent_communication:
     - agent: "main"
