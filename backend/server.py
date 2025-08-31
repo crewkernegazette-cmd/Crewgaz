@@ -348,7 +348,21 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
             # Calculate image dimensions for better social sharing
             image_width_tag = ''
             image_height_tag = ''
-            image_url = article_obj.featured_image or 'https://crewkernegazette.co.uk/logo.png'
+            image_type_tag = ''
+            
+            # Ensure og:image uses full absolute URLs
+            if article_obj.featured_image and article_obj.featured_image.startswith('http'):
+                # Use the full Cloudinary URL
+                image_url = article_obj.featured_image
+                # Set image type for Cloudinary images
+                if 'cloudinary.com' in image_url:
+                    image_type_tag = '    <meta property="og:image:type" content="image/jpeg">'
+                else:
+                    image_type_tag = '    <meta property="og:image:type" content="image/jpeg">'
+            else:
+                # Fallback to default logo
+                image_url = 'https://crewkernegazette.co.uk/logo.png'
+                image_type_tag = '    <meta property="og:image:type" content="image/png">'
             
             if article_obj.featured_image:
                 if article_obj.featured_image.startswith('http'):
