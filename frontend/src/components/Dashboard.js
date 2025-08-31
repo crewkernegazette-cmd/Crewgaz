@@ -80,6 +80,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    fetchCategoryLabels();
   }, []);
 
   const fetchDashboardData = async () => {
@@ -102,6 +103,20 @@ const Dashboard = () => {
       toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategoryLabels = async () => {
+    try {
+      const response = await axios.get(`${API}/categories/labels`);
+      setAvailableCategoryLabels(response.data.category_labels || []);
+    } catch (error) {
+      console.error('Error fetching category labels:', error);
+      // Set default fallback categories if API fails
+      setAvailableCategoryLabels([
+        'Satire', 'Straight Talking', 'Opinion', 'Sports', 'Gossip', 
+        'Politics', 'Local News', 'News', 'Agony Aunt', 'Special', 'Exclusive'
+      ]);
     }
   };
 
