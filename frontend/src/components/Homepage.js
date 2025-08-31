@@ -39,23 +39,13 @@ const Homepage = () => {
   const fetchArticles = async () => {
     try {
       console.warn('Fetching articles...');
-      // Fetch news articles first (prioritized)
-      const newsResponse = await axios.get(`${API}/api/articles?category=news&limit=6`);
-      const otherResponse = await axios.get(`${API}/api/articles?limit=6`);
+      // Simple article fetch to avoid crashes
+      const response = await axios.get(`${API}/api/articles?limit=8`);
       
       // Ensure we always have arrays, never null
-      const newsArticles = Array.isArray(newsResponse.data) ? newsResponse.data : [];
-      const otherArticles = Array.isArray(otherResponse.data) ? otherResponse.data : [];
-      
-      // Combine news articles first, then other articles, avoiding duplicates
-      const filteredOtherArticles = otherArticles.filter(
-        article => !newsArticles.some(newsArticle => newsArticle.id === article.id)
-      );
-      
-      // Prioritize news articles at the top
-      const combinedArticles = [...newsArticles, ...filteredOtherArticles].slice(0, 6);
-      setArticles(combinedArticles);
-      console.warn('Articles state after fetch:', combinedArticles);
+      const articlesData = Array.isArray(response.data) ? response.data : [];
+      setArticles(articlesData);
+      console.warn('Articles state after fetch:', articlesData);
     } catch (error) {
       console.error('Error fetching articles:', error);
       setArticles([]); // Ensure it's always an array
