@@ -45,18 +45,7 @@ function App() {
     setLoading(false);
   }, []);
 
-  const checkAuth = async () => {
-    try {
-      const response = await axios.get(`${API}/auth/me`);
-      setUser(response.data);
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const login = async (credentials) => {
     console.log('Submitting login:', { username: credentials.username });
