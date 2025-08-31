@@ -8,12 +8,29 @@ from datetime import datetime
 from enum import Enum
 import os
 import bcrypt
+import logging
 
-# Database URL from environment variable
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# Database URL from environment variable with SSL support
 DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://crewkerne_user:crewkerne_pass@localhost/crewkerne_gazette')
 
-# Create engine
-engine = create_engine(DATABASE_URL)
+# Add SSL mode for production if not present
+if DATABASE_URL and 'sslmode=' not in DATABASE_URL:
+    ssl_suffix = '?sslmode=require' if '?' not in DATABASE_URL else '&sslmode=require'
+    DATABASE_URL_WITH_SSL = DATABASE_URL + ssl_suffix
+    logger.info(f"🔒 Added SSL mode to DATABASE_URL")
+else:
+    DATABASE_URL_WITH_SSL = DATABASE_URL
+
+# Create engine with SSL support and connection arguments
+engine = create_engine(
+    DATABASE_URL_WITH_SSL,
+    connect_args={"sslmode": "require"} if "localhost" not in DATABASE_URL else {},
+    echo=False  # Set to True for SQL debugging
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base class for models
