@@ -27,7 +27,7 @@ import cloudinary.api
 from sqlalchemy.orm import Session
 from database import (
     get_db, init_database, DBArticle, DBContact, DBUser, DBSettings,
-    ArticleCategory, UserRole, hash_password, verify_password
+    ArticleCategory, UserRole, hash_password, verify_password, generate_slug
 )
 
 ROOT_DIR = Path(__file__).parent
