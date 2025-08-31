@@ -282,6 +282,10 @@ const Homepage = () => {
                       </div>
                     )}
                   </div>
+                  
+                  {/* Category Labels */}
+                  {renderCategoryLabels(article.category_labels)}
+                  
                   <h3 className="article-title">{article.title}</h3>
                   <p className="article-excerpt">
                     {article.content.substring(0, 140)}...
