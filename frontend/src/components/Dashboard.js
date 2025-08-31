@@ -866,6 +866,112 @@ const Dashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Messages Tab */}
+          <TabsContent value="messages" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-white">Contact Messages</h2>
+              <Badge variant="secondary" className="bg-blue-600/20 text-blue-400 border-blue-600/30">
+                {contacts.length} Total
+              </Badge>
+            </div>
+
+            {contacts.length > 0 ? (
+              <div className="grid gap-4">
+                {contacts.map(contact => (
+                  <Card key={contact.id} className="bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 transition-colors">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-blue-600/20 rounded-full flex items-center justify-center">
+                            <MessageSquare className="w-5 h-5 text-blue-400" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg text-white">{contact.name}</CardTitle>
+                            <p className="text-sm text-slate-400">{contact.email}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-slate-500">
+                            {new Date(contact.created_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                          <Badge variant="outline" className="mt-1 border-slate-600 text-slate-300">
+                            ID: {contact.id}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                        <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">
+                          {contact.message}
+                        </p>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            variant={contact.id >= 1000 ? "destructive" : "default"}
+                            className={contact.id >= 1000 ? "bg-orange-600/20 text-orange-400 border-orange-600/30" : "bg-green-600/20 text-green-400 border-green-600/30"}
+                          >
+                            {contact.id >= 1000 ? "Emergency Backup" : "Database"}
+                          </Badge>
+                          <span className="text-xs text-slate-500">
+                            {contact.message.length} characters
+                          </span>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-slate-600 hover:bg-slate-700"
+                            onClick={() => {
+                              navigator.clipboard.writeText(`Name: ${contact.name}\nEmail: ${contact.email}\nMessage: ${contact.message}\nDate: ${new Date(contact.created_at).toLocaleString()}`);
+                              toast.success('Message copied to clipboard');
+                            }}
+                          >
+                            Copy
+                          </Button>
+                          <Button
+                            variant="outline" 
+                            size="sm"
+                            className="border-slate-600 hover:bg-slate-700"
+                            onClick={() => {
+                              window.location.href = `mailto:${contact.email}?subject=Re: Your message to The Crewkerne Gazette&body=Hi ${contact.name},%0D%0A%0D%0AThank you for your message:%0D%0A"${contact.message}"%0D%0A%0D%0ABest regards,%0D%0AThe Crewkerne Gazette Team`;
+                            }}
+                          >
+                            Reply
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="text-center py-12">
+                  <MessageSquare className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">No Messages Yet</h3>
+                  <p className="text-slate-400 mb-6">
+                    Contact messages from your website will appear here.
+                  </p>
+                  <Button 
+                    onClick={() => window.open('/contact', '_blank')}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    View Contact Page
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
