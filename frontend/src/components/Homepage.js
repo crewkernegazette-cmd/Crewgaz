@@ -63,9 +63,8 @@ const Homepage = () => {
       console.error('Error fetching breaking news:', error);
       setBreakingNews([]); // Ensure it's always an array
       console.warn('Breaking news state set to empty array due to error');
-    } finally {
-      setLoading(false);
     }
+    setLoading(false); // Always set loading to false
   };
 
   const getCategoryBadgeClass = (category) => {
