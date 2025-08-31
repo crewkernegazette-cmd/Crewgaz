@@ -481,8 +481,67 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
         except HTTPException:
             raise
         except Exception as e:
-            # Error generating meta HTML - return generic 404
-            raise HTTPException(status_code=404, detail="Article not found")
+            logger.error(f"❌ Error generating article meta HTML for crawler: {e}")
+            # For crawlers, ALWAYS return 200 HTML even on database errors
+            fallback_meta_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Basic Meta Tags -->
+    <title>The Crewkerne Gazette - Where Common Sense Meets Headlines</title>
+    <meta name="description" content="Bold, unapologetic journalism from Somerset to the nation.">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="The Crewkerne Gazette">
+    <meta property="og:description" content="Bold, unapologetic journalism from Somerset to the nation.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_slug}">
+    <meta property="og:image" content="https://crewkernegazette.co.uk/logo.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:secure_url" content="https://crewkernegazette.co.uk/logo.png">
+    <meta property="og:site_name" content="The Crewkerne Gazette">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="The Crewkerne Gazette">
+    <meta name="twitter:description" content="Bold, unapologetic journalism from Somerset to the nation.">
+    <meta name="twitter:image" content="https://crewkernegazette.co.uk/logo.png">
+    <meta name="twitter:site" content="@CrewkerneGazette">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {{
+        "@context": "https://schema.org",
+        "@type": "NewsArticle",
+        "headline": "The Crewkerne Gazette",
+        "description": "Bold, unapologetic journalism from Somerset to the nation.",
+        "image": "https://crewkernegazette.co.uk/logo.png",
+        "publisher": {{
+            "@type": "Organization", 
+            "name": "The Crewkerne Gazette",
+            "logo": {{
+                "@type": "ImageObject",
+                "url": "https://crewkernegazette.co.uk/logo.png"
+            }}
+        }},
+        "mainEntityOfPage": {{
+            "@type": "WebPage",
+            "@id": "https://crewkernegazette.co.uk/article/{article_slug}"
+        }}
+    }}
+    </script>
+</head>
+<body>
+    <h1>The Crewkerne Gazette</h1>
+    <p>Bold, unapologetic journalism from Somerset to the nation.</p>
+    <p><em>Visit us at: <a href="https://crewkernegazette.co.uk/">The Crewkerne Gazette</a></em></p>
+</body>
+</html>"""
+            return HTMLResponse(content=fallback_meta_html, status_code=200)
     
     else:
         # For regular users, serve the React app's index.html
