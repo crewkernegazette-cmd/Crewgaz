@@ -271,7 +271,7 @@ class PostgreSQLValidationTester:
             form_data = {
                 "title": "PostgreSQL Test Article",
                 "content": "This is a test article to verify PostgreSQL database connectivity and category labels functionality.",
-                "category": "NEWS",
+                "category": "news",  # lowercase as required by enum
                 "subheading": "Testing database connectivity after PostgreSQL fixes",
                 "publisher_name": "The Crewkerne Gazette",
                 "category_labels": json.dumps(["News", "Straight Talking"]),
