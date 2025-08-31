@@ -19,7 +19,7 @@ import jwt
 from datetime import datetime
 
 class AuthDebugTester:
-    def __init__(self, base_url="https://news-portal-15.preview.emergentagent.com"):
+    def __init__(self, base_url="https://news-portal-revamp.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
