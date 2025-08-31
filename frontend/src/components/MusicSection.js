@@ -252,7 +252,7 @@ const MusicSection = () => {
                         <span>By {article.author_name}</span>
                       </div>
                       <div className="mt-4">
-                        <Link to={`/article/${article.id}`}>
+                        <Link to={`/article/${article.slug}`}>
                           <Button variant="outline" size="sm" className="w-full border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-white">
                             Read More
                           </Button>
