@@ -1110,6 +1110,22 @@ async def create_contact(contact_data: ContactCreate, db: Session = Depends(get_
             detail="Server error - contact message could not be saved. Please try again or contact support directly."
         )
 
+@api_router.post("/contacts/test")
+async def test_contact_endpoint(contact_data: ContactCreate):
+    """Test contact endpoint without database (for debugging)"""
+    logger.info(f"🧪 TEST: Contact received from {contact_data.email}")
+    logger.info(f"🧪 TEST: name='{contact_data.name}', email='{contact_data.email}', message_length={len(contact_data.message)}")
+    
+    return {
+        "success": True,
+        "message": "Contact test successful - data received correctly",
+        "received_data": {
+            "name": contact_data.name,
+            "email": contact_data.email,
+            "message_length": len(contact_data.message)
+        }
+    }
+
 @api_router.get("/contacts", response_model=List[Contact])
 async def get_contacts(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get all contact messages (admin only)"""
