@@ -34,8 +34,19 @@ const Homepage = () => {
 
   const fetchArticles = async () => {
     try {
-      const response = await axios.get(`${API}/articles?limit=6`);
-      setArticles(response.data);
+      // Fetch news articles first (prioritized)
+      const newsResponse = await axios.get(`${API}/articles?category=news&limit=6`);
+      const otherResponse = await axios.get(`${API}/articles?limit=6`);
+      
+      // Combine news articles first, then other articles, avoiding duplicates
+      const newsArticles = newsResponse.data || [];
+      const otherArticles = (otherResponse.data || []).filter(
+        article => !newsArticles.some(newsArticle => newsArticle.id === article.id)
+      );
+      
+      // Prioritize news articles at the top
+      const combinedArticles = [...newsArticles, ...otherArticles].slice(0, 6);
+      setArticles(combinedArticles);
     } catch (error) {
       console.error('Error fetching articles:', error);
     }
