@@ -389,7 +389,7 @@ class CategoryLabelsAPITester:
         article_data = {
             "title": f"Test Invalid Categories - {datetime.now().strftime('%H:%M:%S')}",
             "content": "Testing validation of category labels with some invalid categories mixed in.",
-            "category": "NEWS",
+            "category": "news",  # Use lowercase as required by backend
             "category_labels": json.dumps(invalid_categories),
             "is_published": True
         }
