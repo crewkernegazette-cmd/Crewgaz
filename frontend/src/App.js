@@ -105,29 +105,31 @@ function App() {
     <HelmetProvider>
       <AuthContext.Provider value={{ user, login, logout }}>
         <div className="App">
-          <Router>
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<Homepage />} />
-              <Route path="/news" element={<NewsSection />} />
-              <Route path="/music" element={<MusicSection />} />
-              <Route path="/documentaries" element={<DocumentariesSection />} />
-              <Route path="/comedy" element={<ComedySection />} />
-              <Route path="/contact" element={<ContactSection />} />
-              <Route path="/article/:slug" element={<ArticleDetail />} />
-              <Route 
-                path="/login" 
-                element={user ? <Navigate to="/dashboard" /> : <LoginForm />} 
-              />
-              <Route 
-                path="/dashboard/*" 
-                element={user ? <Dashboard /> : <Navigate to="/login" />} 
-              />
-              <Route path="/debug" element={<Debug />} />
-            </Routes>
-            <Footer />
-            <Toaster />
-          </Router>
+          <ErrorBoundary>
+            <Router>
+              <Navbar />
+              <Routes>
+                <Route path="/" element={<Homepage />} />
+                <Route path="/news" element={<NewsSection />} />
+                <Route path="/music" element={<MusicSection />} />
+                <Route path="/documentaries" element={<DocumentariesSection />} />
+                <Route path="/comedy" element={<ComedySection />} />
+                <Route path="/contact" element={<ContactSection />} />
+                <Route path="/article/:slug" element={<ArticleDetail />} />
+                <Route 
+                  path="/login" 
+                  element={user ? <Navigate to="/dashboard" /> : <LoginForm />} 
+                />
+                <Route 
+                  path="/dashboard/*" 
+                  element={user ? <Dashboard /> : <Navigate to="/login" />} 
+                />
+                <Route path="/debug" element={<Debug />} />
+              </Routes>
+              <Footer />
+              <Toaster />
+            </Router>
+          </ErrorBoundary>
         </div>
       </AuthContext.Provider>
     </HelmetProvider>
