@@ -579,10 +579,12 @@
 
 ## test_plan:
   current_focus: 
+    - "PostgreSQL database connectivity fix"
     - "Homepage redesign and category labels UI"
-  stuck_tasks: []
+  stuck_tasks: 
+    - "PostgreSQL database connectivity fix"
   test_all: false
-  test_priority: "frontend_category_labels_implementation"
+  test_priority: "critical_database_connectivity"
 
 ## agent_communication:
     - agent: "main"
