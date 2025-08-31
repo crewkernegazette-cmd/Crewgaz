@@ -528,27 +528,82 @@ async def get_article(article_uuid: str, db: Session = Depends(get_db)):
     )
 
 @api_router.post("/articles", response_model=Article)
-async def create_article(article_data: ArticleCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    """Create new article"""
+async def create_article(
+    title: str = Form(...),
+    content: str = Form(...),
+    category: ArticleCategory = Form(...),
+    subheading: Optional[str] = Form(None),
+    publisher_name: Optional[str] = Form("The Crewkerne Gazette"),
+    image_caption: Optional[str] = Form(None),
+    video_url: Optional[str] = Form(None),
+    tags: Optional[str] = Form("[]"),
+    is_breaking: bool = Form(False),
+    is_published: bool = Form(True),
+    featured_image: Optional[UploadFile] = File(None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create new article with optional image upload"""
+    
+    # Handle image upload if provided
+    featured_image_url = None
+    if featured_image and featured_image.content_type.startswith('image/'):
+        try:
+            # Read file content
+            contents = await featured_image.read()
+            
+            # Upload to Cloudinary
+            upload_result = cloudinary.uploader.upload(
+                contents,
+                folder="crewkerne-gazette/articles",
+                resource_type="image",
+                transformation=[
+                    {"width": 1200, "height": 630, "crop": "limit"},
+                    {"quality": "auto"},
+                    {"format": "auto"}
+                ]
+            )
+            
+            featured_image_url = upload_result['secure_url']
+            logger.info(f"Image uploaded to Cloudinary: {featured_image_url}")
+            
+        except Exception as e:
+            logger.error(f"Image upload error: {str(e)}")
+            # Continue without image rather than failing
+            pass
+    
+    # Parse tags
+    try:
+        tags_list = json.loads(tags) if tags else []
+    except:
+        tags_list = [tag.strip() for tag in tags.split(',') if tag.strip()] if tags else []
+    
+    # Sanitize content
+    cleaned_content = bleach.clean(
+        content, 
+        tags=list(bleach.ALLOWED_TAGS) + ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li'],
+        strip=True
+    )
+    
     # Generate UUID for the article
     article_uuid = str(uuid.uuid4())
     
     # Create database article
     db_article = DBArticle(
         uuid=article_uuid,
-        title=article_data.title,
-        subheading=article_data.subheading,
-        content=article_data.content,
-        category=article_data.category,
-        publisher_name=article_data.publisher_name,
+        title=title,
+        subheading=subheading,
+        content=cleaned_content,
+        category=category,
+        publisher_name=publisher_name,
         author_name=current_user.username,
         author_id=str(current_user.id),
-        featured_image=article_data.featured_image,
-        image_caption=article_data.image_caption,
-        video_url=article_data.video_url,
-        tags=json.dumps(article_data.tags),
-        is_breaking=article_data.is_breaking,
-        is_published=article_data.is_published
+        featured_image=featured_image_url,
+        image_caption=image_caption,
+        video_url=video_url,
+        tags=json.dumps(tags_list),
+        is_breaking=is_breaking,
+        is_published=is_published
     )
     
     db.add(db_article)
