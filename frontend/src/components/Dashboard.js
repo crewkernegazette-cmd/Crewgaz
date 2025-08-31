@@ -63,10 +63,10 @@ const Dashboard = () => {
     try {
       setLoading(true);
       const [statsRes, articlesRes, contactsRes, settingsRes] = await Promise.all([
-        axios.get(`${API}/dashboard/stats`),
-        axios.get(`${API}/dashboard/articles`),
-        axios.get(`${API}/contacts`),
-        axios.get(`${API}/settings`)
+        axios.get(`${API}/api/dashboard/stats`),
+        axios.get(`${API}/api/dashboard/articles`),
+        axios.get(`${API}/api/contacts`),
+        axios.get(`${API}/api/settings`)
       ]);
 
       setStats(statsRes.data);
