@@ -141,7 +141,7 @@ const ArticleDetail = () => {
   if (!article) return null;
 
   const fullImageUrl = getFullImageUrl(article.featured_image);
-  const fullUrl = `${window.location.origin}/article/${article.id}`;
+  const fullUrl = `${window.location.origin}/article/${article.slug}`;
 
   return (
     <>
