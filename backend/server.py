@@ -924,6 +924,18 @@ async def get_contacts(current_user: User = Depends(get_current_user), db: Sessi
     return contacts
 
 # Settings Routes
+@api_router.get("/settings")
+async def get_settings(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Get all settings (admin only)"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    return {
+        "maintenance_mode": get_setting(db, "maintenance_mode", "false").lower() == "true",
+        "show_breaking_news_banner": get_setting(db, "show_breaking_news_banner", "true").lower() == "true",
+        "breaking_news_text": get_setting(db, "breaking_news_text", "Welcome to The Crewkerne Gazette")
+    }
+
 @api_router.get("/settings/public")
 async def get_public_settings(db: Session = Depends(get_db)):
     """Get public settings"""
