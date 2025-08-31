@@ -204,6 +204,20 @@ const Dashboard = () => {
     setArticle({ ...article, tags });
   };
 
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const resetForm = () => {
     setArticle({
       title: '',
@@ -218,6 +232,8 @@ const Dashboard = () => {
       is_published: true,
       tags: []
     });
+    setSelectedImageFile(null);
+    setImagePreview(null);
   };
 
   const handleCreateArticle = async (e) => {
@@ -235,9 +251,33 @@ const Dashboard = () => {
 
     setCreatingArticle(true);
     try {
-      console.log('📰 Creating article:', article.title);
-      const response = await axios.post(`${API}/articles`, article);
-      console.log('✅ Article created:', response.data);
+      console.log('📰 Creating article with Cloudinary image:', article.title);
+      
+      // Create FormData for multipart upload
+      const formData = new FormData();
+      formData.append('title', article.title);
+      formData.append('subheading', article.subheading || '');
+      formData.append('content', article.content);
+      formData.append('category', article.category);
+      formData.append('publisher_name', article.publisher_name || 'The Crewkerne Gazette');
+      formData.append('image_caption', article.image_caption || '');
+      formData.append('video_url', article.video_url || '');
+      formData.append('tags', JSON.stringify(article.tags));
+      formData.append('is_breaking', article.is_breaking);
+      formData.append('is_published', article.is_published);
+      
+      // Add image file if selected
+      if (selectedImageFile) {
+        formData.append('featured_image', selectedImageFile);
+      }
+      
+      const response = await axios.post(`${API}/articles`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      console.log('✅ Article created with Cloudinary image:', response.data);
       
       toast.success('Article created successfully!');
       resetForm();
