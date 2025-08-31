@@ -148,24 +148,34 @@ def is_crawler(user_agent: str) -> bool:
         return False
     
     user_agent_lower = user_agent.lower()
+    
+    # Comprehensive crawler detection patterns
     crawlers = [
-        'facebookexternalhit',  # Facebook
-        'twitterbot',           # Twitter
-        'linkedinbot',          # LinkedIn  
-        'whatsapp',             # WhatsApp
-        'telegrambot',          # Telegram
-        'slackbot',             # Slack
-        'discordbot',           # Discord
-        'googlebot',            # Google
-        'bingbot',              # Bing
-        'yandexbot',            # Yandex
-        'pinterest',            # Pinterest
-        'redditbot',            # Reddit
-        'applebot',             # Apple
-        'skypeuripreview',      # Skype
-        'vkshare',              # VKontakte
-        'tumblr',               # Tumblr
-        'chatwork'              # ChatWork
+        'facebookexternalhit/1.1',                    # Facebook specific
+        'facebookexternalhit',                        # Facebook general
+        'twitterbot/1.0',                            # Twitter specific
+        'twitterbot',                                # Twitter general
+        'linkedinbot',                               # LinkedIn
+        'whatsapp',                                  # WhatsApp
+        'telegrambot',                               # Telegram
+        'slackbot',                                  # Slack
+        'discordbot',                                # Discord
+        'googlebot',                                 # Google
+        'bingbot',                                   # Bing
+        'yandexbot',                                 # Yandex
+        'pinterest',                                 # Pinterest
+        'redditbot',                                 # Reddit
+        'applebot',                                  # Apple
+        'skypeuripreview',                          # Skype
+        'vkshare',                                   # VKontakte
+        'tumblr',                                    # Tumblr
+        'chatwork',                                  # ChatWork
+        'msnbot',                                    # MSN Bot
+        'ia_archiver',                               # Internet Archive
+        'screaming frog',                            # SEO Tools
+        'spider',                                    # Generic spiders
+        'crawler',                                   # Generic crawlers
+        'bot'                                        # Generic bots
     ]
     
     return any(crawler in user_agent_lower for crawler in crawlers)
