@@ -746,6 +746,81 @@ const Dashboard = () => {
                     />
                   </div>
 
+                  {/* Category Labels */}
+                  <div>
+                    <Label className="text-slate-200 mb-3 block">Category Labels</Label>
+                    <div className="space-y-3">
+                      <p className="text-sm text-slate-400">
+                        Select multiple category labels that best describe this article:
+                      </p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-3 bg-slate-700/20 rounded-lg border border-slate-600">
+                        {availableCategoryLabels.map((label) => {
+                          const isSelected = article.category_labels.includes(label);
+                          return (
+                            <div key={label} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`category-${label}`}
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setArticle({
+                                      ...article,
+                                      category_labels: [...article.category_labels, label]
+                                    });
+                                  } else {
+                                    setArticle({
+                                      ...article,
+                                      category_labels: article.category_labels.filter(l => l !== label)
+                                    });
+                                  }
+                                }}
+                                className="rounded border-slate-500 text-red-600 focus:ring-red-500 focus:ring-offset-0 bg-slate-700"
+                              />
+                              <Label
+                                htmlFor={`category-${label}`}
+                                className={`text-sm cursor-pointer transition-colors ${
+                                  isSelected ? 'text-red-400 font-medium' : 'text-slate-300 hover:text-slate-200'
+                                }`}
+                              >
+                                {label}
+                              </Label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Selected Labels Preview */}
+                      {article.category_labels.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-sm text-slate-400 mb-2">Selected ({article.category_labels.length}):</p>
+                          <div className="flex flex-wrap gap-2">
+                            {article.category_labels.map((label, index) => (
+                              <Badge
+                                key={index}
+                                className="bg-red-600/20 text-red-300 border border-red-600/30 px-2 py-1 text-xs"
+                              >
+                                {label}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setArticle({
+                                      ...article,
+                                      category_labels: article.category_labels.filter(l => l !== label)
+                                    });
+                                  }}
+                                  className="ml-2 text-red-400 hover:text-red-300"
+                                >
+                                  ×
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Switches */}
                   <div className="flex items-center space-x-8">
                     <div className="flex items-center space-x-2">
