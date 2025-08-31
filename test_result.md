@@ -537,12 +537,12 @@
 
 ## test_plan:
   current_focus: 
-    - "Frontend login flow and dashboard functionality - COMPLETED"
-    - "Complete authentication integration testing - COMPLETED"
+    - "Article slug system and SEO optimization"
+    - "Complete article creation and display flow"
   stuck_tasks:
-    - "Production backend API deployment issue" 
+    - "Database schema update for slug field" 
   test_all: false
-  test_priority: "authentication_validation_complete"
+  test_priority: "article_slug_system_testing"
 
 ## agent_communication:
     - agent: "main"
