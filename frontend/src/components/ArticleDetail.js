@@ -10,7 +10,7 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const ArticleDetail = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const { user } = useContext(AuthContext);
   const [article, setArticle] = useState(null);
   const [relatedArticles, setRelatedArticles] = useState([]);
@@ -20,19 +20,20 @@ const ArticleDetail = () => {
 
   useEffect(() => {
     fetchArticle();
-  }, [id]);
+  }, [slug]);
 
   const fetchArticle = async () => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/articles/${id}`);
+      const response = await axios.get(`${BACKEND_URL}/articles/${slug}`);
       setArticle(response.data);
       
-      // Fetch related articles
-      const relatedResponse = await axios.get(`${BACKEND_URL}/articles/${id}/related`);
-      setRelatedArticles(relatedResponse.data);
+      // Fetch related articles (for now, use general articles endpoint)
+      const relatedResponse = await axios.get(`${BACKEND_URL}/articles?limit=3&category=${response.data.category}`);
+      const filteredRelated = relatedResponse.data.filter(a => a.slug !== slug);
+      setRelatedArticles(filteredRelated.slice(0, 3));
       
       // Fetch structured data
-      const structuredResponse = await axios.get(`${BACKEND_URL}/articles/${id}/structured-data`);
+      const structuredResponse = await axios.get(`${BACKEND_URL}/articles/${slug}/structured-data`);
       setStructuredData(structuredResponse.data);
       
     } catch (error) {
