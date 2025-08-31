@@ -87,6 +87,19 @@ class LoginRequest(BaseModel):
     username: str
     password: str
 
+def set_auth_cookie(resp: Response, token: str):
+    """Set auth cookie with cross-subdomain configuration"""
+    resp.set_cookie(
+        key="auth",
+        value=token,
+        httponly=True,
+        secure=True,                        # required when SameSite=None
+        samesite="none",
+        domain=".crewkernegazette.co.uk",   # leading dot works for root + api subdomain
+        path="/",
+        max_age=60*60*24*7                  # 7 days
+    )
+
 class Article(BaseModel):
     id: Optional[int] = None
     uuid: str
