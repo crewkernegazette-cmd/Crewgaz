@@ -19,7 +19,7 @@ import LoginForm from './components/LoginForm';
 import Debug from './components/Debug';
 import { Toaster } from './components/ui/sonner';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://crewkernegazette.co.uk';
 const API = BACKEND_URL;
 
 // Auth Context
