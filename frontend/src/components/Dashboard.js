@@ -195,11 +195,12 @@ const Dashboard = () => {
 
       let response;
       if (isEditing && editingArticle) {
-        response = await axios.put(`${API}/api/articles/${editingArticle.slug}`, formData, {
+        response = await axios.put(`${API_BASE}/api/articles/${editingArticle.slug}`, formData, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
-          }
+          },
+          withCredentials: true
         });
         toast.success('Article updated successfully!');
       } else {
