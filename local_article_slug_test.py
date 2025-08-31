@@ -151,7 +151,7 @@ class LocalArticleSlugSEOTester:
             {
                 "title": "Breaking News: Major Development in Crewkerne Today",
                 "content": "This is a comprehensive test article for slug generation testing. It contains enough content to meet the minimum requirements for article creation and provides a realistic example of news content.",
-                "category": "NEWS",
+                "category": "news",
                 "subheading": "Testing slug generation functionality with realistic content",
                 "is_breaking": True,
                 "tags": ["test", "slug", "breaking", "crewkerne"]
