@@ -202,7 +202,7 @@ const Dashboard = () => {
         });
         toast.success('Article updated successfully!');
       } else {
-        response = await axios.post(`${API}/articles`, formData, {
+        response = await axios.post(`${API}/api/articles`, formData, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
