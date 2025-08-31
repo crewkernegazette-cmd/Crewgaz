@@ -271,11 +271,12 @@ const Dashboard = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('access_token');
-      await axios.put(`${API}/api/settings`, settings, {
+      await axios.put(`${API_BASE}/api/settings`, settings, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        withCredentials: true
       });
       toast.success('Settings updated successfully!');
     } catch (error) {
