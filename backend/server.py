@@ -792,38 +792,53 @@ async def delete_article(article_uuid: str, current_user: User = Depends(get_cur
 
 # Dashboard Routes
 @api_router.get("/dashboard/articles", response_model=List[Article])
-async def get_dashboard_articles(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    """Get articles for dashboard"""
-    if current_user.role == UserRole.ADMIN:
-        db_articles = db.query(DBArticle).order_by(DBArticle.created_at.desc()).all()
-    else:
-        db_articles = db.query(DBArticle).filter(DBArticle.author_id == str(current_user.id)).order_by(DBArticle.created_at.desc()).all()
-    
-    # Convert to Pydantic models
-    articles = []
-    for db_article in db_articles:
-        article = Article(
-            id=db_article.id,
-            uuid=db_article.uuid,
-            title=db_article.title,
-            subheading=db_article.subheading,
-            content=db_article.content,
-            category=db_article.category,
-            publisher_name=db_article.publisher_name,
-            author_name=db_article.author_name,
-            author_id=db_article.author_id,
-            featured_image=db_article.featured_image,
-            image_caption=db_article.image_caption,
-            video_url=db_article.video_url,
-            tags=json.loads(db_article.tags) if db_article.tags else [],
-            is_breaking=db_article.is_breaking,
-            is_published=db_article.is_published,
-            created_at=db_article.created_at,
-            updated_at=db_article.updated_at
-        )
-        articles.append(article)
-    
-    return articles
+async def get_dashboard_articles(current_user: User = Depends(get_current_user)):
+    """Get articles for dashboard with emergency fallback"""
+    try:
+        # Try database first
+        from database import SessionLocal
+        db = SessionLocal()
+        try:
+            if current_user.role == UserRole.ADMIN:
+                db_articles = db.query(DBArticle).order_by(DBArticle.created_at.desc()).all()
+            else:
+                db_articles = db.query(DBArticle).filter(DBArticle.author_id == str(current_user.id)).order_by(DBArticle.created_at.desc()).all()
+            
+            # Convert to Pydantic models
+            articles = []
+            for db_article in db_articles:
+                article = Article(
+                    id=db_article.id,
+                    uuid=db_article.uuid,
+                    title=db_article.title,
+                    subheading=db_article.subheading,
+                    content=db_article.content,
+                    category=db_article.category,
+                    publisher_name=db_article.publisher_name,
+                    author_name=db_article.author_name,
+                    author_id=db_article.author_id,
+                    featured_image=db_article.featured_image,
+                    image_caption=db_article.image_caption,
+                    video_url=db_article.video_url,
+                    tags=json.loads(db_article.tags) if db_article.tags else [],
+                    is_breaking=db_article.is_breaking,
+                    is_published=db_article.is_published,
+                    created_at=db_article.created_at,
+                    updated_at=db_article.updated_at
+                )
+                articles.append(article)
+            
+            db.close()
+            return articles
+            
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.warning(f"🆘 Dashboard articles database error: {e}")
+        # Emergency fallback - return empty list when database is down
+        logger.info("🆘 Returning empty articles list due to database unavailability")
+        return []
 
 # Contact Routes
 @api_router.post("/contacts", response_model=Contact)
