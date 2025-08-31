@@ -11,6 +11,8 @@ import bcrypt
 import logging
 import re
 import unicodedata
+from alembic import command
+from alembic.config import Config
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
