@@ -9,7 +9,7 @@ from enum import Enum
 import os
 
 # Database URL from environment variable
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:password@localhost/crewkerne_gazette')
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://crewkerne_user:crewkerne_pass@localhost/crewkerne_gazette')
 
 # Create engine
 engine = create_engine(DATABASE_URL)
