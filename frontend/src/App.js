@@ -54,33 +54,41 @@ function App() {
   };
 
   const login = async (credentials) => {
+    console.log('Submitting login:', { username: credentials.username });
+    
     try {
-      // Try emergency login first (bypasses database issues)
-      const response = await axios.post(`${API}/auth/emergency-login`, credentials);
-      const { access_token, user: userData } = response.data;
+      const response = await axios.post(`${API}/auth/login`, credentials, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
-      localStorage.setItem('token', access_token);
+      console.log('Login response received:', response.status, response.data);
+      
+      const { access_token, role } = response.data;
+      
+      // Store token and set up authentication
+      localStorage.setItem('access_token', access_token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      
+      // Create user object from response data
+      const userData = {
+        username: credentials.username,
+        role: role,
+        token: access_token
+      };
+      
       setUser(userData);
+      console.log('Login successful, user set:', userData);
       
       return { success: true };
     } catch (error) {
-      // If emergency login fails, try regular login
-      try {
-        const response = await axios.post(`${API}/auth/login`, credentials);
-        const { access_token, user: userData } = response.data;
-        
-        localStorage.setItem('token', access_token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-        setUser(userData);
-        
-        return { success: true };
-      } catch (error2) {
-        return { 
-          success: false, 
-          error: error2.response?.data?.detail || 'Login failed' 
-        };
-      }
+      console.error('Login error:', error.response?.data || error.message);
+      
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Invalid credentials' 
+      };
     }
   };
 
