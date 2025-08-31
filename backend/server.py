@@ -791,6 +791,46 @@ async def delete_article(article_uuid: str, current_user: User = Depends(get_cur
     return {"message": "Article deleted successfully", "deleted_article_uuid": article_uuid}
 
 # Dashboard Routes
+@api_router.get("/dashboard/stats")
+async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
+    """Get dashboard statistics with emergency fallback"""
+    try:
+        # Try database first
+        from database import SessionLocal
+        db = SessionLocal()
+        try:
+            total_articles = db.query(DBArticle).count()
+            published_articles = db.query(DBArticle).filter(DBArticle.is_published == True).count()
+            breaking_news = db.query(DBArticle).filter(DBArticle.is_breaking == True).count()
+            total_contacts = db.query(DBContact).count()
+            
+            # Check if emergency mode is active (if user_id is "emergency")
+            emergency_mode = hasattr(current_user, 'id') and str(current_user.id) == "emergency"
+            
+            db.close()
+            return {
+                "total_articles": total_articles,
+                "published_articles": published_articles,
+                "breaking_news": breaking_news,
+                "total_contacts": total_contacts,
+                "emergency_mode": emergency_mode
+            }
+            
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.warning(f"🆘 Dashboard stats database error: {e}")
+        # Emergency fallback - return default stats when database is down
+        logger.info("🆘 Returning default stats due to database unavailability")
+        return {
+            "total_articles": 0,
+            "published_articles": 0,
+            "breaking_news": 0,
+            "total_contacts": 0,
+            "emergency_mode": True
+        }
+
 @api_router.get("/dashboard/articles", response_model=List[Article])
 async def get_dashboard_articles(current_user: User = Depends(get_current_user)):
     """Get articles for dashboard with emergency fallback"""
