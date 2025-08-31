@@ -23,6 +23,7 @@ import {
   Video,
   AlertTriangle,
   Edit,
+  MessageSquare,
   Trash2,
   Save
 } from 'lucide-react';
