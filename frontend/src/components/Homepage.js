@@ -112,36 +112,41 @@ const Homepage = () => {
   console.warn('Homepage render - Breaking news state:', breakingNews, 'Type:', typeof breakingNews, 'IsArray:', Array.isArray(breakingNews));
 
   if (loading) {
-    return <div className="loading-spinner">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
   }
 
   return (
     <div>
       {/* Breaking News Ticker */}
       {Array.isArray(breakingNews) && breakingNews.length > 0 && showBanner && (
-        <div className="breaking-news-ticker">
-          <div className="breaking-badge">
-            BREAKING
-          </div>
-          <div className="ticker-content">
-            {breakingNews.map((news, index) => (
-              <Link key={news.id} to={`/article/${news.slug || news.id}`} className="ticker-link">
-                {news.title}
-                {index < breakingNews.length - 1 && ' • '}
-              </Link>
-            ))}
+        <div className="bg-red-600 text-white py-2">
+          <div className="container mx-auto px-4 flex items-center">
+            <span className="bg-red-800 px-3 py-1 text-sm font-bold mr-4">BREAKING</span>
+            <div className="flex-1 overflow-hidden">
+              <div className="whitespace-nowrap animate-scroll">
+                {breakingNews.map((news, index) => (
+                  <Link key={news.id || index} to={`/article/${news.slug || news.id}`} className="hover:underline mr-8">
+                    {news.title}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {/* Clean Articles Section - GB News Style */}
-      <div className="py-8 bg-slate-900">
+      <div className="py-8 bg-slate-900 min-h-screen">
         <div className="container mx-auto px-4">
           {Array.isArray(articles) && articles.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {articles.map((article) => (
+              {articles.map((article, index) => (
                 <Link 
-                  key={article.id} 
+                  key={article.id || index} 
                   to={`/article/${article.slug || article.id}`} 
                   className="group bg-slate-800 rounded-lg overflow-hidden hover:bg-slate-700 transition-colors"
                 >
@@ -149,15 +154,16 @@ const Homepage = () => {
                     <div className="aspect-video overflow-hidden">
                       <img 
                         src={article.featured_image} 
-                        alt={article.title}
+                        alt={article.title || 'Article'}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {e.target.style.display = 'none'}}
                       />
                     </div>
                   )}
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <Badge className="bg-red-600 text-white text-xs px-2 py-1">
-                        {article.category.toUpperCase()}
+                        {(article.category || 'news').toUpperCase()}
                       </Badge>
                       {article.is_breaking && (
                         <Badge className="bg-red-700 text-white text-xs px-2 py-1 animate-pulse">
@@ -170,7 +176,7 @@ const Homepage = () => {
                     {renderCategoryLabels(article.category_labels)}
                     
                     <h3 className="text-white font-bold text-lg mb-2 group-hover:text-red-400 transition-colors">
-                      {article.title}
+                      {article.title || 'Untitled Article'}
                     </h3>
                     
                     {article.subheading && (
@@ -180,7 +186,7 @@ const Homepage = () => {
                     )}
                     
                     <p className="text-slate-400 text-sm mb-3">
-                      {article.content.substring(0, 120)}...
+                      {article.content ? `${article.content.substring(0, 120)}...` : 'Read more...'}
                     </p>
                     
                     <div className="flex items-center justify-between text-xs text-slate-500">
