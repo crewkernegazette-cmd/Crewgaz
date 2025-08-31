@@ -159,7 +159,7 @@ class LocalArticleSlugSEOTester:
             {
                 "title": "Music Review: Local Band Rocks the Stage at Somerset Festival!",
                 "content": "Another comprehensive test article to verify slug uniqueness and generation. This article has different content and category to test the system thoroughly and ensure proper slug handling.",
-                "category": "MUSIC", 
+                "category": "music", 
                 "subheading": "Testing slug uniqueness with different content",
                 "is_breaking": False,
                 "tags": ["music", "review", "local", "festival"]
