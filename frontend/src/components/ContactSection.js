@@ -36,14 +36,23 @@ const ContactSection = () => {
     setSuccess(false);
 
     try {
-      await axios.post(`${API}/contact`, formData);
+      console.log('Submitting contact:', { name: formData.name, email: formData.email, message: formData.message });
+      
+      const response = await axios.post(`${API}/contacts`, formData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Contact submission successful:', response.data);
       setSuccess(true);
-      setFormData({ email: '', inquiry: '' });
+      setFormData({ name: '', email: '', message: '' });
       toast.success('Message sent successfully! We\'ll get back to you soon.');
     } catch (error) {
+      console.error('Contact submission failed:', error.response?.data || error.message);
       const errorMessage = error.response?.data?.detail || 'Failed to send message. Please try again.';
       setError(errorMessage);
-      toast.error(errorMessage);
+      toast.error('Submission failed');
     } finally {
       setLoading(false);
     }
