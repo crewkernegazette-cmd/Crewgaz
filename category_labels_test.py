@@ -12,8 +12,8 @@ import os
 
 class CategoryLabelsAPITester:
     def __init__(self):
-        # Use the production URL from frontend .env
-        self.base_url = "https://news-portal-revamp.preview.emergentagent.com"
+        # Use the local backend URL
+        self.base_url = "http://localhost:8001"
         self.api_url = f"{self.base_url}/api"
         self.token = None
         self.tests_run = 0
