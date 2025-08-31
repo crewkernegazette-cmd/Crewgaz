@@ -1069,8 +1069,23 @@ async def get_article_structured_data(article_uuid: str, db: Session = Depends(g
 # Include router and middleware
 app.include_router(api_router)
 
-# Mount frontend static files - this must come AFTER the API routes
-# so that our /article/{id} route takes priority over frontend routing
+# SPA fallback route - catch all non-API routes and serve React app
+@app.get("/{path:path}", include_in_schema=False)
+async def spa_fallback(path: str):
+    """Serve React app for all non-API routes (SPA routing support)"""
+    if not path.startswith('api/'):
+        try:
+            with open('../frontend/build/index.html', 'r', encoding='utf-8') as f:
+                return HTMLResponse(f.read())
+        except FileNotFoundError:
+            # Fallback if build doesn't exist
+            return HTMLResponse("Frontend build not found", status_code=404)
+    else:
+        # This shouldn't happen as API routes are handled by the router
+        raise HTTPException(status_code=404, detail="API endpoint not found")
+
+# Mount frontend static files - this must come AFTER the API routes and SPA fallback
+# so that our routes take priority over static file serving
 app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="frontend")
 
 app.add_middleware(
