@@ -31,28 +31,66 @@ const ContactSection = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🔄 Form submit event triggered');
+    console.log('📤 API URL:', API);
+    console.log('📤 Submitting contact to /api/contacts:', { 
+      name: formData.name, 
+      email: formData.email, 
+      message: formData.message 
+    });
+    
     setLoading(true);
     setError('');
     setSuccess(false);
 
+    // Validate required fields
+    if (!formData.name?.trim() || !formData.email?.trim() || !formData.message?.trim()) {
+      setError('Please fill in all required fields');
+      toast.error('Please fill in all required fields');
+      setLoading(false);
+      return;
+    }
+
     try {
-      console.log('Submitting contact:', { name: formData.name, email: formData.email, message: formData.message });
+      const requestData = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        message: formData.message.trim()
+      };
       
-      const response = await axios.post(`${API}/contacts`, formData, {
+      console.log('🌐 Making POST request to:', `${API}/contacts`);
+      console.log('📋 Request data:', requestData);
+      
+      const response = await axios.post(`${API}/contacts`, requestData, {
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 10000 // 10 second timeout
       });
       
-      console.log('Contact submission successful:', response.data);
+      console.log('✅ Contact submission successful:', response.status, response.data);
       setSuccess(true);
       setFormData({ name: '', email: '', message: '' });
-      toast.success('Message sent successfully! We\'ll get back to you soon.');
+      toast.success('Message sent! We\'ll get back to you soon.');
+      
     } catch (error) {
-      console.error('Contact submission failed:', error.response?.data || error.message);
-      const errorMessage = error.response?.data?.detail || 'Failed to send message. Please try again.';
+      console.error('❌ Contact submission failed:', error);
+      console.error('❌ Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      let errorMessage = 'Failed to send - try again';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setError(errorMessage);
-      toast.error('Submission failed');
+      toast.error('Failed to send - try again');
     } finally {
       setLoading(false);
     }
