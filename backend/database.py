@@ -36,14 +36,37 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Base class for models
 Base = declarative_base()
 
-# Utility functions for password handling
+# Utility functions for password handling with enhanced bcrypt
+from passlib.context import CryptContext
+
+# Initialize password context with bcrypt
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 def hash_password(password: str) -> str:
-    """Hash password using bcrypt"""
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    """Hash password using passlib bcrypt context"""
+    try:
+        hashed = pwd_context.hash(password)
+        logger.debug(f"🔐 Password hashed successfully (length: {len(hashed)})")
+        return hashed
+    except Exception as e:
+        logger.error(f"❌ Password hashing failed: {e}")
+        # Fallback to manual bcrypt
+        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 def verify_password(password: str, password_hash: str) -> bool:
-    """Verify password against hash"""
-    return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+    """Verify password against hash using passlib"""
+    try:
+        result = pwd_context.verify(password, password_hash)
+        logger.debug(f"🔐 Password verification: {'✅ SUCCESS' if result else '❌ FAILED'}")
+        return result
+    except Exception as e:
+        logger.error(f"❌ Password verification error: {e}")
+        # Fallback to manual bcrypt
+        try:
+            return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+        except Exception as e2:
+            logger.error(f"❌ Fallback verification failed: {e2}")
+            return False
 
 # Enums
 class ArticleCategory(str, Enum):
