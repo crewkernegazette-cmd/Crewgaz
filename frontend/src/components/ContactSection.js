@@ -250,6 +250,14 @@ const ContactSection = () => {
                     type="submit" 
                     className="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-3 text-lg border-0"
                     disabled={loading}
+                    onClick={(e) => {
+                      console.log('🔘 Button clicked');
+                      if (loading) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('⏳ Button click blocked - already loading');
+                      }
+                    }}
                   >
                     {loading ? (
                       'SENDING MESSAGE...'
