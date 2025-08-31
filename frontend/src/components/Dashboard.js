@@ -282,6 +282,7 @@ const Dashboard = () => {
       formData.append('image_caption', article.image_caption || '');
       formData.append('video_url', article.video_url || '');
       formData.append('tags', JSON.stringify(article.tags));
+      formData.append('category_labels', JSON.stringify(article.category_labels));
       formData.append('is_breaking', article.is_breaking);
       formData.append('is_published', article.is_published);
       
