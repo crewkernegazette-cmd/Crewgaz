@@ -1123,15 +1123,28 @@ app.include_router(api_router)
 
 # SPA fallback route - catch all non-API routes and serve React app
 @app.get("/{path:path}", include_in_schema=False)
-async def spa_fallback(path: str):
+async def spa_fallback(path: str, request: Request):
     """Serve React app for all non-API routes (SPA routing support)"""
     if not path.startswith('api/'):
+        # Check if it's a static file that exists
+        static_file_path = Path(f"../frontend/build/{path}")
+        
+        # If it's a static file that exists, let StaticFiles handle it
+        if static_file_path.exists() and static_file_path.is_file():
+            # Don't handle static files here, let them fall through to StaticFiles
+            raise HTTPException(status_code=404, detail="Let StaticFiles handle this")
+        
+        # For all other routes (React Router routes), serve index.html
         try:
             with open('../frontend/build/index.html', 'r', encoding='utf-8') as f:
-                return HTMLResponse(f.read())
+                html_content = f.read()
+                return HTMLResponse(content=html_content)
         except FileNotFoundError:
             # Fallback if build doesn't exist
-            return HTMLResponse("Frontend build not found", status_code=404)
+            return HTMLResponse(
+                content="<html><body><h1>Frontend build not found</h1><p>Please run 'yarn build' in the frontend directory.</p></body></html>", 
+                status_code=404
+            )
     else:
         # This shouldn't happen as API routes are handled by the router
         raise HTTPException(status_code=404, detail="API endpoint not found")
