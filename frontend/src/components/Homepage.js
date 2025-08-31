@@ -40,8 +40,8 @@ const Homepage = () => {
     try {
       console.warn('Fetching articles...');
       // Fetch news articles first (prioritized)
-      const newsResponse = await axios.get(`${API}/articles?category=news&limit=6`);
-      const otherResponse = await axios.get(`${API}/articles?limit=6`);
+      const newsResponse = await axios.get(`${API}/api/articles?category=news&limit=6`);
+      const otherResponse = await axios.get(`${API}/api/articles?limit=6`);
       
       // Ensure we always have arrays, never null
       const newsArticles = Array.isArray(newsResponse.data) ? newsResponse.data : [];
