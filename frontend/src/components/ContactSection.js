@@ -30,6 +30,15 @@ const ContactSection = () => {
     });
   };
 
+  // Manual reset function to prevent stuck states
+  const resetForm = () => {
+    console.log('🔄 Manual form reset');
+    setFormData({ name: '', email: '', message: '' });
+    setLoading(false);
+    setError('');
+    setSuccess(false);
+  };
+
   const handleSubmit = async (e) => {
     // CRITICAL: Prevent default form submission that causes page navigation
     if (e) {
