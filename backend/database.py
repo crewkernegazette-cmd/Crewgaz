@@ -17,13 +17,22 @@ logger = logging.getLogger(__name__)
 # Database URL from environment variable with SSL support
 DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://crewkerne_user:crewkerne_pass@localhost/crewkerne_gazette')
 
-# Add SSL mode for production if not present
-if DATABASE_URL and 'sslmode=' not in DATABASE_URL:
-    ssl_suffix = '?sslmode=require' if '?' not in DATABASE_URL else '&sslmode=require'
-    DATABASE_URL_WITH_SSL = DATABASE_URL + ssl_suffix
-    logger.info(f"🔒 Added SSL mode to DATABASE_URL")
-else:
-    DATABASE_URL_WITH_SSL = DATABASE_URL
+# Force-append SSL mode for production (required for Render Postgres)
+if DATABASE_URL:
+    if '?' not in DATABASE_URL:
+        if 'sslmode' not in DATABASE_URL:
+            DATABASE_URL += '?sslmode=require'
+            logger.info(f"🔒 Force-appended ?sslmode=require to DATABASE_URL")
+            # Update environment variable
+            os.environ['DATABASE_URL'] = DATABASE_URL
+    else:
+        if 'sslmode' not in DATABASE_URL:
+            DATABASE_URL += '&sslmode=require'
+            logger.info(f"🔒 Force-appended &sslmode=require to DATABASE_URL") 
+            # Update environment variable
+            os.environ['DATABASE_URL'] = DATABASE_URL
+
+DATABASE_URL_WITH_SSL = DATABASE_URL
 
 # Create engine with SSL support and connection arguments
 engine = create_engine(
