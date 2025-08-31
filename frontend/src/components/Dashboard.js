@@ -54,7 +54,8 @@ const Dashboard = () => {
     video_url: '',
     is_breaking: false,
     is_published: true,
-    tags: []
+    tags: [],
+    category_labels: []
   });
   const [editingArticle, setEditingArticle] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
