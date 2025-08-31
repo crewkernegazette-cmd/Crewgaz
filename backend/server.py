@@ -1125,7 +1125,7 @@ app.include_router(api_router)
 app.mount("/static", StaticFiles(directory="../frontend/build/static"), name="static")
 
 # SPA fallback route - catch all non-API routes and serve React app
-@app.get("/{path:path}", include_in_schema=False)
+@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "HEAD"], include_in_schema=False)
 async def spa_fallback(path: str, request: Request):
     """Serve React app for all non-API routes (SPA routing support)"""
     if not path.startswith('api/') and not path.startswith('static/'):
