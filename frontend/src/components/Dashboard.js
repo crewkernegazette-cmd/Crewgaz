@@ -57,6 +57,8 @@ const Dashboard = () => {
   });
   const [editingArticle, setEditingArticle] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   
   // UI states
   const [uploadingImage, setUploadingImage] = useState(false);
