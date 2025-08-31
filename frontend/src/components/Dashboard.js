@@ -91,7 +91,9 @@ const Dashboard = () => {
 
   const fetchCategoryLabels = async () => {
     try {
-      const response = await axios.get(`${API}/api/categories/labels`);
+      const response = await axios.get(`${API_BASE}/api/categories/labels`, {
+        withCredentials: true
+      });
       const labels = Array.isArray(response.data.category_labels) ? response.data.category_labels : [];
       setAvailableCategoryLabels(labels);
       console.warn('Available category labels:', labels);
