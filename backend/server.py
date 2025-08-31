@@ -128,8 +128,8 @@ class Contact(BaseModel):
 
 class ContactCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    email: EmailStr
-    message: str = Field(..., min_length=10, max_length=1000)
+    email: str = Field(..., min_length=5, max_length=100)  # Changed from EmailStr to str for now
+    message: str = Field(..., min_length=1, max_length=2000)  # Increased length and reduced min
 
 class BreakingNewsBanner(BaseModel):
     show_breaking_news_banner: bool
