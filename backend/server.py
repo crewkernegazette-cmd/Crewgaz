@@ -1123,10 +1123,10 @@ async def debug_articles(db: Session = Depends(get_db)):
         ]
     }
 
-@api_router.get("/articles/{article_uuid}/structured-data")
-async def get_article_structured_data(article_uuid: str, db: Session = Depends(get_db)):
+@api_router.get("/articles/{article_slug}/structured-data")
+async def get_article_structured_data(article_slug: str, db: Session = Depends(get_db)):
     """Generate structured data for an article"""
-    db_article = db.query(DBArticle).filter(DBArticle.uuid == article_uuid).first()
+    db_article = db.query(DBArticle).filter(DBArticle.slug == article_slug).first()
     if not db_article:
         raise HTTPException(status_code=404, detail="Article not found")
     
@@ -1152,11 +1152,152 @@ async def get_article_structured_data(article_uuid: str, db: Session = Depends(g
         },
         "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": f"https://crewkernegazette.co.uk/article/{article_uuid}"
+            "@id": f"https://crewkernegazette.co.uk/article/{article_slug}"
         },
         "articleSection": db_article.category.value,
         "keywords": ", ".join(json.loads(db_article.tags)) if db_article.tags else db_article.category.value
     }
+
+# SEO Routes
+@app.get("/sitemap.xml")
+async def generate_sitemap(db: Session = Depends(get_db)):
+    """Generate dynamic sitemap for SEO"""
+    try:
+        published_articles = db.query(DBArticle).filter(DBArticle.is_published == True).order_by(DBArticle.updated_at.desc()).all()
+        
+        # Start sitemap XML
+        sitemap_xml = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://crewkernegazette.co.uk/</loc>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://crewkernegazette.co.uk/news</loc>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://crewkernegazette.co.uk/music</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://crewkernegazette.co.uk/documentaries</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://crewkernegazette.co.uk/comedy</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://crewkernegazette.co.uk/contact</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>"""
+        
+        # Add articles
+        for article in published_articles:
+            last_modified = article.updated_at.strftime('%Y-%m-%d')
+            sitemap_xml += f"""
+    <url>
+        <loc>https://crewkernegazette.co.uk/article/{article.slug}</loc>
+        <lastmod>{last_modified}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>"""
+        
+        sitemap_xml += "\n</urlset>"
+        
+        return HTMLResponse(content=sitemap_xml, media_type="application/xml")
+        
+    except Exception as e:
+        logger.error(f"Sitemap generation error: {e}")
+        # Return basic sitemap on error
+        basic_sitemap = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://crewkernegazette.co.uk/</loc>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+</urlset>"""
+        return HTMLResponse(content=basic_sitemap, media_type="application/xml")
+
+@app.get("/news-sitemap.xml") 
+async def generate_news_sitemap(db: Session = Depends(get_db)):
+    """Generate Google News sitemap"""
+    try:
+        # Get recent published articles (last 7 days for news)
+        from datetime import datetime, timedelta
+        week_ago = datetime.now() - timedelta(days=7)
+        
+        recent_articles = db.query(DBArticle).filter(
+            DBArticle.is_published == True,
+            DBArticle.created_at >= week_ago
+        ).order_by(DBArticle.created_at.desc()).limit(1000).all()
+        
+        # Start news sitemap XML
+        news_sitemap = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">"""
+        
+        # Add articles
+        for article in recent_articles:
+            publication_date = article.created_at.strftime('%Y-%m-%d')
+            title_escaped = article.title.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
+            
+            news_sitemap += f"""
+    <url>
+        <loc>https://crewkernegazette.co.uk/article/{article.slug}</loc>
+        <news:news>
+            <news:publication>
+                <news:name>The Crewkerne Gazette</news:name>
+                <news:language>en</news:language>
+            </news:publication>
+            <news:publication_date>{publication_date}</news:publication_date>
+            <news:title>{title_escaped}</news:title>
+        </news:news>
+    </url>"""
+        
+        news_sitemap += "\n</urlset>"
+        
+        return HTMLResponse(content=news_sitemap, media_type="application/xml")
+        
+    except Exception as e:
+        logger.error(f"News sitemap generation error: {e}")
+        # Return empty news sitemap on error
+        empty_sitemap = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+</urlset>"""
+        return HTMLResponse(content=empty_sitemap, media_type="application/xml")
+
+@app.get("/robots.txt")
+async def robots_txt():
+    """Generate robots.txt for search engines"""
+    robots_content = """User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://crewkernegazette.co.uk/sitemap.xml
+Sitemap: https://crewkernegazette.co.uk/news-sitemap.xml
+
+# Admin areas
+Disallow: /dashboard
+Disallow: /login
+Disallow: /api/
+
+# Allow article pages
+Allow: /article/
+
+# Crawl delay
+Crawl-delay: 1
+"""
+    return HTMLResponse(content=robots_content, media_type="text/plain")
 
 # Include router and middleware
 app.include_router(api_router)
