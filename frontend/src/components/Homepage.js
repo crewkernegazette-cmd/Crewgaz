@@ -116,7 +116,7 @@ const Homepage = () => {
   return (
     <div>
       {/* Breaking News Ticker */}
-      {breakingNews.length > 0 && showBanner && (
+      {breakingNews && breakingNews.length > 0 && showBanner && (
         <div className="breaking-news-ticker">
           <div className="breaking-badge">
             BREAKING
