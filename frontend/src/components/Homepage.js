@@ -250,9 +250,9 @@ const Homepage = () => {
       <section className="py-20">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">NEWS WITH BITE</h2>
+            <h2 className="section-title">LATEST NEWS & FEATURES</h2>
             <p className="section-subtitle">
-              Stories told in a way that cuts through the noise. 
+              Leading with hard-hitting news, plus the culture and stories that matter.
               British life as it's lived — with all its grit, humor, and contradictions.
             </p>
           </div>
