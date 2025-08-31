@@ -98,7 +98,7 @@ function App() {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
   };
