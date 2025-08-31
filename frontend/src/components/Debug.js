@@ -19,8 +19,8 @@ const Debug = () => {
     results.userInfo = user;
     
     // Test 3: Token in localStorage
-    results.tokenExists = !!localStorage.getItem('token');
-    results.token = localStorage.getItem('token')?.substring(0, 50) + '...';
+    results.tokenExists = !!localStorage.getItem('access_token');
+    results.token = localStorage.getItem('access_token')?.substring(0, 50) + '...';
     
     // Test 4: Test API call without auth
     try {
