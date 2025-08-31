@@ -55,9 +55,10 @@ const Homepage = () => {
   const fetchBreakingNews = async () => {
     try {
       const response = await axios.get(`${API}/articles?is_breaking=true&limit=3`);
-      setBreakingNews(response.data);
+      setBreakingNews(response.data || []);
     } catch (error) {
       console.error('Error fetching breaking news:', error);
+      setBreakingNews([]); // Ensure it's always an array
     } finally {
       setLoading(false);
     }
