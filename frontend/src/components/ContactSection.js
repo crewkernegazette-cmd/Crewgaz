@@ -33,7 +33,9 @@ const ContactSection = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('🔄 Form submit event triggered');
-    console.log('📤 API URL:', API);
+    console.log('📤 REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
+    console.log('📤 REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+    console.log('📤 Final API URL:', API);
     console.log('📤 Full API endpoint:', `${API}/contacts`);
     console.log('📤 Submitting contact to /api/contacts:', { 
       name: formData.name, 
