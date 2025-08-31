@@ -1121,37 +1121,35 @@ async def get_article_structured_data(article_uuid: str, db: Session = Depends(g
 # Include router and middleware
 app.include_router(api_router)
 
+# Mount frontend static files FIRST for static assets
+app.mount("/static", StaticFiles(directory="../frontend/build/static"), name="static")
+
 # SPA fallback route - catch all non-API routes and serve React app
 @app.get("/{path:path}", include_in_schema=False)
 async def spa_fallback(path: str, request: Request):
     """Serve React app for all non-API routes (SPA routing support)"""
-    if not path.startswith('api/'):
-        # Check if it's a static file that exists
-        static_file_path = Path(f"../frontend/build/{path}")
-        
-        # If it's a static file that exists, let StaticFiles handle it
-        if static_file_path.exists() and static_file_path.is_file():
-            # Don't handle static files here, let them fall through to StaticFiles
-            raise HTTPException(status_code=404, detail="Let StaticFiles handle this")
-        
-        # For all other routes (React Router routes), serve index.html
+    if not path.startswith('api/') and not path.startswith('static/'):
+        # For all React Router routes, serve index.html
         try:
-            with open('../frontend/build/index.html', 'r', encoding='utf-8') as f:
-                html_content = f.read()
+            frontend_build_path = Path("../frontend/build/index.html")
+            if frontend_build_path.exists():
+                with open(frontend_build_path, 'r', encoding='utf-8') as f:
+                    html_content = f.read()
                 return HTMLResponse(content=html_content)
-        except FileNotFoundError:
-            # Fallback if build doesn't exist
+            else:
+                return HTMLResponse(
+                    content="<html><body><h1>Frontend build not found</h1><p>Please run 'yarn build' in the frontend directory.</p></body></html>", 
+                    status_code=404
+                )
+        except Exception as e:
+            logger.error(f"SPA fallback error: {e}")
             return HTMLResponse(
-                content="<html><body><h1>Frontend build not found</h1><p>Please run 'yarn build' in the frontend directory.</p></body></html>", 
-                status_code=404
+                content="<html><body><h1>Error serving frontend</h1></body></html>", 
+                status_code=500
             )
     else:
         # This shouldn't happen as API routes are handled by the router
         raise HTTPException(status_code=404, detail="API endpoint not found")
-
-# Mount frontend static files - this must come AFTER the API routes and SPA fallback
-# so that our routes take priority over static file serving
-app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="frontend")
 
 app.add_middleware(
     CORSMiddleware,
