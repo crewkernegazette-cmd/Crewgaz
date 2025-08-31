@@ -902,7 +902,7 @@ const Dashboard = () => {
           <TabsContent value="articles" className="space-y-6">
             <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader>
-                <CardTitle className="text-white">All Articles ({articles.length})</CardTitle>
+                <CardTitle className="text-white">All Articles ({articles ? articles.length : 0})</CardTitle>
               </CardHeader>
               <CardContent>
                 {articles && articles.length > 0 ? (
