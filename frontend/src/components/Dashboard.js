@@ -12,7 +12,7 @@ import { Calendar, Clock, Edit2, Trash2, Users, FileText, Settings, MessageSquar
 import { toast } from 'sonner';
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://crewkernegazette.co.uk';
 const API = BACKEND_URL;
 
 const Dashboard = () => {
