@@ -803,7 +803,8 @@ async def create_article(
     publisher_name: Optional[str] = Form("The Crewkerne Gazette"),
     image_caption: Optional[str] = Form(None),
     video_url: Optional[str] = Form(None),
-    tags: Optional[str] = Form("[]"),
+    tags: Optional[str] = Form(""),  # Changed to support comma-separated tags
+    category_labels: Optional[str] = Form("[]"),  # New field for category labels
     is_breaking: bool = Form(False),
     is_published: bool = Form(True),
     featured_image: Optional[UploadFile] = File(None),
