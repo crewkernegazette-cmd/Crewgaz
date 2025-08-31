@@ -79,11 +79,17 @@ const ContactSection = () => {
       
     } catch (error) {
       console.error('❌ Contact submission failed:', error);
+      console.error('❌ Error stack:', error.stack);
       console.error('❌ Error details:', {
         status: error.response?.status,
         statusText: error.response?.statusText,
         data: error.response?.data,
-        message: error.message
+        message: error.message,
+        config: error.config ? {
+          url: error.config.url,
+          method: error.config.method,
+          headers: error.config.headers
+        } : null
       });
       
       let errorMessage = 'Failed to send - try again';
@@ -94,7 +100,14 @@ const ContactSection = () => {
       }
       
       setError(errorMessage);
-      toast.error('Failed to send - try again');
+      
+      try {
+        toast.error('Failed to send - try again');
+      } catch (toastError) {
+        console.error('❌ Toast error:', toastError);
+        // Fallback alert if toast fails
+        alert('Failed to send message - please try again');
+      }
     } finally {
       setLoading(false);
     }
