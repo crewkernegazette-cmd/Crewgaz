@@ -1319,6 +1319,20 @@ async def toggle_breaking_news_banner(banner_data: BreakingNewsBanner, current_u
     status_text = "enabled" if banner_data.show_breaking_news_banner else "disabled"
     return {"message": f"Breaking news banner {status_text} successfully"}
 
+# Health and debug endpoints
+@api_router.get("/health")
+def health():
+    """Health check endpoint"""
+    return {"ok": True}
+
+@api_router.get("/whoami")
+def whoami(request: Request):
+    """Debug endpoint to check origin and auth cookie"""
+    return {
+        "origin": request.headers.get("origin"),
+        "have_auth_cookie": "auth" in request.cookies
+    }
+
 # Debug and utility routes
 @api_router.get("/debug/auth")
 async def debug_auth(db: Session = Depends(get_db)):
