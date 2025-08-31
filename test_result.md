@@ -585,12 +585,11 @@
 
 ## test_plan:
   current_focus: 
-    - "PostgreSQL database connectivity fix"
-    - "Homepage redesign and category labels UI"
-  stuck_tasks: 
-    - "PostgreSQL database connectivity fix"
+    - "Category labels system deployment validation - COMPLETED"
+    - "News prioritization system validation - COMPLETED"
+  stuck_tasks: []
   test_all: false
-  test_priority: "critical_database_connectivity"
+  test_priority: "deployment_validation_completed"
 
 ## agent_communication:
     - agent: "main"
