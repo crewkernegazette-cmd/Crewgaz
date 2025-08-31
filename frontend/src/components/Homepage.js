@@ -122,12 +122,14 @@ const Homepage = () => {
             BREAKING
           </div>
           <div className="ticker-content">
-            {breakingNews.map((news, index) => (
-              <Link key={news.id} to={`/article/${news.id}`} className="ticker-link">
+            {breakingNews && breakingNews.length > 0 ? breakingNews.map((news, index) => (
+              <Link key={news.id} to={`/article/${news.slug || news.id}`} className="ticker-link">
                 {news.title}
                 {index < breakingNews.length - 1 && ' • '}
               </Link>
-            ))}
+            )) : (
+              <span>No breaking news at this time</span>
+            )}
           </div>
         </div>
       )}
