@@ -1070,8 +1070,10 @@ async def get_dashboard_articles(current_user: User = Depends(get_current_user))
 @api_router.post("/contacts", response_model=Contact)
 async def create_contact(contact_data: ContactCreate, db: Session = Depends(get_db)):
     """Create contact message (public endpoint)"""
+    logger.debug('📨 Received POST /api/contacts')
     logger.info(f"📧 Contact received from {contact_data.email}")
     logger.info(f"📋 Contact details: name='{contact_data.name}', email='{contact_data.email}', message_length={len(contact_data.message)}")
+    logger.debug(f"📋 Full contact data: {contact_data.dict()}")
     
     try:
         db_contact = DBContact(
