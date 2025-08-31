@@ -166,8 +166,14 @@ def init_database():
         last_error = str(e)
         return seeding_status, last_error
     
-    Base.metadata.create_all(bind=engine)
-    logger.info("✅ Database tables created/verified")
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("✅ Database tables created/verified")
+    except Exception as e:
+        logger.error(f"❌ Failed to create database tables: {e}")
+        seeding_status = "failure"
+        last_error = str(e)
+        return seeding_status, last_error
     
     # Create initial admin user and settings
     db = SessionLocal()
