@@ -335,6 +335,29 @@ def init_database():
             if not final_test:
                 logger.error("❌ CRITICAL: Final password test failed!")
         
+        # Backfill slugs for existing articles that don't have them
+        try:
+            articles_without_slugs = db.query(DBArticle).filter(
+                (DBArticle.slug == None) | (DBArticle.slug == '')
+            ).all()
+            
+            if articles_without_slugs:
+                logger.info(f"🔄 Backfilling slugs for {len(articles_without_slugs)} articles...")
+                
+                for article in articles_without_slugs:
+                    new_slug = generate_slug(article.title, db)
+                    article.slug = new_slug
+                    logger.info(f"🏷️ Generated slug for '{article.title}' -> '{new_slug}'")
+                
+                db.commit()
+                logger.info("✅ Slug backfill completed successfully")
+            else:
+                logger.info("✅ All articles already have slugs")
+                
+        except Exception as slug_error:
+            logger.warning(f"⚠️ Slug backfill warning: {slug_error}")
+            # Don't fail the entire initialization if slug backfill has issues
+        
         logger.info("✅ Database initialization completed successfully")
         
     except Exception as e:
