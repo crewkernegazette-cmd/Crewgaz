@@ -348,7 +348,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <meta property="og:title" content="{title_safe}">
     <meta property="og:description" content="{description_safe}">
     <meta property="og:type" content="article">
-    <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_uuid}">
+    <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_slug}">
     <meta property="og:image" content="{image_url}">
 {image_width_tag}
 {image_height_tag}
@@ -365,7 +365,38 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <meta name="twitter:site" content="@CrewkerneGazette">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://crewkernegazette.co.uk/article/{article_uuid}">
+    <link rel="canonical" href="https://crewkernegazette.co.uk/article/{article_slug}">
+    
+    <!-- JSON-LD Structured Data for Google News -->
+    <script type="application/ld+json">
+    {{
+        "@context": "https://schema.org",
+        "@type": "NewsArticle",
+        "headline": "{title_safe}",
+        "description": "{description_safe}",
+        "image": "{image_url}",
+        "datePublished": "{article_obj.created_at.isoformat()}",
+        "dateModified": "{article_obj.updated_at.isoformat()}",
+        "author": {{
+            "@type": "Person",
+            "name": "{article_obj.author_name or article_obj.publisher_name}"
+        }},
+        "publisher": {{
+            "@type": "Organization", 
+            "name": "The Crewkerne Gazette",
+            "logo": {{
+                "@type": "ImageObject",
+                "url": "https://crewkernegazette.co.uk/logo.png"
+            }}
+        }},
+        "mainEntityOfPage": {{
+            "@type": "WebPage",
+            "@id": "https://crewkernegazette.co.uk/article/{article_slug}"
+        }},
+        "articleSection": "{article_obj.category.value if hasattr(article_obj.category, 'value') else article_obj.category}",
+        "keywords": "{', '.join(json.loads(article_obj.tags)) if article_obj.tags else article_obj.category.value if hasattr(article_obj.category, 'value') else article_obj.category}"
+    }}
+    </script>
 </head>
 <body>
     <h1>{title_safe}</h1>
@@ -373,7 +404,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <p>{article_obj.content[:300].replace('<', '&lt;').replace('>', '&gt;')}...</p>
     <p><strong>Category:</strong> {article_obj.category.value if hasattr(article_obj.category, 'value') else article_obj.category}</p>
     <p><strong>Published:</strong> {article_obj.created_at.strftime('%B %d, %Y')}</p>
-    <p><em>Read the full article at: <a href="https://crewkernegazette.co.uk/article/{article_uuid}">The Crewkerne Gazette</a></em></p>
+    <p><em>Read the full article at: <a href="https://crewkernegazette.co.uk/article/{article_slug}">The Crewkerne Gazette</a></em></p>
 </body>
 </html>"""
             
