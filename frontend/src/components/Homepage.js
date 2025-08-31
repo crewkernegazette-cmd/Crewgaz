@@ -186,9 +186,9 @@ const Homepage = () => {
                     <div className="flex items-center justify-between text-xs text-slate-500">
                       <span className="flex items-center">
                         <Clock className="w-3 h-3 mr-1" />
-                        {formatDate(article.created_at)}
+                        {article.created_at ? formatDate(article.created_at) : 'Recently'}
                       </span>
-                      <span>{article.author_name}</span>
+                      <span>{article.author_name || 'Admin'}</span>
                     </div>
                   </div>
                 </Link>
