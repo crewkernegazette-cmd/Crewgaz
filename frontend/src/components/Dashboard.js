@@ -253,10 +253,11 @@ const Dashboard = () => {
 
     try {
       const token = localStorage.getItem('access_token');
-      await axios.delete(`${API}/api/articles/${articleSlug}`, {
+      await axios.delete(`${API_BASE}/api/articles/${articleSlug}`, {
         headers: {
           'Authorization': `Bearer ${token}`
-        }
+        },
+        withCredentials: true
       });
       toast.success('Article deleted successfully!');
       fetchDashboardData();
