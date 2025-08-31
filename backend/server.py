@@ -275,23 +275,25 @@ async def serve_article_page(article_uuid: str, request: Request, db: Session = 
             image_height_tag = ''
             image_url = article_obj.featured_image or 'https://crewkernegazette.co.uk/logo.png'
             
-            if article_obj.featured_image and article_obj.featured_image.startswith('data:image/'):
-                try:
-                    # Extract base64 data
-                    header, data = article_obj.featured_image.split(',', 1)
-                    image_data = base64.b64decode(data)
-                    # Get dimensions with PIL
-                    img = Image.open(io.BytesIO(image_data))
-                    image_width_tag = f'    <meta property="og:image:width" content="{img.width}">'
-                    image_height_tag = f'    <meta property="og:image:height" content="{img.height}">'
-                    print(f"📏 Image dimensions calculated: {img.width}x{img.height}")
-                except Exception as e:
-                    print(f"⚠️ Failed to get image dimensions: {e}")
-                    # Fallback to standard social media dimensions
+            if article_obj.featured_image:
+                if article_obj.featured_image.startswith('http'):
+                    # Cloudinary or other hosted image - use standard dimensions
                     image_width_tag = '    <meta property="og:image:width" content="1200">'
                     image_height_tag = '    <meta property="og:image:height" content="630">'
+                elif article_obj.featured_image.startswith('data:image/'):
+                    # Base64 image (legacy) - calculate dimensions
+                    try:
+                        header, data = article_obj.featured_image.split(',', 1)
+                        image_data = base64.b64decode(data)
+                        img = Image.open(io.BytesIO(image_data))
+                        image_width_tag = f'    <meta property="og:image:width" content="{img.width}">'
+                        image_height_tag = f'    <meta property="og:image:height" content="{img.height}">'
+                    except Exception as e:
+                        print(f"⚠️ Failed to get image dimensions: {e}")
+                        image_width_tag = '    <meta property="og:image:width" content="1200">'
+                        image_height_tag = '    <meta property="og:image:height" content="630">'
             else:
-                # Default dimensions for external images
+                # Default dimensions for logo
                 image_width_tag = '    <meta property="og:image:width" content="1200">'
                 image_height_tag = '    <meta property="og:image:height" content="630">'
             
