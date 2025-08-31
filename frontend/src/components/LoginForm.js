@@ -30,14 +30,17 @@ const LoginForm = () => {
     setLoading(true);
     setError('');
 
+    console.log('Form submitted with:', { username: formData.username });
+    
     const result = await login(formData);
     
     if (result.success) {
-      toast.success('Welcome back!');
+      toast.success('Login successful');
       navigate('/dashboard');
     } else {
+      console.error('Login failed:', result.error);
       setError(result.error);
-      toast.error('Login failed');
+      toast.error('Invalid credentials');
     }
     
     setLoading(false);
