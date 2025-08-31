@@ -905,7 +905,7 @@ const Dashboard = () => {
                 <CardTitle className="text-white">All Articles ({articles.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                {articles.length > 0 ? (
+                {articles && articles.length > 0 ? (
                   <div className="space-y-4">
                     {articles.map(article => (
                       <div key={article.id} className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg border border-slate-700">
