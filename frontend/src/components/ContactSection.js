@@ -151,7 +151,7 @@ const ContactSection = () => {
                   </Alert>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-6" noValidate
+                <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-slate-200 font-semibold">
                       Your Name
