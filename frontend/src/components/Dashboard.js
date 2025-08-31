@@ -683,16 +683,6 @@ const Dashboard = () => {
                       </p>
                     </div>
                   </div>
-                          </>
-                        ) : (
-                          <>
-                            <ImageIcon className="w-4 h-4 mr-2" />
-                            Upload Image
-                          </>
-                        )}
-                      </Label>
-                    </div>
-                  </div>
 
                   {/* Image Caption */}
                   <div>
