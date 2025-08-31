@@ -39,114 +39,102 @@ const ContactSection = () => {
     setSuccess(false);
   };
 
-  const handleSubmit = async (e) => {
-    // CRITICAL: Prevent default form submission that causes page navigation
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+  const handleSubmit = (e) => {
+    // CRITICAL: Immediately prevent any form submission behavior
+    e.preventDefault();
+    e.stopPropagation();
     
-    console.log('🔄 Form submit event triggered - preventDefault called');
-    console.log('📤 REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
-    console.log('📤 REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
-    console.log('📤 Final API URL:', API);
-    console.log('📤 Full API endpoint:', `${API}/contacts`);
-    console.log('📤 Submitting contact to /api/contacts:', { 
-      name: formData.name, 
-      email: formData.email, 
-      message: formData.message 
-    });
+    console.log('🔄 CONTACT FORM: Submit handler called');
     
-    // Early exit if already loading to prevent double submission
+    // Use setTimeout to ensure we don't block the UI thread
+    setTimeout(async () => {
+      await submitContactForm();
+    }, 100);
+  };
+
+  const submitContactForm = async () => {
+    console.log('🔄 CONTACT FORM: Starting async submission');
+    console.log('📤 Environment check:');
+    console.log('  - REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
+    console.log('  - REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+    console.log('  - Final API:', API);
+    console.log('  - Full endpoint:', `${API}/contacts`);
+    
+    // Prevent double submission
     if (loading) {
-      console.log('⏳ Already loading, ignoring duplicate submission');
+      console.log('⏳ CONTACT FORM: Already loading, skipping');
       return;
     }
 
+    // Set loading with automatic timeout fallback
     setLoading(true);
-    setError('');
-    setSuccess(false);
+    const timeoutId = setTimeout(() => {
+      console.log('⏰ CONTACT FORM: Timeout reached, resetting loading');
+      setLoading(false);
+      setError('Request timed out. Please try again.');
+      toast.error('Request timed out. Please try again.');
+    }, 20000); // 20 second absolute timeout
 
     try {
-      // Validate required fields
-      if (!formData.name?.trim() || !formData.email?.trim() || !formData.message?.trim()) {
-        console.log('❌ Validation failed: Missing required fields');
-        setError('Please fill in all required fields');
-        toast.error('Please fill in all required fields');
-        return; // Early return - loading will be set to false in finally
+      setError('');
+      setSuccess(false);
+
+      // Validate fields
+      const name = formData.name?.trim();
+      const email = formData.email?.trim();  
+      const message = formData.message?.trim();
+
+      if (!name || !email || !message) {
+        throw new Error('Please fill in all required fields');
       }
 
-      const requestData = {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        message: formData.message.trim()
-      };
+      const requestData = { name, email, message };
+      console.log('🌐 CONTACT FORM: Sending request:', requestData);
       
-      console.log('🌐 Making POST request to:', `${API}/contacts`);
-      console.log('📋 Request data:', requestData);
-      
-      const response = await axios.post(`${API}/contacts`, requestData, {
+      // Make the API call
+      const response = await fetch(`${API}/contacts`, {
+        method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        timeout: 15000 // 15 second timeout
+        body: JSON.stringify(requestData),
       });
-      
-      console.log('✅ Contact submission successful:', response.status, response.data);
+
+      console.log('📡 CONTACT FORM: Response received:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.log('❌ CONTACT FORM: Error response:', errorData);
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      console.log('✅ CONTACT FORM: Success response:', responseData);
+
+      // Clear timeout since we succeeded
+      clearTimeout(timeoutId);
       
       // Success handling
       setSuccess(true);
-      setError(''); // Clear any previous errors
+      setError('');
       setFormData({ name: '', email: '', message: '' });
-      
-      // Success notification
-      try {
-        toast.success('Message sent! We\'ll get back to you soon.');
-      } catch (toastError) {
-        console.error('❌ Toast success error:', toastError);
-        alert('Message sent successfully!');
-      }
+      toast.success('Message sent successfully! We\'ll get back to you soon.');
       
     } catch (error) {
-      console.error('❌ Contact submission failed:', error);
-      console.error('❌ Error type:', typeof error);
-      console.error('❌ Error stack:', error.stack);
-      console.error('❌ Error details:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        message: error.message,
-        name: error.name,
-        code: error.code
-      });
+      clearTimeout(timeoutId);
+      console.error('❌ CONTACT FORM: Submission failed:', error);
       
-      // Error handling
-      let errorMessage = 'Failed to send message. Please try again.';
-      if (error.response?.data?.detail) {
-        errorMessage = error.response.data.detail;
-      } else if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      } else if (error.code === 'TIMEOUT' || error.message.includes('timeout')) {
-        errorMessage = 'Request timed out. Please try again.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
+      const errorMessage = error.message || 'Failed to send message. Please try again.';
       setError(errorMessage);
-      setSuccess(false); // Ensure success is false on error
-      
-      // Error notification
-      try {
-        toast.error(errorMessage);
-      } catch (toastError) {
-        console.error('❌ Toast error:', toastError);
-        alert(`Error: ${errorMessage}`);
-      }
+      setSuccess(false);
+      toast.error(errorMessage);
       
     } finally {
-      // CRITICAL: Always reset loading state to prevent stuck blue screen
-      console.log('🔄 Resetting loading state');
-      setLoading(false);
+      // GUARANTEE loading is always reset
+      setTimeout(() => {
+        console.log('🔄 CONTACT FORM: Final loading reset');
+        setLoading(false);
+      }, 500);
     }
   };
 
