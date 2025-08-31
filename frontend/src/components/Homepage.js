@@ -227,8 +227,8 @@ const Homepage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 stagger-children">
             {articles.map((article) => (
               <Link 
-                key={article.id} 
-                to={`/article/${article.id}`}
+                key={article.slug} 
+                to={`/article/${article.slug}`}
                 className="article-card"
               >
                 {article.featured_image && (
