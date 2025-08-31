@@ -48,10 +48,14 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Crewkerne Gazette API", version="2.0.0")
 api_router = APIRouter(prefix="/api")
 
-# JWT config
-JWT_SECRET = os.getenv('JWT_SECRET')
+# JWT config with secure default fallback
+JWT_SECRET = os.getenv('JWT_SECRET') or 'emergency-fallback-secret-key-please-change'
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = 24
+
+# Log if using fallback JWT secret
+if os.getenv('JWT_SECRET') is None:
+    logger.warning("⚠️ Using emergency JWT_SECRET fallback - please set JWT_SECRET environment variable for security")
 
 # Security
 security = HTTPBearer()
