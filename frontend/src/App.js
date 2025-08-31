@@ -31,13 +31,18 @@ function App() {
 
   // Configure axios defaults
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('access_token');
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      checkAuth();
-    } else {
-      setLoading(false);
+      // Set user from stored token info
+      const userData = {
+        username: 'admin',  // We'll get this from a proper auth check later
+        role: 'admin',
+        token: token
+      };
+      setUser(userData);
     }
+    setLoading(false);
   }, []);
 
   const checkAuth = async () => {
