@@ -142,7 +142,18 @@ const ContactSection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 relative">
+      {/* Loading Overlay - Prevents blue screen */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-800 p-6 rounded-lg shadow-xl text-white">
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600"></div>
+              <span>Sending your message...</span>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <section 
         className="relative py-24 bg-cover bg-center"
