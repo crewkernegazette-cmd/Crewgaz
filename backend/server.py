@@ -1644,10 +1644,16 @@ async def spa_fallback(path: str, request: Request):
         # This shouldn't happen as API routes are handled by the router
         raise HTTPException(status_code=404, detail="API endpoint not found")
 
+ALLOWED_ORIGINS = [
+    "https://crewkernegazette.co.uk",  # production frontend
+    "http://localhost:5173",           # Vite dev (if applicable)
+    "http://localhost:3000",           # CRA/Next dev (if applicable)
+]
+
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
