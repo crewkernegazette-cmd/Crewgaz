@@ -283,7 +283,10 @@ def init_database():
         logger.error(f"❌ Error during database initialization: {e}")
         import traceback
         logger.error(traceback.format_exc())
+        seeding_status = "failure"
+        last_error = str(e)
         db.rollback()
-        raise e
     finally:
         db.close()
+    
+    return seeding_status, last_error
