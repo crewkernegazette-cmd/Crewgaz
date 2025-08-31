@@ -283,7 +283,10 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     """
     user_agent = request.headers.get('user-agent', '')
     
+    logger.info(f"🕷️ Request for article '{article_slug}' from User-Agent: {user_agent}")
+    
     if is_crawler(user_agent):
+        logger.info(f"🤖 Detected crawler for article '{article_slug}', serving meta HTML")
         # Serve static HTML with meta tags for crawlers
         try:
             db_article = db.query(DBArticle).filter(DBArticle.slug == article_slug).first()
