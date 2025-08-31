@@ -889,6 +889,7 @@ async def get_dashboard_articles(current_user: User = Depends(get_current_user))
                 article = Article(
                     id=db_article.id,
                     uuid=db_article.uuid,
+                    slug=db_article.slug,
                     title=db_article.title,
                     subheading=db_article.subheading,
                     content=db_article.content,
