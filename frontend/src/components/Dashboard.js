@@ -101,6 +101,9 @@ const Dashboard = () => {
       console.error('Error fetching dashboard data:', error);
       setError('Failed to load dashboard data');
       toast.error('Failed to load dashboard data');
+      // Ensure arrays are set even on error
+      setArticles([]);
+      setContacts([]);
     } finally {
       setLoading(false);
     }
