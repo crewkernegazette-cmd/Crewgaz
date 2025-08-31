@@ -113,7 +113,7 @@ function App() {
               <Route path="/documentaries" element={<DocumentariesSection />} />
               <Route path="/comedy" element={<ComedySection />} />
               <Route path="/contact" element={<ContactSection />} />
-              <Route path="/article/:id" element={<ArticleDetail />} />
+              <Route path="/article/:slug" element={<ArticleDetail />} />
               <Route 
                 path="/login" 
                 element={user ? <Navigate to="/dashboard" /> : <LoginForm />} 
