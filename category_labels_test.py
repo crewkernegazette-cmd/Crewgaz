@@ -535,7 +535,7 @@ class CategoryLabelsAPITester:
         article_data = {
             "title": "Test Auth Required",
             "content": "This should fail without authentication",
-            "category": "NEWS"
+            "category": "news"  # Use lowercase as required by backend
         }
         
         url = f"{self.api_url}/articles"
