@@ -366,37 +366,59 @@ async def serve_article_page(article_uuid: str, request: Request, db: Session = 
 @api_router.post("/auth/login")
 async def login(user_data: LoginRequest, db: Session = Depends(get_db)):
     """Login user - prioritize database, fallback to emergency"""
-    print(f"🔐 Login attempt for user: {user_data.username}")
+    logger.info(f"🔐 Login attempt for user: {user_data.username}")
+    logger.debug(f"🔍 Request from IP: {user_data}")  # Could add IP tracking if needed
     
     # First try database authentication
     try:
+        logger.debug("🗄️ Querying database for user...")
         db_user = db.query(DBUser).filter(DBUser.username == user_data.username).first()
+        
         if db_user:
-            print(f"👤 Found user in database: {db_user.username}, role: {db_user.role}")
+            logger.info(f"👤 Found user in database: {db_user.username}, role: {db_user.role}, active: {db_user.is_active}")
+            
             if not db_user.is_active:
-                print("❌ User account is disabled")
+                logger.warning("❌ User account is disabled")
                 raise HTTPException(status_code=400, detail="Account disabled")
             
-            # Verify password
-            if verify_password(user_data.password, db_user.password_hash):
-                print("✅ Database authentication successful")
+            # Verify password with detailed logging
+            logger.debug("🔐 Verifying password against database hash...")
+            password_valid = verify_password(user_data.password, db_user.password_hash)
+            
+            if password_valid:
+                logger.info("✅ Database authentication successful")
+                
+                # Create token
+                token_data = {
+                    "username": db_user.username,
+                    "role": db_user.role.value,
+                    "user_id": db_user.id
+                }
+                
+                access_token = create_jwt_token(token_data)
+                logger.debug(f"🎫 JWT token created (length: {len(access_token)})")
+                
                 return {
-                    "access_token": create_jwt_token({
-                        "username": db_user.username,
-                        "role": db_user.role.value,
-                        "user_id": db_user.id
-                    }),
+                    "access_token": access_token,
                     "token_type": "bearer",
                     "role": db_user.role.value,
                     "message": "Database login successful"
                 }
             else:
-                print("❌ Invalid password for database user")
+                logger.warning("❌ Invalid password for database user")
+                logger.debug("🔐 Password verification returned False")
+        else:
+            logger.info(f"👤 User '{user_data.username}' not found in database")
+            
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"⚠️ Database authentication error: {e}")
+        logger.error(f"⚠️ Database authentication error: {e}")
+        import traceback
+        logger.debug(f"🔍 Database error traceback: {traceback.format_exc()}")
     
     # Fallback to emergency login system
-    print("🆘 Trying emergency authentication fallback...")
+    logger.info("🆘 Trying emergency authentication fallback...")
     emergency_users = {
         "admin": {"password_hash": hash_password("admin123"), "role": UserRole.ADMIN},
         "admin_backup": {"password_hash": hash_password("admin_backup"), "role": UserRole.ADMIN},
@@ -404,9 +426,11 @@ async def login(user_data: LoginRequest, db: Session = Depends(get_db)):
     }
     
     if user_data.username in emergency_users:
+        logger.debug(f"🆘 Found emergency user: {user_data.username}")
         emergency_user = emergency_users[user_data.username]
+        
         if verify_password(user_data.password, emergency_user['password_hash']):
-            print("✅ Emergency authentication successful")
+            logger.info("✅ Emergency authentication successful")
             return {
                 "access_token": create_jwt_token({
                     "username": user_data.username,
@@ -417,9 +441,13 @@ async def login(user_data: LoginRequest, db: Session = Depends(get_db)):
                 "role": emergency_user['role'].value,
                 "message": "Emergency login successful"
             }
+        else:
+            logger.warning("❌ Emergency password verification failed")
+    else:
+        logger.debug(f"🆘 User '{user_data.username}' not in emergency users")
     
-    print("❌ Authentication failed - invalid credentials")
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+    logger.error("❌ Authentication failed - invalid credentials")
+    raise HTTPException(status_code=401, detail="Invalid credentials - check logs")
 
 @api_router.post("/auth/change-password")
 async def change_password(password_data: PasswordChangeRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
