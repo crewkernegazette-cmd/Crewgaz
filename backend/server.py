@@ -371,23 +371,24 @@ async def serve_article_page(article_uuid: str, request: Request, db: Session = 
 async def login(user_data: LoginRequest, db: Session = Depends(get_db)):
     """Login user - prioritize database, fallback to emergency"""
     logger.info(f"🔐 Login attempt for user: {user_data.username}")
-    logger.debug(f"🔍 Request from IP: {user_data}")  # Could add IP tracking if needed
     
-    # First try database authentication
+    # Enhanced logging for debugging
     try:
+        # First try database authentication
         logger.debug("🗄️ Querying database for user...")
         db_user = db.query(DBUser).filter(DBUser.username == user_data.username).first()
         
         if db_user:
-            logger.info(f"👤 Found user in database: {db_user.username}, role: {db_user.role}, active: {db_user.is_active}")
+            logger.info(f"👤 DB query result: Found user '{db_user.username}' (ID: {db_user.id}, role: {db_user.role}, active: {db_user.is_active})")
             
             if not db_user.is_active:
                 logger.warning("❌ User account is disabled")
                 raise HTTPException(status_code=400, detail="Account disabled")
             
-            # Verify password with detailed logging
-            logger.debug("🔐 Verifying password against database hash...")
+            # Verify password with enhanced logging
+            logger.debug(f"🔐 Verifying password against database hash (hash length: {len(db_user.password_hash)})")
             password_valid = verify_password(user_data.password, db_user.password_hash)
+            logger.info(f"🔐 Password verify result: {'✅ SUCCESS' if password_valid else '❌ FAILED'}")
             
             if password_valid:
                 logger.info("✅ Database authentication successful")
@@ -399,8 +400,13 @@ async def login(user_data: LoginRequest, db: Session = Depends(get_db)):
                     "user_id": db_user.id
                 }
                 
-                access_token = create_jwt_token(token_data)
-                logger.debug(f"🎫 JWT token created (length: {len(access_token)})")
+                # Test JWT creation doesn't fail
+                try:
+                    access_token = create_jwt_token(token_data)
+                    logger.debug(f"🎫 JWT token created successfully (length: {len(access_token)})")
+                except Exception as jwt_error:
+                    logger.error(f"❌ JWT token creation failed: {jwt_error}")
+                    raise HTTPException(status_code=500, detail="Token creation failed")
                 
                 return {
                     "access_token": access_token,
@@ -410,9 +416,8 @@ async def login(user_data: LoginRequest, db: Session = Depends(get_db)):
                 }
             else:
                 logger.warning("❌ Invalid password for database user")
-                logger.debug("🔐 Password verification returned False")
         else:
-            logger.info(f"👤 User '{user_data.username}' not found in database")
+            logger.info(f"👤 DB query result: User '{user_data.username}' NOT FOUND in database")
             
     except HTTPException:
         raise
@@ -422,7 +427,7 @@ async def login(user_data: LoginRequest, db: Session = Depends(get_db)):
         logger.debug(f"🔍 Database error traceback: {traceback.format_exc()}")
     
     # Fallback to emergency login system
-    logger.info("🆘 Trying emergency authentication fallback...")
+    logger.info("🆘 Attempting emergency authentication fallback...")
     emergency_users = {
         "admin": {"password_hash": hash_password("admin123"), "role": UserRole.ADMIN},
         "admin_backup": {"password_hash": hash_password("admin_backup"), "role": UserRole.ADMIN},
@@ -434,13 +439,21 @@ async def login(user_data: LoginRequest, db: Session = Depends(get_db)):
         emergency_user = emergency_users[user_data.username]
         
         if verify_password(user_data.password, emergency_user['password_hash']):
-            logger.info("✅ Emergency authentication successful")
-            return {
-                "access_token": create_jwt_token({
+            logger.info(f"✅ Fallback auth for {user_data.username} - Emergency authentication successful")
+            
+            try:
+                access_token = create_jwt_token({
                     "username": user_data.username,
                     "role": emergency_user['role'].value,
                     "user_id": "emergency"
-                }),
+                })
+                logger.debug(f"🎫 Emergency JWT token created (length: {len(access_token)})")
+            except Exception as jwt_error:
+                logger.error(f"❌ Emergency JWT token creation failed: {jwt_error}")
+                raise HTTPException(status_code=500, detail="Emergency token creation failed")
+            
+            return {
+                "access_token": access_token,
                 "token_type": "bearer",
                 "role": emergency_user['role'].value,
                 "message": "Emergency login successful"
@@ -450,8 +463,8 @@ async def login(user_data: LoginRequest, db: Session = Depends(get_db)):
     else:
         logger.debug(f"🆘 User '{user_data.username}' not in emergency users")
     
-    logger.error("❌ Authentication failed - invalid credentials")
-    raise HTTPException(status_code=401, detail="Invalid credentials - check logs")
+    logger.error("❌ Authentication failed - all methods exhausted")
+    raise HTTPException(status_code=401, detail="Invalid credentials")
 
 @api_router.post("/auth/change-password")
 async def change_password(password_data: PasswordChangeRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
