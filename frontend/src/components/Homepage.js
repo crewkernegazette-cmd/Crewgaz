@@ -65,7 +65,7 @@ const Homepage = () => {
 
   const fetchBreakingNews = async () => {
     try {
-      const response = await axios.get(`${API}/articles?is_breaking=true&limit=3`);
+      const response = await axios.get(`${API}/api/articles?is_breaking=true&limit=3`);
       const breakingData = Array.isArray(response.data) ? response.data : [];
       setBreakingNews(breakingData);
       console.warn('Breaking news state:', breakingData);
