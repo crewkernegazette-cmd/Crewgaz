@@ -338,7 +338,7 @@ def init_database():
         # Backfill slugs for existing articles that don't have them
         try:
             articles_without_slugs = db.query(DBArticle).filter(
-                (DBArticle.slug == None) | (DBArticle.slug == '')
+                (DBArticle.slug.is_(None)) | (DBArticle.slug == '')
             ).all()
             
             if articles_without_slugs:
