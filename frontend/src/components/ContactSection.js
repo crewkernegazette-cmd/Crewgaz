@@ -146,13 +146,13 @@ const ContactSection = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="inquiry" className="text-slate-200 font-semibold">
+                    <Label htmlFor="message" className="text-slate-200 font-semibold">
                       Your Message
                     </Label>
                     <Textarea
-                      id="inquiry"
-                      name="inquiry"
-                      value={formData.inquiry}
+                      id="message"
+                      name="message"
+                      value={formData.message}
                       onChange={handleChange}
                       placeholder="Tell us what's on your mind..."
                       className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-500 focus:border-red-600 min-h-[150px] resize-none"
