@@ -82,6 +82,7 @@ class LoginRequest(BaseModel):
 class Article(BaseModel):
     id: Optional[int] = None
     uuid: str
+    slug: str
     title: str
     subheading: Optional[str] = None
     content: str
