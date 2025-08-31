@@ -1,48 +1,37 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '../App';
+import React, { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
-import { Card, CardHeader, CardContent, CardTitle } from './ui/card';
+import { Textarea } from './ui/textarea';
 import { Switch } from './ui/switch';
-import { Badge } from './ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { 
-  PlusCircle, 
-  FileText, 
-  Users, 
-  Settings as SettingsIcon,
-  Upload,
-  X,
-  Eye,
-  Calendar,
-  Tag,
-  Image as ImageIcon,
-  Video,
-  AlertTriangle,
-  Edit,
-  MessageSquare,
-  Trash2,
-  Save
-} from 'lucide-react';
-import { toast } from 'sonner';
+import { Calendar, Clock, Edit2, Trash2, Users, FileText, Settings, MessageSquare, Eye, Tag, Copy, Mail } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 const API = BACKEND_URL;
 
 const Dashboard = () => {
-  const { user, logout } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Dashboard data state
   const [stats, setStats] = useState(null);
   const [articles, setArticles] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [availableCategoryLabels, setAvailableCategoryLabels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
+  // Settings state
+  const [settings, setSettings] = useState({
+    show_breaking_news_banner: true,
+    admin_password: ''
+  });
+
   // Article creation state
   const [article, setArticle] = useState({
     title: '',
@@ -58,25 +47,12 @@ const Dashboard = () => {
     tags: [],
     category_labels: []
   });
-  const [editingArticle, setEditingArticle] = useState(null);
+
   const [isEditing, setIsEditing] = useState(false);
+  const [editingArticle, setEditingArticle] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  
-  // UI states
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [creatingArticle, setCreatingArticle] = useState(false);
-  
-  // Settings state
-  const [settings, setSettings] = useState({
-    maintenance_mode: false,
-    show_breaking_news_banner: true
-  });
-  const [passwordData, setPasswordData] = useState({
-    current_password: '',
-    new_password: '',
-    confirm_password: ''
-  });
 
   useEffect(() => {
     fetchDashboardData();
@@ -94,7 +70,11 @@ const Dashboard = () => {
       ]);
 
       setStats(statsRes.data);
-      setArticles(articlesRes.data || []); // Ensure it's always an array
+      // Ensure articles is always an array
+      const articlesData = Array.isArray(articlesRes.data) ? articlesRes.data : [];
+      setArticles(articlesData);
+      console.warn('Dashboard - Articles state after fetch:', articlesData);
+      
       setContacts(contactsRes.data.contacts || contactsRes.data || []); // Handle both old and new response formats
       setSettings(settingsRes.data);
     } catch (error) {
@@ -104,6 +84,7 @@ const Dashboard = () => {
       // Ensure arrays are set even on error
       setArticles([]);
       setContacts([]);
+      console.warn('Dashboard - Articles state set to empty array due to error');
     } finally {
       setLoading(false);
     }
@@ -112,7 +93,9 @@ const Dashboard = () => {
   const fetchCategoryLabels = async () => {
     try {
       const response = await axios.get(`${API}/categories/labels`);
-      setAvailableCategoryLabels(response.data.category_labels || []);
+      const labels = Array.isArray(response.data.category_labels) ? response.data.category_labels : [];
+      setAvailableCategoryLabels(labels);
+      console.warn('Available category labels:', labels);
     } catch (error) {
       console.error('Error fetching category labels:', error);
       // Set default fallback categories if API fails
@@ -123,117 +106,40 @@ const Dashboard = () => {
     }
   };
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  // Debug logging in render
+  console.warn('Dashboard render - Articles state:', articles, 'Type:', typeof articles, 'IsArray:', Array.isArray(articles));
 
-    console.log('🔍 Image upload started:', file.name, file.type, file.size);
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
-      return;
-    }
-
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size must be less than 5MB');
-      return;
-    }
-
-    setUploadingImage(true);
-    try {
-      // Method 1: Use backend upload (base64 conversion)
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await axios.post(`${API}/upload-image`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      console.log('📡 Backend response:', response.data);
-      
-      // Backend returns data URI directly - use as-is
-      const imageUrl = response.data.url;
-      console.log('🖼️  Setting image URL:', imageUrl.substring(0, 100) + '...');
-      
-      setArticle({ ...article, featured_image: imageUrl });
-      toast.success('Image uploaded successfully');
-    } catch (error) {
-      console.error('❌ Error uploading image:', error);
-      
-      // Fallback: Client-side compression and base64 conversion
-      console.log('🔄 Trying client-side fallback...');
-      try {
-        const compressedDataUrl = await compressImage(file);
-        console.log('✅ Client-side compression successful:', compressedDataUrl.substring(0, 100) + '...');
-        setArticle({ ...article, featured_image: compressedDataUrl });
-        toast.success('Image processed successfully (fallback)');
-      } catch (fallbackError) {
-        console.error('❌ Fallback also failed:', fallbackError);
-        toast.error('Failed to process image');
-      }
-    } finally {
-      setUploadingImage(false);
-    }
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
-  // Client-side image compression function
-  const compressImage = (file, maxWidth = 800, quality = 0.8) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          
-          // Calculate new dimensions
-          let { width, height } = img;
-          if (width > maxWidth) {
-            height = (height * maxWidth) / width;
-            width = maxWidth;
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          
-          // Draw and compress
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-          
-          console.log('🎨 Image compressed:', {
-            original: file.size,
-            compressed: compressedDataUrl.length,
-            ratio: (compressedDataUrl.length / file.size * 100).toFixed(1) + '%'
-          });
-          
-          resolve(compressedDataUrl);
-        };
-        img.onerror = reject;
-        img.src = event.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setArticle({
+      ...article,
+      [name]: type === 'checkbox' ? checked : value
     });
   };
 
   const handleTagsChange = (e) => {
     const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag);
-    setArticle({ ...article, tags });
+    setArticle({
+      ...article,
+      tags
+    });
   };
 
-  const handleImageChange = async (e) => {
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedImageFile(file);
-      
-      // Create preview
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
+      reader.onload = () => {
+        setImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -258,76 +164,62 @@ const Dashboard = () => {
     setImagePreview(null);
   };
 
-  const handleCreateArticle = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validation
-    if (!article.title.trim()) {
-      toast.error('Please enter a title');
-      return;
-    }
-    if (!article.content.trim()) {
-      toast.error('Please enter content');
-      return;
-    }
+    setIsSubmitting(true);
 
-    setCreatingArticle(true);
     try {
-      console.log('📰 Creating article with Cloudinary image:', article.title);
-      
-      // Create FormData for multipart upload
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
       const formData = new FormData();
       formData.append('title', article.title);
       formData.append('subheading', article.subheading || '');
       formData.append('content', article.content);
       formData.append('category', article.category);
-      formData.append('publisher_name', article.publisher_name || 'The Crewkerne Gazette');
+      formData.append('publisher_name', article.publisher_name);
       formData.append('image_caption', article.image_caption || '');
       formData.append('video_url', article.video_url || '');
       formData.append('tags', JSON.stringify(article.tags));
       formData.append('category_labels', JSON.stringify(article.category_labels));
       formData.append('is_breaking', article.is_breaking);
       formData.append('is_published', article.is_published);
-      
-      // Add image file if selected
+
       if (selectedImageFile) {
         formData.append('featured_image', selectedImageFile);
       }
-      
-      const response = await axios.post(`${API}/articles`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      console.log('✅ Article created with Cloudinary image:', response.data);
-      
-      toast.success('Article created successfully!');
-      resetForm();
-      fetchDashboardData(); // Refresh data
-      setActiveTab('articles'); // Switch to articles tab
-    } catch (error) {
-      console.error('❌ Error creating article:', error);
-      toast.error('Failed to create article');
-    } finally {
-      setCreatingArticle(false);
-    }
-  };
 
-  const handleSettingsUpdate = async (setting, value) => {
-    try {
-      if (setting === 'maintenance_mode') {
-        await axios.post(`${API}/settings/maintenance`, { maintenance_mode: value });
-        toast.success(`Maintenance mode ${value ? 'enabled' : 'disabled'}`);
-      } else if (setting === 'show_breaking_news_banner') {
-        await axios.post(`${API}/settings/breaking-news-banner`, { show_breaking_news_banner: value });
-        toast.success(`Breaking news banner ${value ? 'enabled' : 'disabled'}`);
+      let response;
+      if (isEditing && editingArticle) {
+        response = await axios.put(`${API}/articles/${editingArticle.slug}`, formData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        toast.success('Article updated successfully!');
+      } else {
+        response = await axios.post(`${API}/articles`, formData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        toast.success('Article created successfully!');
       }
-      
-      setSettings({ ...settings, [setting]: value });
+
+      resetForm();
+      setIsEditing(false);
+      setEditingArticle(null);
+      fetchDashboardData();
     } catch (error) {
-      console.error('Error updating settings:', error);
-      toast.error('Failed to update settings');
+      console.error('Error submitting article:', error);
+      toast.error(error.response?.data?.detail || 'Failed to submit article');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -345,194 +237,148 @@ const Dashboard = () => {
       video_url: articleToEdit.video_url || '',
       is_breaking: articleToEdit.is_breaking || false,
       is_published: articleToEdit.is_published !== false, // Default to true
-      tags: articleToEdit.tags || [],
-      category_labels: articleToEdit.category_labels || []
+      tags: Array.isArray(articleToEdit.tags) ? articleToEdit.tags : [],
+      category_labels: Array.isArray(articleToEdit.category_labels) ? articleToEdit.category_labels : []
     });
     setActiveTab('create'); // Switch to create tab for editing
   };
 
-  const handleUpdateArticle = async (e) => {
-    e.preventDefault();
-    
-    if (!editingArticle) return;
-    
-    // Validation
-    if (!article.title.trim()) {
-      toast.error('Please enter a title');
-      return;
-    }
-    if (!article.content.trim()) {
-      toast.error('Please enter content');
-      return;
-    }
-
-    setCreatingArticle(true);
-    try {
-      console.log('📝 Updating article:', editingArticle.id, article.title);
-      const response = await axios.put(`${API}/articles/${editingArticle.id}`, article);
-      console.log('✅ Article updated:', response.data);
-      
-      toast.success('Article updated successfully!');
-      resetForm();
-      setIsEditing(false);
-      setEditingArticle(null);
-      fetchDashboardData(); // Refresh data
-      setActiveTab('articles'); // Switch to articles tab
-    } catch (error) {
-      console.error('❌ Error updating article:', error);
-      toast.error('Failed to update article');
-    } finally {
-      setCreatingArticle(false);
-    }
-  };
-
-  const handleDeleteArticle = async (articleSlug, articleTitle) => {
-    if (!window.confirm(`Are you sure you want to delete "${articleTitle}"? This action cannot be undone.`)) {
+  const handleDeleteArticle = async (articleSlug) => {
+    if (!window.confirm('Are you sure you want to delete this article?')) {
       return;
     }
 
     try {
-      console.log('🗑️ Deleting article:', articleSlug, articleTitle);
-      await axios.delete(`${API}/articles/by-slug/${articleSlug}`);
-      console.log('✅ Article deleted:', articleSlug);
-      
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API}/articles/${articleSlug}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       toast.success('Article deleted successfully!');
-      fetchDashboardData(); // Refresh data
+      fetchDashboardData();
     } catch (error) {
-      console.error('❌ Error deleting article:', error);
-      const errorMsg = error.response?.data?.detail || 'Failed to delete article';
-      toast.error(errorMsg);
+      console.error('Error deleting article:', error);
+      toast.error('Failed to delete article');
     }
   };
 
-  const cancelEdit = () => {
-    setIsEditing(false);
-    setEditingArticle(null);
-    resetForm();
+  const handleSettingsUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API}/settings`, settings, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      toast.success('Settings updated successfully!');
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      toast.error('Failed to update settings');
+    }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-GB', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard!');
+  };
+
+  const handleReplyToContact = (contact) => {
+    const subject = `Re: Message from ${contact.name}`;
+    const body = `Dear ${contact.name},\n\nThank you for your message:\n"${contact.message}"\n\nBest regards,\nThe Crewkerne Gazette Team`;
+    const mailtoLink = `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoLink);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
-          <p className="text-slate-300 mt-4">Loading dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading dashboard...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Dashboard Error</h1>
-          <p className="text-slate-300 mb-6">{error}</p>
-          <Button onClick={fetchDashboardData} className="bg-red-600 hover:bg-red-700">
-            Retry
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-red-400 text-xl">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="container mx-auto px-4 py-8">
-        {/* Dashboard Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-            <p className="text-slate-400">Welcome back, {user?.username}</p>
-            {stats?.emergency_mode && (
-              <div className="flex items-center space-x-2 mt-2">
-                <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                <span className="text-yellow-500 text-sm">Emergency Mode Active</span>
-              </div>
-            )}
-          </div>
-          <Button 
-            onClick={logout}
-            variant="outline" 
-            className="border-slate-600 text-slate-300 hover:border-red-400 hover:text-red-400"
-          >
-            Logout
-          </Button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="container mx-auto p-6">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">Dashboard</h1>
+          <p className="text-slate-400">Manage your content and settings</p>
         </div>
 
-        {/* Dashboard Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-slate-800/50 border border-slate-700">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-red-600">
-              <FileText className="w-4 h-4 mr-2" />
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="bg-slate-800 border border-slate-700">
+            <TabsTrigger value="overview" className="text-slate-300 data-[state=active]:text-white">
+              <Users className="w-4 h-4 mr-2" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="create" className="data-[state=active]:bg-red-600">
-              <PlusCircle className="w-4 h-4 mr-2" />
+            <TabsTrigger value="create" className="text-slate-300 data-[state=active]:text-white">
+              <FileText className="w-4 h-4 mr-2" />
               Create
             </TabsTrigger>
-            <TabsTrigger value="articles" className="data-[state=active]:bg-red-600">
+            <TabsTrigger value="articles" className="text-slate-300 data-[state=active]:text-white">
               <FileText className="w-4 h-4 mr-2" />
               Articles
             </TabsTrigger>
-            <TabsTrigger value="messages" className="data-[state=active]:bg-red-600">
+            <TabsTrigger value="messages" className="text-slate-300 data-[state=active]:text-white">
               <MessageSquare className="w-4 h-4 mr-2" />
               Messages
             </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-red-600">
-              <SettingsIcon className="w-4 h-4 mr-2" />
+            <TabsTrigger value="settings" className="text-slate-300 data-[state=active]:text-white">
+              <Settings className="w-4 h-4 mr-2" />
               Settings
             </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            {stats && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="bg-slate-800/50 border-slate-700">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg text-white">Total Articles</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-red-400">{stats.total_articles}</div>
-                  </CardContent>
-                </Card>
-                <Card className="bg-slate-800/50 border-slate-700">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg text-white">Published</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-green-400">{stats.published_articles}</div>
-                  </CardContent>
-                </Card>
-                <Card className="bg-slate-800/50 border-slate-700">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg text-white">Breaking News</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-yellow-400">{stats.breaking_news}</div>
-                  </CardContent>
-                </Card>
-                <Card className="bg-slate-800/50 border-slate-700">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg text-white">Contacts</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-blue-400">{stats.total_contacts}</div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center">
+                    <FileText className="w-5 h-5 mr-2" />
+                    Total Articles
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-white">{stats?.total_articles || 0}</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center">
+                    <Users className="w-5 h-5 mr-2" />
+                    Total Messages
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-white">{Array.isArray(contacts) ? contacts.length : 0}</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center">
+                    <Eye className="w-5 h-5 mr-2" />
+                    Published Articles
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-white">{stats?.published_articles || 0}</p>
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Recent Articles */}
             <Card className="bg-slate-800/50 border-slate-700">
@@ -540,7 +386,7 @@ const Dashboard = () => {
                 <CardTitle className="text-white">Recent Articles</CardTitle>
               </CardHeader>
               <CardContent>
-                {articles && articles.length > 0 ? (
+                {Array.isArray(articles) && articles.length > 0 ? (
                   <div className="space-y-4">
                     {articles.slice(0, 5).map(article => (
                       <div key={article.id} className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg">
@@ -557,7 +403,7 @@ const Dashboard = () => {
                           </div>
                           
                           {/* Category Labels Display */}
-                          {article.category_labels && article.category_labels.length > 0 && (
+                          {Array.isArray(article.category_labels) && article.category_labels.length > 0 && (
                             <div className="mt-2">
                               <div className="flex flex-wrap gap-1">
                                 {article.category_labels.slice(0, 2).map((label, index) => (
@@ -577,53 +423,78 @@ const Dashboard = () => {
                             </div>
                           )}
                         </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditArticle(article)}
+                            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteArticle(article.slug)}
+                            className="border-red-600 text-red-400 hover:bg-red-900/20"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-slate-400 text-center py-8">No articles yet. Create your first article!</p>
+                  <div className="text-center py-8">
+                    <p className="text-slate-400">No articles yet. Create your first article!</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Create/Edit Article Tab */}
-          <TabsContent value="create" className="space-y-6">
+          {/* Create Tab */}
+          <TabsContent value="create">
             <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader>
-                <CardTitle className="text-white flex items-center justify-between">
+                <CardTitle className="text-white">
                   {isEditing ? 'Edit Article' : 'Create New Article'}
-                  {isEditing && (
-                    <Button 
-                      onClick={cancelEdit}
-                      variant="outline"
-                      size="sm"
-                      className="border-slate-600 text-slate-400 hover:border-slate-400"
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      Cancel Edit
-                    </Button>
-                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={isEditing ? handleUpdateArticle : handleCreateArticle} className="space-y-6">
-                  {/* Basic Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Title */}
+                    <div className="md:col-span-2">
                       <Label htmlFor="title" className="text-slate-200">Title *</Label>
                       <Input
                         id="title"
+                        name="title"
                         value={article.title}
-                        onChange={(e) => setArticle({ ...article, title: e.target.value })}
-                        className="bg-slate-700/50 border-slate-600 text-white"
-                        placeholder="Enter article title..."
+                        onChange={handleInputChange}
                         required
+                        className="bg-slate-700/50 border-slate-600 text-white"
+                        placeholder="Enter article title"
                       />
                     </div>
+
+                    {/* Subheading */}
+                    <div className="md:col-span-2">
+                      <Label htmlFor="subheading" className="text-slate-200">Subheading</Label>
+                      <Input
+                        id="subheading"
+                        name="subheading"
+                        value={article.subheading}
+                        onChange={handleInputChange}
+                        className="bg-slate-700/50 border-slate-600 text-white"
+                        placeholder="Optional subheading"
+                      />
+                    </div>
+
+                    {/* Category */}
                     <div>
-                      <Label htmlFor="category" className="text-slate-200">Category</Label>
-                      <Select value={article.category} onValueChange={(value) => setArticle({ ...article, category: value })}>
+                      <Label htmlFor="category" className="text-slate-200">Category *</Label>
+                      <Select value={article.category} onValueChange={(value) => setArticle({...article, category: value})}>
                         <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
                           <SelectValue />
                         </SelectTrigger>
@@ -635,18 +506,149 @@ const Dashboard = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
 
-                  {/* Subheading */}
-                  <div>
-                    <Label htmlFor="subheading" className="text-slate-200">Subheading</Label>
-                    <Input
-                      id="subheading"
-                      value={article.subheading}
-                      onChange={(e) => setArticle({ ...article, subheading: e.target.value })}
-                      className="bg-slate-700/50 border-slate-600 text-white"
-                      placeholder="Optional subheading..."
-                    />
+                    {/* Publisher */}
+                    <div>
+                      <Label htmlFor="publisher_name" className="text-slate-200">Publisher</Label>
+                      <Input
+                        id="publisher_name"
+                        name="publisher_name"
+                        value={article.publisher_name}
+                        onChange={handleInputChange}
+                        className="bg-slate-700/50 border-slate-600 text-white"
+                      />
+                    </div>
+
+                    {/* Featured Image Upload */}
+                    <div>
+                      <Label htmlFor="featured_image" className="text-slate-200">Featured Image</Label>
+                      <Input
+                        id="featured_image"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="bg-slate-700/50 border-slate-600 text-white file:bg-slate-600 file:text-white file:border-0"
+                      />
+                      {imagePreview && (
+                        <div className="mt-2">
+                          <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Image Caption */}
+                    <div>
+                      <Label htmlFor="image_caption" className="text-slate-200">Image Caption</Label>
+                      <Input
+                        id="image_caption"
+                        name="image_caption"
+                        value={article.image_caption}
+                        onChange={handleInputChange}
+                        className="bg-slate-700/50 border-slate-600 text-white"
+                        placeholder="Optional image caption"
+                      />
+                    </div>
+
+                    {/* Video URL */}
+                    <div className="md:col-span-2">
+                      <Label htmlFor="video_url" className="text-slate-200">Video URL</Label>
+                      <Input
+                        id="video_url"
+                        name="video_url"
+                        value={article.video_url}
+                        onChange={handleInputChange}
+                        className="bg-slate-700/50 border-slate-600 text-white"
+                        placeholder="Optional video URL"
+                      />
+                    </div>
+
+                    {/* Tags */}
+                    <div>
+                      <Label htmlFor="tags" className="text-slate-200">Tags (comma-separated)</Label>
+                      <Input
+                        id="tags"
+                        value={Array.isArray(article.tags) ? article.tags.join(', ') : ''}
+                        onChange={handleTagsChange}
+                        className="bg-slate-700/50 border-slate-600 text-white"
+                        placeholder="breaking, politics, investigation, local news"
+                      />
+                    </div>
+
+                    {/* Category Labels */}
+                    <div className="md:col-span-2">
+                      <Label className="text-slate-200 mb-3 block">Category Labels</Label>
+                      <div className="space-y-3">
+                        <p className="text-sm text-slate-400">
+                          Select multiple category labels that best describe this article:
+                        </p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-3 bg-slate-700/20 rounded-lg border border-slate-600">
+                          {Array.isArray(availableCategoryLabels) && availableCategoryLabels.map((label) => {
+                            const isSelected = Array.isArray(article.category_labels) && article.category_labels.includes(label);
+                            return (
+                              <div key={label} className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`category-${label}`}
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const currentLabels = Array.isArray(article.category_labels) ? article.category_labels : [];
+                                    if (e.target.checked) {
+                                      setArticle({
+                                        ...article,
+                                        category_labels: [...currentLabels, label]
+                                      });
+                                    } else {
+                                      setArticle({
+                                        ...article,
+                                        category_labels: currentLabels.filter(l => l !== label)
+                                      });
+                                    }
+                                  }}
+                                  className="rounded border-slate-500 text-red-600 focus:ring-red-500 focus:ring-offset-0 bg-slate-700"
+                                />
+                                <Label
+                                  htmlFor={`category-${label}`}
+                                  className={`text-sm cursor-pointer transition-colors ${
+                                    isSelected ? 'text-red-400 font-medium' : 'text-slate-300 hover:text-slate-200'
+                                  }`}
+                                >
+                                  {label}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {/* Selected Labels Preview */}
+                        {Array.isArray(article.category_labels) && article.category_labels.length > 0 && (
+                          <div className="mt-3">
+                            <p className="text-sm text-slate-400 mb-2">Selected ({article.category_labels.length}):</p>
+                            <div className="flex flex-wrap gap-2">
+                              {article.category_labels.map((label, index) => (
+                                <Badge
+                                  key={index}
+                                  className="bg-red-600/20 text-red-300 border border-red-600/30 px-2 py-1 text-xs"
+                                >
+                                  {label}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setArticle({
+                                        ...article,
+                                        category_labels: article.category_labels.filter(l => l !== label)
+                                      });
+                                    }}
+                                    className="ml-2 text-red-400 hover:text-red-300"
+                                  >
+                                    ×
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Content */}
@@ -654,244 +656,61 @@ const Dashboard = () => {
                     <Label htmlFor="content" className="text-slate-200">Content *</Label>
                     <Textarea
                       id="content"
+                      name="content"
                       value={article.content}
-                      onChange={(e) => setArticle({ ...article, content: e.target.value })}
-                      className="bg-slate-700/50 border-slate-600 text-white min-h-[200px]"
-                      placeholder="Write your article content..."
+                      onChange={handleInputChange}
                       required
-                    />
-                  </div>
-
-                  {/* Publisher */}
-                  <div>
-                    <Label htmlFor="publisher" className="text-slate-200">Publisher</Label>
-                    <Input
-                      id="publisher"
-                      value={article.publisher_name}
-                      onChange={(e) => setArticle({ ...article, publisher_name: e.target.value })}
+                      rows={10}
                       className="bg-slate-700/50 border-slate-600 text-white"
-                      placeholder="Publisher name..."
+                      placeholder="Write your article content here..."
                     />
                   </div>
 
-                  {/* Featured Image */}
-                  <div>
-                    <Label className="text-slate-200">Featured Image</Label>
-                    
-                    {/* Image Preview */}
-                    {(imagePreview || article.featured_image) && (
-                      <div className="relative mb-4">
-                        <img 
-                          src={imagePreview || article.featured_image} 
-                          alt="Preview" 
-                          className="w-full h-48 object-cover rounded-lg border border-slate-600"
-                          onError={(e) => {
-                            console.error('Image preview error:', e);
-                            setImagePreview(null);
-                            setSelectedImageFile(null);
-                            setArticle({ ...article, featured_image: '' });
-                            toast.error('Invalid image format');
-                          }}
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setImagePreview(null);
-                            setSelectedImageFile(null);
-                            setArticle({ ...article, featured_image: '' });
-                          }}
-                          className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white border-red-600"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    )}
-
-                    {/* Upload Button */}
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                        id="image-upload"
-                        disabled={creatingArticle}
-                      />
-                      <Label
-                        htmlFor="image-upload"
-                        className={`cursor-pointer inline-flex items-center px-4 py-2 border border-slate-600 rounded-md shadow-sm text-sm font-medium text-slate-200 bg-slate-700/50 hover:bg-slate-600/50 transition-colors ${
-                          creatingArticle ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Choose Image File
-                      </Label>
-                      <p className="text-xs text-slate-400 mt-2">
-                        Upload will use Cloudinary for professional image hosting
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Image Caption */}
-                  <div>
-                    <Label htmlFor="image-caption" className="text-slate-200">Image Caption</Label>
-                    <Input
-                      id="image-caption"
-                      value={article.image_caption}
-                      onChange={(e) => setArticle({ ...article, image_caption: e.target.value })}
-                      className="bg-slate-700/50 border-slate-600 text-white"
-                      placeholder="Optional image caption..."
-                    />
-                  </div>
-
-                  {/* Video URL */}
-                  <div>
-                    <Label htmlFor="video-url" className="text-slate-200">Video URL</Label>
-                    <Input
-                      id="video-url"
-                      value={article.video_url}
-                      onChange={(e) => setArticle({ ...article, video_url: e.target.value })}
-                      className="bg-slate-700/50 border-slate-600 text-white"
-                      placeholder="https://youtube.com/embed/..."
-                    />
-                  </div>
-
-                  {/* Tags */}
-                  <div>
-                    <Label htmlFor="tags" className="text-slate-200">Tags (comma-separated)</Label>
-                    <Input
-                      id="tags"
-                      value={article.tags.join(', ')}
-                      onChange={handleTagsChange}
-                      className="bg-slate-700/50 border-slate-600 text-white"
-                      placeholder="breaking, politics, investigation, local news"
-                    />
-                  </div>
-
-                  {/* Category Labels */}
-                  <div>
-                    <Label className="text-slate-200 mb-3 block">Category Labels</Label>
-                    <div className="space-y-3">
-                      <p className="text-sm text-slate-400">
-                        Select multiple category labels that best describe this article:
-                      </p>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-3 bg-slate-700/20 rounded-lg border border-slate-600">
-                        {availableCategoryLabels.map((label) => {
-                          const isSelected = article.category_labels.includes(label);
-                          return (
-                            <div key={label} className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                id={`category-${label}`}
-                                checked={isSelected}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setArticle({
-                                      ...article,
-                                      category_labels: [...article.category_labels, label]
-                                    });
-                                  } else {
-                                    setArticle({
-                                      ...article,
-                                      category_labels: article.category_labels.filter(l => l !== label)
-                                    });
-                                  }
-                                }}
-                                className="rounded border-slate-500 text-red-600 focus:ring-red-500 focus:ring-offset-0 bg-slate-700"
-                              />
-                              <Label
-                                htmlFor={`category-${label}`}
-                                className={`text-sm cursor-pointer transition-colors ${
-                                  isSelected ? 'text-red-400 font-medium' : 'text-slate-300 hover:text-slate-200'
-                                }`}
-                              >
-                                {label}
-                              </Label>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      
-                      {/* Selected Labels Preview */}
-                      {article.category_labels.length > 0 && (
-                        <div className="mt-3">
-                          <p className="text-sm text-slate-400 mb-2">Selected ({article.category_labels.length}):</p>
-                          <div className="flex flex-wrap gap-2">
-                            {article.category_labels.map((label, index) => (
-                              <Badge
-                                key={index}
-                                className="bg-red-600/20 text-red-300 border border-red-600/30 px-2 py-1 text-xs"
-                              >
-                                {label}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setArticle({
-                                      ...article,
-                                      category_labels: article.category_labels.filter(l => l !== label)
-                                    });
-                                  }}
-                                  className="ml-2 text-red-400 hover:text-red-300"
-                                >
-                                  ×
-                                </button>
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Switches */}
-                  <div className="flex items-center space-x-8">
+                  {/* Options */}
+                  <div className="flex items-center space-x-6">
                     <div className="flex items-center space-x-2">
                       <Switch
+                        id="is_breaking"
                         checked={article.is_breaking}
-                        onCheckedChange={(checked) => setArticle({ ...article, is_breaking: checked })}
-                        className="data-[state=checked]:bg-red-600"
+                        onCheckedChange={(checked) => setArticle({...article, is_breaking: checked})}
                       />
-                      <Label className="text-slate-200">Breaking News</Label>
+                      <Label htmlFor="is_breaking" className="text-slate-200">Breaking News</Label>
                     </div>
+
                     <div className="flex items-center space-x-2">
                       <Switch
+                        id="is_published"
                         checked={article.is_published}
-                        onCheckedChange={(checked) => setArticle({ ...article, is_published: checked })}
-                        className="data-[state=checked]:bg-green-600"
+                        onCheckedChange={(checked) => setArticle({...article, is_published: checked})}
                       />
-                      <Label className="text-slate-200">Published</Label>
+                      <Label htmlFor="is_published" className="text-slate-200">Published</Label>
                     </div>
                   </div>
 
-                  {/* Submit */}
+                  {/* Submit Buttons */}
                   <div className="flex items-center space-x-4">
                     <Button 
                       type="submit" 
-                      className="bg-red-600 hover:bg-red-700"
-                      disabled={creatingArticle}
+                      disabled={isSubmitting}
+                      className="bg-red-600 hover:bg-red-700 text-white"
                     >
-                      {creatingArticle ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          {isEditing ? 'Updating...' : 'Creating...'}
-                        </>
-                      ) : (
-                        <>
-                          {isEditing ? <Save className="w-4 h-4 mr-2" /> : <PlusCircle className="w-4 h-4 mr-2" />}
-                          {isEditing ? 'Update Article' : 'Create Article'}
-                        </>
-                      )}
+                      {isSubmitting ? 'Saving...' : (isEditing ? 'Update Article' : 'Create Article')}
                     </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline"
-                      onClick={isEditing ? cancelEdit : resetForm}
-                      className="border-slate-600 text-slate-300 hover:border-slate-400"
-                    >
-                      {isEditing ? 'Cancel' : 'Reset'}
-                    </Button>
+                    
+                    {isEditing && (
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setEditingArticle(null);
+                          resetForm();
+                        }}
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                      >
+                        Cancel Edit
+                      </Button>
+                    )}
                   </div>
                 </form>
               </CardContent>
@@ -899,29 +718,21 @@ const Dashboard = () => {
           </TabsContent>
 
           {/* Articles Tab */}
-          <TabsContent value="articles" className="space-y-6">
+          <TabsContent value="articles">
             <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader>
-                <CardTitle className="text-white">All Articles ({articles ? articles.length : 0})</CardTitle>
+                <CardTitle className="text-white">All Articles ({Array.isArray(articles) ? articles.length : 0})</CardTitle>
               </CardHeader>
               <CardContent>
-                {articles && articles.length > 0 ? (
+                {Array.isArray(articles) && articles.length > 0 ? (
                   <div className="space-y-4">
                     {articles.map(article => (
                       <div key={article.id} className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg border border-slate-700">
                         <div className="flex-1">
-                          <div className="flex items-center space-x-3">
-                            <h3 className="font-semibold text-white">{article.title}</h3>
-                            {article.is_breaking && (
-                              <Badge className="bg-red-600 text-white text-xs">Breaking</Badge>
-                            )}
-                            {!article.is_published && (
-                              <Badge variant="outline" className="border-yellow-600 text-yellow-400 text-xs">Draft</Badge>
-                            )}
-                          </div>
-                          {article.subheading && (
-                            <p className="text-slate-400 text-sm mt-1">{article.subheading}</p>
-                          )}
+                          <h3 className="font-semibold text-white">{article.title}</h3>
+                          <p className="text-sm text-slate-400 mt-1">
+                            {article.content.substring(0, 120)}...
+                          </p>
                           <div className="flex items-center space-x-4 mt-2 text-sm text-slate-400">
                             <span className="flex items-center">
                               <Calendar className="w-3 h-3 mr-1" />
@@ -930,7 +741,7 @@ const Dashboard = () => {
                             <Badge variant="outline" className="border-slate-600 text-slate-400 text-xs">
                               {article.category}
                             </Badge>
-                            {article.tags.length > 0 && (
+                            {Array.isArray(article.tags) && article.tags.length > 0 && (
                               <span className="flex items-center">
                                 <Tag className="w-3 h-3 mr-1" />
                                 {article.tags.slice(0, 2).join(', ')}
@@ -940,7 +751,7 @@ const Dashboard = () => {
                           </div>
                           
                           {/* Category Labels Display */}
-                          {article.category_labels && article.category_labels.length > 0 && (
+                          {Array.isArray(article.category_labels) && article.category_labels.length > 0 && (
                             <div className="mt-2">
                               <div className="flex flex-wrap gap-1">
                                 {article.category_labels.slice(0, 3).map((label, index) => (
@@ -962,28 +773,20 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Button
-                            variant="outline"
                             size="sm"
-                            onClick={() => window.open(`/article/${article.id}`, '_blank')}
-                            className="border-slate-600 text-slate-400 hover:border-slate-400"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button
                             variant="outline"
-                            size="sm"
                             onClick={() => handleEditArticle(article)}
-                            className="border-blue-600 text-blue-400 hover:border-blue-400"
+                            className="border-slate-600 text-slate-300 hover:bg-slate-700"
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit2 className="w-3 h-3" />
                           </Button>
                           <Button
-                            variant="outline"
                             size="sm"
-                            onClick={() => handleDeleteArticle(article.slug, article.title)}
-                            className="border-red-600 text-red-400 hover:border-red-400"
+                            variant="outline"
+                            onClick={() => handleDeleteArticle(article.slug)}
+                            className="border-red-600 text-red-400 hover:bg-red-900/20"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>
@@ -991,15 +794,7 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <FileText className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-400">No articles yet. Create your first article!</p>
-                    <Button 
-                      onClick={() => setActiveTab('create')}
-                      className="bg-red-600 hover:bg-red-700 mt-4"
-                    >
-                      <PlusCircle className="w-4 h-4 mr-2" />
-                      Create Article
-                    </Button>
+                    <p className="text-slate-400">No articles found. Create your first article!</p>
                   </div>
                 )}
               </CardContent>
@@ -1007,175 +802,127 @@ const Dashboard = () => {
           </TabsContent>
 
           {/* Messages Tab */}
-          <TabsContent value="messages" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-white">Contact Messages</h2>
-              <Badge variant="secondary" className="bg-blue-600/20 text-blue-400 border-blue-600/30">
-                {contacts.length} Total
-              </Badge>
-            </div>
+          <TabsContent value="messages">
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white">Contact Messages ({Array.isArray(contacts) ? contacts.length : 0})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {Array.isArray(contacts) && contacts.length > 0 ? (
+                  <div className="space-y-4">
+                    {contacts.map(contact => (
+                      <div key={contact.id || contact.timestamp} className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <h3 className="font-semibold text-white">{contact.name}</h3>
+                              <Badge variant="outline" className="border-slate-600 text-slate-400 text-xs">
+                                {contact.email}
+                              </Badge>
+                              {contact.is_emergency && (
+                                <Badge className="bg-yellow-600 text-white text-xs">Emergency Backup</Badge>
+                              )}
+                            </div>
+                            <p className="text-slate-300 mb-3">{contact.message}</p>
+                            <div className="text-sm text-slate-400">
+                              <Clock className="w-3 h-3 inline mr-1" />
+                              {contact.created_at ? formatDate(contact.created_at) : contact.timestamp}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 ml-4">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => copyToClipboard(contact.email)}
+                              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleReplyToContact(contact)}
+                              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                            >
+                              <Mail className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-slate-400">No messages yet.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-            {contacts.length > 0 ? (
-              <div className="grid gap-4">
-                {contacts.map(contact => (
-                  <Card key={contact.id} className="bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 transition-colors">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-blue-600/20 rounded-full flex items-center justify-center">
-                            <MessageSquare className="w-5 h-5 text-blue-400" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg text-white">{contact.name}</CardTitle>
-                            <p className="text-sm text-slate-400">{contact.email}</p>
-                          </div>
+            {/* Recent Messages Summary */}
+            <Card className="bg-slate-800/50 border-slate-700 mt-6">
+              <CardHeader>
+                <CardTitle className="text-white">Recent Messages Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {Array.isArray(contacts) && contacts.length > 0 ? (
+                  <div className="space-y-3">
+                    {contacts.slice(0, 5).map(contact => (
+                      <div key={contact.id || contact.timestamp} className="flex items-center justify-between p-3 bg-slate-900/30 rounded">
+                        <div>
+                          <span className="text-white font-medium">{contact.name}</span>
+                          <span className="text-slate-400 ml-2 text-sm">({contact.email})</span>
                         </div>
-                        <div className="text-right">
-                          <p className="text-xs text-slate-500">
-                            {new Date(contact.created_at).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                          <Badge variant="outline" className="mt-1 border-slate-600 text-slate-300">
-                            ID: {contact.id}
-                          </Badge>
+                        <div className="text-sm text-slate-400">
+                          {contact.created_at ? formatDate(contact.created_at) : contact.timestamp}
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
-                        <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">
-                          {contact.message}
-                        </p>
-                      </div>
-                      <div className="mt-4 flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Badge 
-                            variant={contact.id >= 1000 ? "destructive" : "default"}
-                            className={contact.id >= 1000 ? "bg-orange-600/20 text-orange-400 border-orange-600/30" : "bg-green-600/20 text-green-400 border-green-600/30"}
-                          >
-                            {contact.id >= 1000 ? "Emergency Backup" : "Database"}
-                          </Badge>
-                          <span className="text-xs text-slate-500">
-                            {contact.message.length} characters
-                          </span>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-slate-600 hover:bg-slate-700"
-                            onClick={() => {
-                              navigator.clipboard.writeText(`Name: ${contact.name}\nEmail: ${contact.email}\nMessage: ${contact.message}\nDate: ${new Date(contact.created_at).toLocaleString()}`);
-                              toast.success('Message copied to clipboard');
-                            }}
-                          >
-                            Copy
-                          </Button>
-                          <Button
-                            variant="outline" 
-                            size="sm"
-                            className="border-slate-600 hover:bg-slate-700"
-                            onClick={() => {
-                              window.location.href = `mailto:${contact.email}?subject=Re: Your message to The Crewkerne Gazette&body=Hi ${contact.name},%0D%0A%0D%0AThank you for your message:%0D%0A"${contact.message}"%0D%0A%0D%0ABest regards,%0D%0AThe Crewkerne Gazette Team`;
-                            }}
-                          >
-                            Reply
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardContent className="text-center py-12">
-                  <MessageSquare className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">No Messages Yet</h3>
-                  <p className="text-slate-400 mb-6">
-                    Contact messages from your website will appear here.
-                  </p>
-                  <Button 
-                    onClick={() => window.open('/contact', '_blank')}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    View Contact Page
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-400 text-center py-4">No recent messages</p>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Settings Tab */}
-          <TabsContent value="settings" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Site Settings */}
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Site Settings</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-slate-200 font-medium">Maintenance Mode</Label>
-                      <p className="text-sm text-slate-400">Put the site in maintenance mode</p>
-                    </div>
+          <TabsContent value="settings">
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white">Site Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSettingsUpdate} className="space-y-6">
+                  <div className="flex items-center space-x-2">
                     <Switch
-                      checked={settings.maintenance_mode}
-                      onCheckedChange={(checked) => handleSettingsUpdate('maintenance_mode', checked)}
-                      className="data-[state=checked]:bg-yellow-600"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-slate-200 font-medium">Breaking News Banner</Label>
-                      <p className="text-sm text-slate-400">Show breaking news banner on homepage</p>
-                    </div>
-                    <Switch
+                      id="show_breaking_news_banner"
                       checked={settings.show_breaking_news_banner}
-                      onCheckedChange={(checked) => handleSettingsUpdate('show_breaking_news_banner', checked)}
-                      className="data-[state=checked]:bg-red-600"
+                      onCheckedChange={(checked) => setSettings({...settings, show_breaking_news_banner: checked})}
+                    />
+                    <Label htmlFor="show_breaking_news_banner" className="text-slate-200">
+                      Show Breaking News Banner
+                    </Label>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="admin_password" className="text-slate-200">Update Admin Password</Label>
+                    <Input
+                      id="admin_password"
+                      type="password"
+                      value={settings.admin_password}
+                      onChange={(e) => setSettings({...settings, admin_password: e.target.value})}
+                      className="bg-slate-700/50 border-slate-600 text-white"
+                      placeholder="Leave empty to keep current password"
                     />
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Contact Messages */}
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Recent Messages ({contacts.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {contacts.length > 0 ? (
-                    <div className="space-y-4 max-h-64 overflow-y-auto">
-                      {contacts.slice(0, 5).map(contact => (
-                        <div key={contact.id} className="p-3 bg-slate-900/50 rounded-lg border border-slate-700">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-white">{contact.email}</span>
-                            <Badge 
-                              variant={contact.status === 'new' ? 'default' : 'outline'}
-                              className={contact.status === 'new' ? 'bg-green-600 text-white' : 'border-slate-600 text-slate-400'}
-                            >
-                              {contact.status}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-slate-300 line-clamp-2">{contact.inquiry}</p>
-                          <p className="text-xs text-slate-500 mt-2">{formatDate(contact.created_at)}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-slate-400 text-center py-4">No messages yet.</p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                  <Button type="submit" className="bg-red-600 hover:bg-red-700 text-white">
+                    Update Settings
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
