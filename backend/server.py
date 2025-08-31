@@ -57,6 +57,14 @@ JWT_EXPIRATION_HOURS = 24
 if os.getenv('JWT_SECRET') is None:
     logger.warning("⚠️ Using emergency JWT_SECRET fallback - please set JWT_SECRET environment variable for security")
 
+# Available article categories
+AVAILABLE_CATEGORY_LABELS = [
+    'Satire', 'Straight Talking', 'Opinion', 'Sports', 'Gossip', 
+    'Politics', 'Local News', 'News', 'Agony Aunt', 'Special', 
+    'Exclusive', 'Breaking', 'Analysis', 'Interview', 'Review',
+    'Investigative', 'Community', 'Business', 'Crime', 'Education'
+]
+
 # Security
 security = HTTPBearer()
 
