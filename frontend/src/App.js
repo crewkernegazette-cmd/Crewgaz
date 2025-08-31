@@ -1,135 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
-import axios from 'axios';
+import React from 'react';
 import './App.css';
 
-// Components
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import Homepage from './components/Homepage';
-import NewsSection from './components/NewsSection';
-import MusicSection from './components/MusicSection';
-import DocumentariesSection from './components/DocumentariesSection';
-import ComedySection from './components/ComedySection';
-import ContactSection from './components/ContactSection';
-import ArticleDetail from './components/ArticleDetail';
-import Dashboard from './components/Dashboard';
-import LoginForm from './components/LoginForm';
-import Debug from './components/Debug';
-import { Toaster } from './components/ui/sonner';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://crewkernegazette.co.uk';
-const API = BACKEND_URL;
-
-// Auth Context
-export const AuthContext = React.createContext();
-
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // Configure axios defaults
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // Set user from stored token info
-      const userData = {
-        username: 'admin',  // We'll get this from a proper auth check later
-        role: 'admin',
-        token: token
-      };
-      setUser(userData);
-    }
-    setLoading(false);
-  }, []);
-
-
-
-  const login = async (credentials) => {
-    console.log('Submitting login:', { username: credentials.username });
-    
-    try {
-      const response = await axios.post(`${API}/api/auth/login`, credentials, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      console.log('Login response received:', response.status, response.data);
-      
-      const { access_token, role } = response.data;
-      
-      // Store token and set up authentication
-      localStorage.setItem('access_token', access_token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-      
-      // Create user object from response data
-      const userData = {
-        username: credentials.username,
-        role: role,
-        token: access_token
-      };
-      
-      setUser(userData);
-      console.log('Login successful, user set:', userData);
-      
-      return { success: true };
-    } catch (error) {
-      console.error('Login error:', error.response?.data || error.message);
-      
-      return { 
-        success: false, 
-        error: error.response?.data?.detail || 'Invalid credentials' 
-      };
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('access_token');
-    delete axios.defaults.headers.common['Authorization'];
-    setUser(null);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="loading-spinner"></div>
-      </div>
-    );
-  }
-
   return (
-    <HelmetProvider>
-      <AuthContext.Provider value={{ user, login, logout }}>
-        <div className="App">
-          <Router>
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<Homepage />} />
-              <Route path="/news" element={<NewsSection />} />
-              <Route path="/music" element={<MusicSection />} />
-              <Route path="/documentaries" element={<DocumentariesSection />} />
-              <Route path="/comedy" element={<ComedySection />} />
-              <Route path="/contact" element={<ContactSection />} />
-              <Route path="/article/:slug" element={<ArticleDetail />} />
-              <Route 
-                path="/login" 
-                element={user ? <Navigate to="/dashboard" /> : <LoginForm />} 
-              />
-              <Route 
-                path="/dashboard/*" 
-                element={user ? <Dashboard /> : <Navigate to="/login" />} 
-              />
-              <Route path="/debug" element={<Debug />} />
-            </Routes>
-            <Footer />
-            <Toaster />
-          </Router>
+    <div className="min-h-screen bg-slate-900 text-white">
+      <nav className="bg-slate-800 border-b border-slate-700">
+        <div className="container mx-auto px-4 py-4">
+          <h1 className="text-2xl font-bold text-red-500">The Crewkerne Gazette</h1>
         </div>
-      </AuthContext.Provider>
-    </HelmetProvider>
+      </nav>
+      
+      <main className="container mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-4">Latest News</h2>
+          <p className="text-slate-400">Your trusted source for local and national news</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Sample Article Cards */}
+          <div className="bg-slate-800 rounded-lg p-6">
+            <h3 className="text-xl font-bold mb-2">Welcome to Crewkerne Gazette</h3>
+            <p className="text-slate-300 mb-4">We're getting the latest news ready for you.</p>
+            <span className="text-sm text-slate-500">Just now</span>
+          </div>
+          
+          <div className="bg-slate-800 rounded-lg p-6">
+            <h3 className="text-xl font-bold mb-2">Site Maintenance Complete</h3>
+            <p className="text-slate-300 mb-4">Our team has been working to improve your experience.</p>
+            <span className="text-sm text-slate-500">Recently</span>
+          </div>
+          
+          <div className="bg-slate-800 rounded-lg p-6">
+            <h3 className="text-xl font-bold mb-2">More Stories Coming Soon</h3>
+            <p className="text-slate-300 mb-4">Check back soon for the latest breaking news and updates.</p>
+            <span className="text-sm text-slate-500">Today</span>
+          </div>
+        </div>
+        
+        <div className="text-center mt-12">
+          <a 
+            href="/login" 
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold"
+          >
+            Admin Login
+          </a>
+        </div>
+      </main>
+      
+      <footer className="bg-slate-800 border-t border-slate-700 mt-16">
+        <div className="container mx-auto px-4 py-8 text-center text-slate-400">
+          <p>&copy; 2025 The Crewkerne Gazette. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
   );
 }
 
