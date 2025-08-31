@@ -264,9 +264,9 @@ def set_setting(db: Session, key: str, value: str):
         db.add(setting)
     db.commit()
 
-# Article page route for social media crawlers
-@app.get("/article/{article_uuid}")
-async def serve_article_page(article_uuid: str, request: Request, db: Session = Depends(get_db)):
+# Article page route for social media crawlers  
+@app.get("/article/{article_slug}")
+async def serve_article_page(article_slug: str, request: Request, db: Session = Depends(get_db)):
     """
     Serve article page with proper meta tags for crawlers,
     or serve React app for regular users
@@ -276,7 +276,7 @@ async def serve_article_page(article_uuid: str, request: Request, db: Session = 
     if is_crawler(user_agent):
         # Serve static HTML with meta tags for crawlers
         try:
-            db_article = db.query(DBArticle).filter(DBArticle.uuid == article_uuid).first()
+            db_article = db.query(DBArticle).filter(DBArticle.slug == article_slug).first()
             if not db_article:
                 raise HTTPException(status_code=404, detail="Article not found")
             
@@ -284,6 +284,7 @@ async def serve_article_page(article_uuid: str, request: Request, db: Session = 
             article_obj = Article(
                 id=db_article.id,
                 uuid=db_article.uuid,
+                slug=db_article.slug,
                 title=db_article.title,
                 subheading=db_article.subheading,
                 content=db_article.content,
