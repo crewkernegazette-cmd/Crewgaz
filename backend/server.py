@@ -884,9 +884,9 @@ async def debug_auth(db: Session = Depends(get_db)):
         except Exception:
             db_connected = False
         
-        # Get seeding status (would need to be stored globally)
-        seeding_status = "unknown"  # We'll update this when we call init_database
-        last_error = None
+        # Get seeding status from global variables
+        seeding_status = SEEDING_STATUS
+        last_error = LAST_ERROR
         
         return {
             "users": users_info,
