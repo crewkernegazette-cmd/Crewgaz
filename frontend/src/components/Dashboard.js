@@ -448,7 +448,7 @@ const Dashboard = () => {
 
         {/* Dashboard Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-slate-800/50 border border-slate-700">
+          <TabsList className="grid w-full grid-cols-5 bg-slate-800/50 border border-slate-700">
             <TabsTrigger value="overview" className="data-[state=active]:bg-red-600">
               <FileText className="w-4 h-4 mr-2" />
               Overview
@@ -460,6 +460,10 @@ const Dashboard = () => {
             <TabsTrigger value="articles" className="data-[state=active]:bg-red-600">
               <FileText className="w-4 h-4 mr-2" />
               Articles
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="data-[state=active]:bg-red-600">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Messages
             </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-red-600">
               <SettingsIcon className="w-4 h-4 mr-2" />
