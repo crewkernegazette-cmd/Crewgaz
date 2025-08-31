@@ -629,14 +629,16 @@ const Dashboard = () => {
                     <Label className="text-slate-200">Featured Image</Label>
                     
                     {/* Image Preview */}
-                    {article.featured_image && (
+                    {(imagePreview || article.featured_image) && (
                       <div className="relative mb-4">
                         <img 
-                          src={article.featured_image} 
+                          src={imagePreview || article.featured_image} 
                           alt="Preview" 
                           className="w-full h-48 object-cover rounded-lg border border-slate-600"
                           onError={(e) => {
                             console.error('Image preview error:', e);
+                            setImagePreview(null);
+                            setSelectedImageFile(null);
                             setArticle({ ...article, featured_image: '' });
                             toast.error('Invalid image format');
                           }}
@@ -645,7 +647,11 @@ const Dashboard = () => {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => setArticle({ ...article, featured_image: '' })}
+                          onClick={() => {
+                            setImagePreview(null);
+                            setSelectedImageFile(null);
+                            setArticle({ ...article, featured_image: '' });
+                          }}
                           className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white border-red-600"
                         >
                           <X className="w-4 h-4" />
@@ -658,21 +664,25 @@ const Dashboard = () => {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={handleImageUpload}
+                        onChange={handleImageChange}
                         className="hidden"
                         id="image-upload"
-                        disabled={uploadingImage}
+                        disabled={creatingArticle}
                       />
                       <Label
                         htmlFor="image-upload"
                         className={`cursor-pointer inline-flex items-center px-4 py-2 border border-slate-600 rounded-md shadow-sm text-sm font-medium text-slate-200 bg-slate-700/50 hover:bg-slate-600/50 transition-colors ${
-                          uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
+                          creatingArticle ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
-                        {uploadingImage ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-200 mr-2"></div>
-                            Processing...
+                        <Upload className="w-4 h-4 mr-2" />
+                        Choose Image File
+                      </Label>
+                      <p className="text-xs text-slate-400 mt-2">
+                        Upload will use Cloudinary for professional image hosting
+                      </p>
+                    </div>
+                  </div>
                           </>
                         ) : (
                           <>
