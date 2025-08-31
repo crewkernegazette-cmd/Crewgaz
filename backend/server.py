@@ -730,6 +730,11 @@ async def upload_image(file: UploadFile = File(...), current_user: User = Depend
         raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")
 
 # Article Routes
+@api_router.get("/categories/labels")
+async def get_available_category_labels():
+    """Get available category labels for articles"""
+    return {"category_labels": AVAILABLE_CATEGORY_LABELS}
+
 @api_router.get("/articles", response_model=List[Article])
 async def get_articles(limit: int = 10, category: Optional[str] = None, db: Session = Depends(get_db)):
     """Get all published articles"""
