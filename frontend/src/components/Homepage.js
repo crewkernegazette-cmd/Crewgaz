@@ -81,6 +81,28 @@ const Homepage = () => {
     });
   };
 
+  const renderCategoryLabels = (labels) => {
+    if (!labels || labels.length === 0) return null;
+    
+    return (
+      <div className="flex flex-wrap gap-1 mb-2">
+        {labels.slice(0, 2).map((label, index) => (
+          <Badge 
+            key={index} 
+            className="bg-red-600/20 text-red-300 border border-red-600/30 text-xs px-2 py-1"
+          >
+            {label}
+          </Badge>
+        ))}
+        {labels.length > 2 && (
+          <Badge className="bg-slate-600/20 text-slate-300 border border-slate-600/30 text-xs px-2 py-1">
+            +{labels.length - 2}
+          </Badge>
+        )}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
