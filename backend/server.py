@@ -629,6 +629,9 @@ async def login(user_data: LoginRequest, response: Response, db: Session = Depen
                     logger.error(f"❌ JWT token creation failed: {jwt_error}")
                     raise HTTPException(status_code=500, detail="Token creation failed")
                 
+                # Set auth cookie
+                set_auth_cookie(response, access_token)
+                
                 return {
                     "access_token": access_token,
                     "token_type": "bearer",
