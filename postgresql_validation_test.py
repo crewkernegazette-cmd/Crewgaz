@@ -326,7 +326,7 @@ class PostgreSQLValidationTester:
             simple_article = {
                 "title": "Database Connectivity Test",
                 "content": "Simple test to ensure no 500 errors on article creation.",
-                "category": "NEWS",
+                "category": "news",  # lowercase as required by enum
                 "is_published": True
             }
             
