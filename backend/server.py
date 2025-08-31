@@ -165,14 +165,6 @@ def is_crawler(user_agent: str) -> bool:
     
     return any(crawler in user_agent_lower for crawler in crawlers)
 
-def hash_password(password: str) -> str:
-    """Hash password using bcrypt"""
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-def verify_password(password: str, password_hash: str) -> bool:
-    """Verify password against hash"""
-    return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
-
 def create_jwt_token(user_data: dict) -> str:
     """Create JWT token"""
     expiry = datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
