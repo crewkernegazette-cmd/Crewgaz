@@ -10,8 +10,7 @@ import ComedySection from './ComedySection';
 import ContactSection from './ContactSection';
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://crewkernegazette.co.uk';
-const API = BACKEND_URL;
+import { API_BASE } from '../config/api';
 
 const Homepage = () => {
   const [articles, setArticles] = useState([]);
