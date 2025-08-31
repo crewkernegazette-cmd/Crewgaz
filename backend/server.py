@@ -883,6 +883,7 @@ async def create_article(
         image_caption=image_caption,
         video_url=video_url,
         tags=json.dumps(tags_list),
+        category_labels=json.dumps(valid_category_labels),
         is_breaking=is_breaking,
         is_published=is_published
     )
