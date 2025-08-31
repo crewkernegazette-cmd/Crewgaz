@@ -237,7 +237,7 @@ const ComedySection = () => {
                         <span>By {article.author_name}</span>
                       </div>
                       <div className="mt-4">
-                        <Link to={`/article/${article.id}`}>
+                        <Link to={`/article/${article.slug}`}>
                           <Button variant="outline" size="sm" className="w-full border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-white">
                             Have a Laugh
                           </Button>
