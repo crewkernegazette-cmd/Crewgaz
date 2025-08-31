@@ -338,8 +338,8 @@ const ArticleDetail = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {relatedArticles.map(relatedArticle => (
                     <Link
-                      key={relatedArticle.id}
-                      to={`/article/${relatedArticle.id}`}
+                      key={relatedArticle.slug}
+                      to={`/article/${relatedArticle.slug}`}
                       className="group block bg-slate-900/50 rounded-lg overflow-hidden hover:bg-slate-800/50 transition-colors"
                     >
                       {relatedArticle.featured_image && (
