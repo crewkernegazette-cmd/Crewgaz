@@ -213,8 +213,20 @@ def init_database():
         return seeding_status, last_error
     
     try:
+        # Create base tables first
         Base.metadata.create_all(bind=engine)
         logger.info("✅ Database tables created/verified")
+        
+        # Run Alembic migrations to add any new columns/indexes
+        try:
+            alembic_cfg = Config("alembic.ini")
+            command.upgrade(alembic_cfg, "head")
+            logger.info("✅ Database migrations applied successfully")
+        except Exception as migration_error:
+            logger.warning(f"⚠️ Migration warning: {migration_error}")
+            # Don't fail completely if migrations have issues
+            # This allows the app to work even if migrations can't run
+            
     except Exception as e:
         logger.error(f"❌ Failed to create database tables: {e}")
         seeding_status = "failure"
