@@ -1151,6 +1151,52 @@ async def create_contact(request: Request, db: Session = Depends(get_db)):
             detail=f"Database error: {str(e)}"
         )
 
+@api_router.post("/contacts/validate")
+async def validate_contact_data(request: Request):
+    """Test endpoint to validate contact data format"""
+    try:
+        body = await request.body()
+        import json
+        data = json.loads(body)
+        
+        # Check required fields
+        errors = []
+        if not data.get('name', '').strip():
+            errors.append("Name is required")
+        if not data.get('email', '').strip():
+            errors.append("Email is required") 
+        if not data.get('message', '').strip():
+            errors.append("Message is required")
+            
+        # Check lengths
+        name = data.get('name', '')
+        email = data.get('email', '')
+        message = data.get('message', '')
+        
+        if len(name) > 100:
+            errors.append(f"Name too long: {len(name)}/100")
+        if len(email) > 100:
+            errors.append(f"Email too long: {len(email)}/100")
+        if len(message) > 2000:
+            errors.append(f"Message too long: {len(message)}/2000")
+            
+        return {
+            "valid": len(errors) == 0,
+            "errors": errors,
+            "data": {
+                "name": name,
+                "email": email,
+                "message_length": len(message)
+            }
+        }
+        
+    except Exception as e:
+        return {
+            "valid": False,
+            "errors": [f"Parsing error: {str(e)}"],
+            "data": None
+        }
+
 @api_router.post("/contacts/test")
 async def test_contact_endpoint(contact_data: ContactCreate):
     """Test contact endpoint without database (for debugging)"""
