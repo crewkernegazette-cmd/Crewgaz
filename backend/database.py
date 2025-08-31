@@ -162,7 +162,8 @@ class DBArticle(Base):
     featured_image = Column(String(500), nullable=True)  # URL to image
     image_caption = Column(String(255), nullable=True)
     video_url = Column(String(500), nullable=True)
-    tags = Column(Text, nullable=True)  # JSON string of tags
+    tags = Column(Text, nullable=True)  # JSON string of comma-separated tags
+    category_labels = Column(Text, nullable=True)  # JSON string of article category labels
     is_breaking = Column(Boolean, default=False, nullable=False)
     is_published = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
