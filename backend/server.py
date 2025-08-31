@@ -100,7 +100,8 @@ class ArticleCreate(BaseModel):
     @validator('content', pre=True)
     def sanitize_content(cls, v):
         if v:
-            return bleach.clean(v, tags=bleach.ALLOWED_TAGS + ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li'], strip=True)
+            allowed_tags = list(bleach.ALLOWED_TAGS) + ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li']
+            return bleach.clean(v, tags=allowed_tags, strip=True)
         return v
 
 class Contact(BaseModel):
