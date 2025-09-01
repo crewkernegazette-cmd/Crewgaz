@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock, Eye } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import TopRail from './TopRail';
 import NewsSection from './NewsSection';
 import MusicSection from './MusicSection';
 import DocumentariesSection from './DocumentariesSection';
