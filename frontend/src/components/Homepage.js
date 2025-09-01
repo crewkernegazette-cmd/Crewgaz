@@ -67,7 +67,7 @@ const Homepage = () => {
             <div className="flex-1 overflow-hidden">
               <div className="whitespace-nowrap animate-scroll">
                 {breakingNews.map((news, index) => (
-                  <Link key={news.id || index} to={`/article/${news.slug || news.id}`} className="hover:underline mr-8">
+                  <Link key={news.id || index} to={`/article/${news.slug}`} className="hover:underline mr-8">
                     {news.title}
                   </Link>
                 ))}
