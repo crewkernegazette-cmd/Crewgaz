@@ -1676,6 +1676,36 @@ def whoami(request: Request):
         "have_auth_cookie": "auth" in request.cookies
     }
 
+@api_router.get("/debug/env")
+async def debug_env(current_user: User = Depends(get_current_user)):
+    """Debug endpoint to show masked environment configuration (admin only)"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        # Parse DATABASE_URL to get hostname only
+        database_host = "unknown"
+        database_url = os.getenv('DATABASE_URL', '')
+        if database_url:
+            import re
+            match = re.search(r'@([^:/]+)', database_url)
+            if match:
+                database_host = match.group(1)
+        
+        return {
+            "cloudinary_cloud_name": os.getenv('CLOUDINARY_CLOUD_NAME', 'not_set'),
+            "default_og_image": os.getenv('DEFAULT_OG_IMAGE', 'not_set'),
+            "has_cloudinary_key": bool(os.getenv('CLOUDINARY_API_KEY')),
+            "has_cloudinary_secret": bool(os.getenv('CLOUDINARY_API_SECRET')),
+            "has_fb_app_id": bool(os.getenv('FB_APP_ID')),
+            "database_url_host": database_host,
+            "has_jwt_secret": bool(os.getenv('JWT_SECRET')),
+            "environment": "development"  # Could be made dynamic
+        }
+    except Exception as e:
+        logger.error(f"Error in debug/env: {e}")
+        return {"error": str(e)}
+
 @api_router.get("/debug/check-image")
 async def debug_check_image(url: str):
     """Debug endpoint to validate og:image URLs for social media crawlers"""
