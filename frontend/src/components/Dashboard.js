@@ -177,34 +177,74 @@ const Dashboard = () => {
       }
 
       let response;
+      let featuredImageUrl = article.featured_image || '';
       
-      // Use JSON endpoint if no image upload, otherwise use multipart
-      if (!selectedImageFile && !isEditing) {
-        // JSON creation for new articles without images
-        const jsonPayload = {
-          title: article.title,
-          subheading: article.subheading || '',
-          content: article.content,
-          category: article.category.toLowerCase(),
-          publisher_name: article.publisher_name,
-          featured_image: article.featured_image || '',
-          image_caption: article.image_caption || '',
-          video_url: article.video_url || '',
-          tags: article.tags || [],
-          category_labels: article.category_labels || [],
-          is_breaking: article.is_breaking,
-          is_published: article.is_published,
-          pin: article.pin || false,
-          priority: article.priority || 0,
-        };
+      // Step 1: Upload image to Cloudinary if selected
+      if (selectedImageFile) {
+        try {
+          toast.info('Uploading image to Cloudinary...');
+          console.log('Uploading image:', selectedImageFile.name, selectedImageFile.type);
+          
+          const imageFormData = new FormData();
+          imageFormData.append('file', selectedImageFile);
+          
+          const imageResponse = await apiClient.post('/upload-image', imageFormData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          
+          featuredImageUrl = imageResponse.data.url; // This is the secure_url from Cloudinary
+          toast.success('Image uploaded successfully!');
+          console.log('Cloudinary URL:', featuredImageUrl);
+          
+        } catch (imageError) {
+          console.error('Image upload failed:', imageError);
+          const imageErrorMsg = imageError.response?.data?.detail || 'Image upload failed';
+          toast.error(`Image upload failed: ${imageErrorMsg}`);
+          return; // Stop here if image upload fails
+        }
+      }
+      
+      // Step 2: Create article with JSON (always use JSON endpoint now)
+      const jsonPayload = {
+        title: article.title,
+        subheading: article.subheading || '',
+        content: article.content,
+        category: article.category.toLowerCase(),
+        publisher_name: article.publisher_name,
+        featured_image: featuredImageUrl,
+        image_caption: article.image_caption || '',
+        video_url: article.video_url || '',
+        tags: article.tags || [],
+        category_labels: article.category_labels || [],
+        is_breaking: article.is_breaking,
+        is_published: article.is_published,
+        pin: article.pin || false,
+        priority: article.priority || 0,
+      };
+      
+      console.log('Creating article with payload:', JSON.stringify(jsonPayload, null, 2));
 
+      if (isEditing && editingArticle) {
+        // Edit existing article
+        response = await apiClient.put(`/articles/${editingArticle.slug}`, jsonPayload, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        toast.success('Article updated successfully!');
+      } else {
+        // Create new article  
         response = await apiClient.post('/articles.json', jsonPayload, {
           headers: {
             'Content-Type': 'application/json'
           }
         });
         toast.success('Article created successfully!');
-      } else {
+      }
+      
+      // Remove the old multipart code entirely - we're now JSON-only
         // Use multipart for image uploads or edits
         const formData = new FormData();
         formData.append('title', article.title);
