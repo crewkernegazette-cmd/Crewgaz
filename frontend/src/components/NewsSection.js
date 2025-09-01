@@ -49,34 +49,26 @@ const NewsSection = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
-      {/* Header */}
-      <section 
-        className="relative py-24 bg-cover bg-center"
-        style={{
-          backgroundImage: `linear-gradient(135deg, rgba(17, 24, 39, 0.9), rgba(31, 41, 55, 0.8)), 
-                           url('https://images.unsplash.com/photo-1623039405147-547794f92e9e')`
-        }}
-      >
+      {/* Video Section - Replaces Sharp & Punchy Header */}
+      <section className="relative py-16 bg-slate-900">
         <div className="container">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4 uppercase tracking-wider">
-              SHARP & PUNCHY NEWS
-            </h1>
-            <p className="text-xl text-slate-300 max-w-3xl mx-auto mb-6">
-              Unfiltered journalism that cuts through the noise. We tell stories the way they need to be told — 
-              with common sense first, not political spin.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
-              <Badge className="bg-red-600/20 text-red-300 border border-red-600/30 px-4 py-2">
-                <Target className="w-4 h-4 mr-2" />
-                No Spin Zone
-              </Badge>
-              <Badge className="bg-red-600/20 text-red-300 border border-red-600/30 px-4 py-2">
-                Straight Talk Only
-              </Badge>
-              <Badge className="bg-red-600/20 text-red-300 border border-red-600/30 px-4 py-2">
-                Somerset to Nation
-              </Badge>
+          <div className="max-w-5xl mx-auto">
+            {/* Video Container with Border */}
+            <div className="bg-slate-800 p-6 rounded-xl border-2 border-red-600/30 shadow-2xl">
+              <div className="text-center mb-6">
+                <h1 className="text-4xl font-bold text-white mb-4">
+                  News, But not as you know it
+                </h1>
+              </div>
+              <div className="relative aspect-video rounded-lg overflow-hidden border border-slate-600/50">
+                <iframe
+                  src="https://www.youtube.com/embed/jiZkkqK2410"
+                  title="News, But not as you know it"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
             </div>
           </div>
         </div>
