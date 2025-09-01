@@ -693,7 +693,8 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
                 headers={
                     "Accept-Ranges": "none",
                     "Cache-Control": "public, max-age=300",
-                    "X-Robots-Tag": "all"
+                    "X-Robots-Tag": "all",
+                    "Vary": "User-Agent"
                 }
             )
     
