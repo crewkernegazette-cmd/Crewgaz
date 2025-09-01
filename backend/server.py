@@ -683,6 +683,20 @@ async def serve_article_head(article_slug: str, request: Request, db: Session = 
             headers={"Content-Type": "text/html; charset=utf-8"}
         )
 
+# CORS preflight handler for article endpoints
+@app.options("/api/articles/{path:path}")
+async def article_options(path: str):
+    """Handle OPTIONS preflight requests for article endpoints"""
+    return Response(
+        content="",
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            "Access-Control-Allow-Credentials": "true"
+        }
+    )
+
 # Authentication Routes
 @api_router.post("/auth/login")
 async def login(user_data: LoginRequest, response: Response, db: Session = Depends(get_db)):
