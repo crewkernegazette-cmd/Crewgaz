@@ -732,7 +732,11 @@ async def serve_article_head(article_slug: str, request: Request, db: Session = 
     
     if is_crawler(user_agent):
         logger.info(f"🤖 HEAD request from crawler for article '{article_slug}'")
-        # Return 200 with proper headers (no body for HEAD)
+        
+        # Normalize slug for debug header
+        normalized_slug = article_slug.strip().lower()
+        
+        # Return 200 with complete headers matching GET response
         return HTMLResponse(
             content="", 
             status_code=200, 
@@ -740,7 +744,9 @@ async def serve_article_head(article_slug: str, request: Request, db: Session = 
                 "Accept-Ranges": "none",
                 "Cache-Control": "public, max-age=300",
                 "X-Robots-Tag": "all",
-                "Content-Type": "text/html; charset=utf-8"
+                "Vary": "User-Agent",
+                "Content-Type": "text/html; charset=utf-8",
+                "X-Debug-Slug": normalized_slug
             }
         )
     else:
