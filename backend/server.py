@@ -962,6 +962,67 @@ async def create_article(
         updated_at=db_article.updated_at
     )
 
+@api_router.post("/articles.json", response_model=Article)
+async def create_article_json(
+    payload: ArticleCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create article via JSON (for dashboard without file upload)"""
+    # Generate ids/slug
+    article_uuid = str(uuid.uuid4())
+    article_slug = generate_slug(payload.title, db)
+
+    # Filter category labels to only include valid ones
+    valid_category_labels = []
+    if payload.category_labels:
+        valid_category_labels = [label for label in payload.category_labels if label in AVAILABLE_CATEGORY_LABELS]
+
+    db_article = DBArticle(
+        uuid=article_uuid,
+        slug=article_slug,
+        title=payload.title,
+        subheading=payload.subheading,
+        content=payload.content,
+        category=payload.category,  # must match enum
+        publisher_name=payload.publisher_name or "The Crewkerne Gazette",
+        author_name=current_user.username,
+        author_id=str(current_user.id),
+        featured_image=payload.featured_image,   # JSON route expects a URL if provided
+        image_caption=payload.image_caption,
+        video_url=payload.video_url,
+        tags=json.dumps(payload.tags or []),
+        category_labels=json.dumps(valid_category_labels),
+        is_breaking=payload.is_breaking,
+        is_published=payload.is_published,
+    )
+
+    db.add(db_article)
+    db.commit()
+    db.refresh(db_article)
+
+    return Article(
+        id=db_article.id,
+        uuid=db_article.uuid,
+        slug=db_article.slug,
+        title=db_article.title,
+        subheading=db_article.subheading,
+        content=db_article.content,
+        category=db_article.category,
+        publisher_name=db_article.publisher_name,
+        author_name=db_article.author_name,
+        author_id=db_article.author_id,
+        featured_image=db_article.featured_image,
+        image_caption=db_article.image_caption,
+        video_url=db_article.video_url,
+        tags=json.loads(db_article.tags) if db_article.tags else [],
+        category_labels=json.loads(db_article.category_labels) if db_article.category_labels else [],
+        is_breaking=db_article.is_breaking,
+        is_published=db_article.is_published,
+        created_at=db_article.created_at,
+        updated_at=db_article.updated_at
+    )
+
 @api_router.put("/articles/{article_uuid}", response_model=Article)
 async def update_article(article_uuid: str, article_data: ArticleCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Update existing article"""
