@@ -410,7 +410,19 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
             
             # Sanitize text content for HTML
             title_safe = article_obj.title.replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
-            description_safe = (article_obj.subheading or article_obj.content[:160]).replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+            
+            # Create safe description - use subheading first, then content excerpt, with proper sanitization
+            if article_obj.subheading:
+                description_safe = article_obj.subheading[:160].replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+            else:
+                # Strip HTML tags and get plain text excerpt from content
+                import re
+                plain_content = re.sub(r'<[^>]+>', '', article_obj.content or '')
+                description_safe = plain_content[:160].replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+            
+            # Safe timestamp handling - use created_at as fallback for updated_at
+            updated_iso = (article_obj.updated_at or article_obj.created_at or datetime.now(timezone.utc)).isoformat()
+            published_iso = (article_obj.created_at or datetime.now(timezone.utc)).isoformat()
             
             # Calculate image dimensions for better social sharing
             image_width_tag = ''
