@@ -1914,6 +1914,17 @@ async def create_test_article_simple(current_user: User = Depends(get_current_us
             "details": {"message": str(e)}
         })
 
+@api_router.get("/debug/deployment-test")
+async def debug_deployment_test():
+    """Test if the latest backend changes are deployed"""
+    import datetime
+    return {
+        "ok": True,
+        "message": "Backend deployment test endpoint - latest changes active",
+        "timestamp": datetime.datetime.now().isoformat(),
+        "version": "post-duplicate-code-fix"
+    }
+
 @api_router.get("/debug/article-exists")
 async def debug_article_exists(slug: str, db: Session = Depends(get_db)):
     """Check if an article with the given slug exists"""
