@@ -1,10 +1,11 @@
 import axios from 'axios';
 
-// API configuration for CRA (Create React App)
-export const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+// API configuration for single-domain setup
+// In production: Same domain (crewkernegazette.co.uk)
+// In development: localhost backend
+const isDevelopment = process.env.NODE_ENV === 'development';
+export const API_BASE = isDevelopment ? 'http://localhost:8001' : window.location.origin;
 
-// For development, default to localhost
-// For production, use the environment variable pointing to api.crewkernegazette.co.uk
 console.log('API_BASE configured as:', API_BASE);
 
 // Create centralized axios instance  
