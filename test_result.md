@@ -629,7 +629,7 @@
 
 ## test_plan:
   current_focus: 
-    - "Article linking verification"
+    - "Social media sharing and OG meta tags functionality"
   stuck_tasks: 
     - "Production backend API deployment issue"
   test_all: false
