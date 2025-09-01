@@ -500,16 +500,16 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <title>Article Not Found | The Crewkerne Gazette</title>
     <meta name="description" content="The requested article could not be found on The Crewkerne Gazette.">
     
-    <!-- Open Graph Meta Tags -->
+    <!-- Open Graph Meta Tags - Complete Set -->
     <meta property="og:title" content="Article Not Found | The Crewkerne Gazette">
     <meta property="og:description" content="The requested article could not be found.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_slug}">
     <meta property="og:image" content="{fallback_image}">
+    <meta property="og:image:secure_url" content="{fallback_image}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:type" content="image/jpeg">
-    <meta property="og:image:secure_url" content="{fallback_image}">
     <meta property="og:site_name" content="The Crewkerne Gazette">
 {fb_app_id_tag}
     
