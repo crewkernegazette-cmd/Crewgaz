@@ -607,7 +607,16 @@ async def og_article(slug: str, db: Session = Depends(get_db)):
 </body>
 </html>"""
     
-    return Response(doc, media_type="text/html", status_code=200)
+    return Response(
+        doc, 
+        media_type="text/html", 
+        status_code=200,
+        headers={
+            "Cache-Control": "public, max-age=300",
+            "X-Robots-Tag": "all",
+            "Vary": "User-Agent"
+        }
+    )
 
 @app.get("/test/create-sample-article")
 async def create_sample_article(db: Session = Depends(get_db)):
