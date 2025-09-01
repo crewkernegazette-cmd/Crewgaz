@@ -1896,6 +1896,106 @@ async def debug_resolve_slug(slug: str, current_user: User = Depends(get_current
         logger.error(f"Error in debug/resolve-slug: {e}")
         return {"error": str(e)}
 
+@api_router.get("/debug/og")
+async def debug_og_values(slug: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Debug endpoint to return exact OG values that crawler page will emit"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        # Normalize slug for lookup
+        normalized_slug = slug.strip().lower()
+        
+        # Look for article (case-insensitive)
+        from sqlalchemy import func
+        db_article = db.query(DBArticle).filter(func.lower(DBArticle.slug) == normalized_slug).first()
+        
+        if db_article:
+            # Convert to Pydantic model
+            article_obj = Article(
+                id=db_article.id,
+                uuid=db_article.uuid,
+                slug=db_article.slug,
+                title=db_article.title,
+                subheading=db_article.subheading,
+                content=db_article.content,
+                category=db_article.category,
+                publisher_name=db_article.publisher_name,
+                author_name=db_article.author_name,
+                author_id=db_article.author_id,
+                featured_image=db_article.featured_image,
+                image_caption=db_article.image_caption,
+                video_url=db_article.video_url,
+                tags=json.loads(db_article.tags) if db_article.tags else [],
+                category_labels=json.loads(db_article.category_labels) if db_article.category_labels else [],
+                is_breaking=db_article.is_breaking,
+                is_published=db_article.is_published,
+                pinned_at=db_article.pinned_at,
+                priority=db_article.priority,
+                created_at=db_article.created_at,
+                updated_at=db_article.updated_at
+            )
+            
+            # Generate OG values as they would appear
+            title_safe = article_obj.title.replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+            
+            if article_obj.subheading:
+                description_safe = article_obj.subheading[:160].replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+            else:
+                import re
+                plain_content = re.sub(r'<[^>]+>', '', article_obj.content or '')
+                description_safe = plain_content[:160].replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+            
+            image_url = pick_og_image(article_obj)
+            image_check = validate_image_url(image_url)
+            
+            return {
+                "ok": True,
+                "slug": slug,
+                "title": title_safe,
+                "description": description_safe,
+                "image": image_url,
+                "image_check": image_check,
+                "url": f"https://crewkernegazette.co.uk/article/{slug}",
+                "article_found": True,
+                "article_id": article_obj.id
+            }
+        else:
+            # Article not found - return fallback values
+            image_url = pick_og_image(None)
+            image_check = validate_image_url(image_url)
+            
+            return {
+                "ok": True,
+                "slug": slug,
+                "title": "Article Not Found | The Crewkerne Gazette",
+                "description": "The requested article could not be found on The Crewkerne Gazette.",
+                "image": image_url,
+                "image_check": image_check,
+                "url": f"https://crewkernegazette.co.uk/article/{slug}",
+                "article_found": False,
+                "article_id": None
+            }
+            
+    except Exception as e:
+        logger.error(f"Error in debug/og: {e}")
+        
+        # Even on error, return safe fallback values
+        image_url = pick_og_image(None)
+        image_check = validate_image_url(image_url)
+        
+        return {
+            "ok": False,
+            "slug": slug,
+            "title": "The Crewkerne Gazette",
+            "description": "Bold, unapologetic journalism from Somerset to the nation.",
+            "image": image_url,
+            "image_check": image_check,
+            "url": f"https://crewkernegazette.co.uk/article/{slug}",
+            "error": str(e),
+            "article_found": False
+        }
+
 @api_router.get("/debug/env")
 async def debug_env(current_user: User = Depends(get_current_user)):
     """Debug endpoint to show masked environment configuration (admin only)"""
