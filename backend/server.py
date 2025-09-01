@@ -395,12 +395,43 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
         logger.info(f"🤖 Detected crawler for article '{article_slug}', serving meta HTML")
         # Serve static HTML with meta tags for crawlers
         try:
-            db_article = db.query(DBArticle).filter(DBArticle.slug == article_slug).first()
+            # HARDENED SLUG LOOKUP - normalize incoming slug
+            original_slug = article_slug
+            normalized_slug = article_slug.strip().lower()
+            
+            logger.info(f"🔍 Crawler lookup: original='{original_slug}' normalized='{normalized_slug}'")
+            
+            # Get recent slugs for comparison
+            recent_articles = db.query(DBArticle).order_by(DBArticle.created_at.desc()).limit(10).all()
+            recent_slugs = [art.slug for art in recent_articles]
+            logger.info(f"📊 Recent slugs in DB: {recent_slugs}")
+            
+            # Case-insensitive slug lookup
+            from sqlalchemy import func
+            db_article = db.query(DBArticle).filter(func.lower(DBArticle.slug) == normalized_slug).first()
+            
             if not db_article:
-                logger.warning(f"📄 Article not found for slug: {article_slug}")
+                logger.warning(f"📄 Article not found for slug: {original_slug} (normalized: {normalized_slug})")
+                
+                # Find closest matching slug using Levenshtein distance
+                all_slugs = [art.slug for art in db.query(DBArticle).all()]
+                closest_matches = []
+                for slug in all_slugs:
+                    distance = calculate_levenshtein_distance(normalized_slug, slug.lower())
+                    closest_matches.append((slug, distance))
+                
+                closest_matches.sort(key=lambda x: x[1])
+                closest_slug = closest_matches[0][0] if closest_matches else "no-articles-found"
+                logger.info(f"🎯 Closest slug match: '{closest_slug}' (distance: {closest_matches[0][1] if closest_matches else 'N/A'})")
+                
                 # Return 200 HTML with default meta tags for non-existent articles
                 # This prevents "Bad Response Code" in Facebook debugger
                 fallback_image = pick_og_image(None)
+                
+                # Get Facebook App ID for fallback
+                fb_app_id = FACEBOOK_APP_ID or FB_APP_ID
+                fb_app_id_tag = f'    <meta property="fb:app_id" content="{fb_app_id}">' if fb_app_id else ""
+                
                 default_meta_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -422,6 +453,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:secure_url" content="{fallback_image}">
     <meta property="og:site_name" content="The Crewkerne Gazette">
+{fb_app_id_tag}
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
@@ -444,9 +476,13 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
                     headers={
                         "Accept-Ranges": "none",
                         "Cache-Control": "public, max-age=300",
-                        "X-Robots-Tag": "all"
+                        "X-Robots-Tag": "all",
+                        "Vary": "User-Agent",
+                        "X-Debug-Closest-Slug": closest_slug
                     }
                 )
+            
+            logger.info(f"✅ Article found: '{db_article.title}' (ID: {db_article.id})")
             
             # Convert to Pydantic model
             article_obj = Article(
