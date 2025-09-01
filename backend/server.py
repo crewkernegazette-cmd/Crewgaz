@@ -783,7 +783,7 @@ async def get_articles(limit: int = 10, category: Optional[str] = None, db: Sess
     if category:
         query = query.filter(DBArticle.category == category)
     
-    db_articles = query.order_by(DBArticle.created_at.desc()).limit(limit).all()
+    db_articles = query.order_by(DBArticle.is_breaking.desc(), DBArticle.created_at.desc()).limit(limit).all()
     
     # Convert to Pydantic models
     articles = []
