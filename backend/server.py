@@ -529,10 +529,9 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
             # Use proper Cloudinary image
             image_url = pick_og_image(article_obj)
             
-            # Optional Facebook App ID meta tag
-            fb_app_id_tag = ""
-            if FB_APP_ID:
-                fb_app_id_tag = f'    <meta property="fb:app_id" content="{FB_APP_ID}">'
+            # Get Facebook App ID for meta tag
+            fb_app_id = FACEBOOK_APP_ID or FB_APP_ID
+            fb_app_id_tag = f'    <meta property="fb:app_id" content="{fb_app_id}">' if fb_app_id else ""
             
             # Generate SEO-friendly meta HTML for crawlers
             meta_html = f"""<!DOCTYPE html>
@@ -619,7 +618,8 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
                 headers={
                     "Accept-Ranges": "none",
                     "Cache-Control": "public, max-age=300",
-                    "X-Robots-Tag": "all"
+                    "X-Robots-Tag": "all",
+                    "Vary": "User-Agent"
                 }
             )
             
