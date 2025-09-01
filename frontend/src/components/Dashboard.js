@@ -240,7 +240,21 @@ const Dashboard = () => {
       fetchDashboardData();
     } catch (error) {
       console.error('Error submitting article:', error);
-      toast.error(error.response?.data?.detail || 'Failed to submit article');
+      console.error('Error response:', error.response?.data);
+      
+      // Show detailed error message
+      let errorMessage = 'Failed to submit article';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.status === 422) {
+        errorMessage = 'Validation error - please check your input';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Please log in again';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
