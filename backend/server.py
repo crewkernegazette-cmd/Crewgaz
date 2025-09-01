@@ -491,7 +491,8 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
 {image_type_tag}
     <meta property="og:image:secure_url" content="{image_url}">
     <meta property="og:site_name" content="The Crewkerne Gazette">
-    <meta property="article:published_time" content="{article_obj.created_at.isoformat()}">
+    <meta property="article:published_time" content="{published_iso}">
+    <meta property="article:modified_time" content="{updated_iso}">
     <meta property="article:author" content="{article_obj.author_name or article_obj.publisher_name}">
     <meta property="article:section" content="{article_obj.category.value if hasattr(article_obj.category, 'value') else article_obj.category}">
     
@@ -513,8 +514,8 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
         "headline": "{title_safe}",
         "description": "{description_safe}",
         "image": "{image_url}",
-        "datePublished": "{article_obj.created_at.isoformat()}",
-        "dateModified": "{article_obj.updated_at.isoformat()}",
+        "datePublished": "{published_iso}",
+        "dateModified": "{updated_iso}",
         "author": {{
             "@type": "Person",
             "name": "{article_obj.author_name or article_obj.publisher_name}"
@@ -532,7 +533,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
             "@id": "https://crewkernegazette.co.uk/article/{article_slug}"
         }},
         "articleSection": "{article_obj.category.value if hasattr(article_obj.category, 'value') else article_obj.category}",
-        "keywords": "{', '.join(json.loads(article_obj.tags)) if article_obj.tags else article_obj.category.value if hasattr(article_obj.category, 'value') else article_obj.category}"
+        "keywords": "{', '.join(article_obj.tags) if article_obj.tags else (article_obj.category.value if hasattr(article_obj.category, 'value') else str(article_obj.category))}"
     }}
     </script>
 </head>
