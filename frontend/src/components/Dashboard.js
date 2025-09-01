@@ -252,19 +252,41 @@ const Dashboard = () => {
       console.error('Error submitting article:', error);
       console.error('Error response:', error.response?.data);
       
-      // Show detailed error message
+      // Show detailed error message from API
       let errorMessage = 'Failed to submit article';
-      if (error.response?.data?.detail) {
-        errorMessage = error.response.data.detail;
-      } else if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Handle structured API errors
+        if (errorData.ok === false && errorData.error) {
+          errorMessage = errorData.error;
+          if (errorData.details?.allowed_values) {
+            errorMessage += `. Allowed categories: ${errorData.details.allowed_values.join(', ')}`;
+          }
+        } else if (errorData.detail) {
+          // Handle FastAPI validation errors
+          if (Array.isArray(errorData.detail)) {
+            const firstError = errorData.detail[0];
+            errorMessage = `${firstError.loc?.join('.')} ${firstError.msg}`;
+          } else {
+            errorMessage = errorData.detail;
+          }
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        }
       } else if (error.response?.status === 422) {
         errorMessage = 'Validation error - please check your input';
       } else if (error.response?.status === 401) {
         errorMessage = 'Please log in again';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Access denied - admin permission required';
       }
       
       toast.error(errorMessage);
+      
+      // Prevent navigation to error page - keep user on dashboard
+      return;
     } finally {
       setIsSubmitting(false);
     }
