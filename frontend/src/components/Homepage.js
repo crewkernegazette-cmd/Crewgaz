@@ -14,13 +14,11 @@ import axios from 'axios';
 import { API_BASE } from '../config/api';
 
 const Homepage = () => {
-  const [articles, setArticles] = useState([]);
   const [breakingNews, setBreakingNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
-    fetchArticles();
     fetchBreakingNews();
     fetchPublicSettings();
   }, []);
@@ -35,25 +33,6 @@ const Homepage = () => {
       console.error('Error fetching public settings:', error);
       // Default to showing banner if error
       setShowBanner(true);
-    }
-  };
-
-  const fetchArticles = async () => {
-    try {
-      console.warn('Fetching articles...');
-      // Simple article fetch to avoid crashes
-      const response = await axios.get(`${API_BASE}/api/articles?limit=8`, {
-        withCredentials: true
-      });
-      
-      // Ensure we always have arrays, never null
-      const articlesData = Array.isArray(response.data) ? response.data : [];
-      setArticles(articlesData);
-      console.warn('Articles state after fetch:', articlesData);
-    } catch (error) {
-      console.error('Error fetching articles:', error);
-      setArticles([]); // Ensure it's always an array
-      console.warn('Articles state set to empty array due to error');
     }
   };
 
