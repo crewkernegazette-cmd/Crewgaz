@@ -465,6 +465,11 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
             # Use proper Cloudinary image
             image_url = pick_og_image(article_obj)
             
+            # Optional Facebook App ID meta tag
+            fb_app_id_tag = ""
+            if FB_APP_ID:
+                fb_app_id_tag = f'    <meta property="fb:app_id" content="{FB_APP_ID}">'
+            
             # Generate SEO-friendly meta HTML for crawlers
             meta_html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -491,6 +496,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <meta property="article:modified_time" content="{updated_iso}">
     <meta property="article:author" content="{article_obj.author_name or article_obj.publisher_name}">
     <meta property="article:section" content="{article_obj.category.value if hasattr(article_obj.category, 'value') else article_obj.category}">
+{fb_app_id_tag}
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
