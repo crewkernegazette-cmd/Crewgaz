@@ -1168,7 +1168,7 @@ async def create_article_json(
             updated_at=db_article.updated_at
         )
         
-        logging.info("ARTICLES_JSON returning successful response")
+        logging.info(f"ARTICLES_JSON returning successful response for article ID {db_article.id}, slug '{db_article.slug}'")
         return article_response
         
     except HTTPException:
