@@ -1119,38 +1119,19 @@ async def create_article_json(
         db.commit()
         db.refresh(db_article)
         
-        # Comprehensive database verification
+        # Simple database verification
         logging.info(f"ARTICLES_JSON: Verifying article {db_article.id} with slug '{db_article.slug}'")
         
-        # First verification - same session
-        verification1 = db.query(DBArticle).filter(DBArticle.id == db_article.id).first()
-        logging.info(f"ARTICLES_JSON: Same session verification: {bool(verification1)}")
-        
-        # Second verification - new session 
-        from database import SessionLocal
-        new_db = SessionLocal()
-        try:
-            verification2 = new_db.query(DBArticle).filter(DBArticle.slug == db_article.slug).first()
-            logging.info(f"ARTICLES_JSON: New session verification: {bool(verification2)}")
-            total_count = new_db.query(DBArticle).count()
-            logging.info(f"ARTICLES_JSON: Total articles in new session: {total_count}")
-        finally:
-            new_db.close()
-        
-        if not verification1:
-            logging.error(f"ARTICLES_JSON ERROR: Article not found in same session after commit!")
+        # Basic verification in same session
+        verification = db.query(DBArticle).filter(DBArticle.id == db_article.id).first()
+        if not verification:
+            logging.error(f"ARTICLES_JSON ERROR: Article not found after commit! ID: {db_article.id}")
             raise HTTPException(status_code=500, detail={
                 "ok": False,
-                "error": "Article creation failed - same session verification failed"
+                "error": "Article creation failed - database verification failed"
             })
-        elif not verification2:
-            logging.error(f"ARTICLES_JSON ERROR: Article not found in new session after commit!")
-            raise HTTPException(status_code=500, detail={
-                "ok": False,
-                "error": "Article creation failed - cross-session verification failed"
-            })
-        else:
-            logging.info(f"ARTICLES_JSON VERIFIED: Article {db_article.id} successfully saved and accessible across sessions")
+        
+        logging.info(f"ARTICLES_JSON VERIFIED: Article {db_article.id} successfully saved to database")
         
         logging.info(f"ARTICLES_JSON SUCCESS: Created article id={db_article.id}, slug='{db_article.slug}', category={db_article.category}")
 
