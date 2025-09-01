@@ -52,48 +52,7 @@ const Homepage = () => {
     setLoading(false); // Always set loading to false
   };
 
-  const getCategoryBadgeClass = (category) => {
-    switch (category) {
-      case 'news': return 'category-news';
-      case 'music': return 'category-music';
-      case 'documentaries': return 'category-documentaries';
-      case 'comedy': return 'category-comedy';
-      default: return 'category-news';
-    }
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const renderCategoryLabels = (labels) => {
-    if (!Array.isArray(labels) || labels.length === 0) return null;
-    
-    return (
-      <div className="flex flex-wrap gap-1 mb-2">
-        {labels.slice(0, 2).map((label, index) => (
-          <Badge 
-            key={index} 
-            className="bg-red-600/20 text-red-300 border border-red-600/30 text-xs px-2 py-1"
-          >
-            {label}
-          </Badge>
-        ))}
-        {labels.length > 2 && (
-          <Badge className="bg-slate-600/20 text-slate-300 border border-slate-600/30 text-xs px-2 py-1">
-            +{labels.length - 2}
-          </Badge>
-        )}
-      </div>
-    );
-  };
-
   // Debug logging in render
-  console.warn('Homepage render - Articles state:', articles, 'Type:', typeof articles, 'IsArray:', Array.isArray(articles));
   console.warn('Homepage render - Breaking news state:', breakingNews, 'Type:', typeof breakingNews, 'IsArray:', Array.isArray(breakingNews));
 
   if (loading) {
