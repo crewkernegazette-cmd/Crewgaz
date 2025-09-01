@@ -55,9 +55,26 @@ JWT_SECRET = os.getenv('JWT_SECRET') or 'emergency-fallback-secret-key-please-ch
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = 24
 
+# Default OG image from environment
+DEFAULT_OG_IMAGE = os.getenv("DEFAULT_OG_IMAGE")
+
 # Log if using fallback JWT secret
 if os.getenv('JWT_SECRET') is None:
     logger.warning("⚠️ Using emergency JWT_SECRET fallback - please set JWT_SECRET environment variable for security")
+
+# Helper functions for OG image handling
+def pick_og_image(article_obj):
+    """Pick the best available og:image URL, always returns absolute HTTPS URL"""
+    if article_obj and article_obj.featured_image and article_obj.featured_image.startswith("http"):
+        return article_obj.featured_image
+    if DEFAULT_OG_IMAGE and DEFAULT_OG_IMAGE.startswith("http"):
+        return DEFAULT_OG_IMAGE
+    # Last-ditch Cloudinary fallback that always exists in our account
+    return "https://res.cloudinary.com/dqren9j0f/image/upload/f_auto,q_auto/og-fallback.jpg"
+
+def absolutize(url):
+    """Ensure URL is absolute HTTPS"""
+    return url if url.startswith("http") else f"https://crewkernegazette.co.uk{url}"
 
 # Available article categories
 AVAILABLE_CATEGORY_LABELS = [
