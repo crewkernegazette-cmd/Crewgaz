@@ -12,23 +12,18 @@ const SimpleLogin = () => {
     setError('');
     
     try {
-      const response = await fetch('https://crewkernegazette.co.uk/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+      const response = await apiClient.post('/api/auth/login', credentials);
       
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('access_token', data.access_token);
+      if (response.data.access_token) {
+        localStorage.setItem('access_token', response.data.access_token);
         window.location.href = '/dashboard';
       } else {
         setError('Invalid credentials');
       }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      console.error('Login error:', err);
+      const errorMessage = err.response?.data?.detail || 'Login failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
