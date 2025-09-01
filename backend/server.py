@@ -1760,6 +1760,57 @@ async def get_last_errors():
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
+@api_router.get("/debug/database-info")
+async def debug_database_info():
+    """Check database connection and column information"""
+    try:
+        from sqlalchemy import create_engine, text
+        import os
+        
+        DATABASE_URL = os.getenv('DATABASE_URL', 'Not set')
+        
+        # Mask password for security
+        display_url = DATABASE_URL
+        if '@' in display_url:
+            parts = display_url.split('@')
+            if len(parts) > 1:
+                user_part = parts[0].split('://')[-1]
+                if ':' in user_part:
+                    user, _ = user_part.split(':', 1)
+                    display_url = display_url.replace(user_part, f"{user}:***")
+        
+        engine = create_engine(DATABASE_URL)
+        
+        with engine.connect() as conn:
+            # Get table info
+            result = conn.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'articles'
+                ORDER BY column_name;
+            """))
+            
+            columns = [row[0] for row in result.fetchall()]
+            
+            # Check for our specific columns
+            new_columns = ['category_labels', 'pinned_at', 'priority']
+            has_columns = {col: col in columns for col in new_columns}
+            
+            return {
+                "ok": True,
+                "database_url": display_url,
+                "articles_table_columns": columns,
+                "required_columns_status": has_columns,
+                "all_required_present": all(has_columns.values())
+            }
+            
+    except Exception as e:
+        return {
+            "ok": False,
+            "error": str(e),
+            "database_url": display_url if 'display_url' in locals() else "Unknown"
+        }
+
 @api_router.get("/debug/create-test-article-simple")
 async def create_test_article_simple(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Create a simple test article for mobile smoke testing (admin only)"""
