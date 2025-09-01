@@ -404,17 +404,17 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
             
             logger.info(f"🔍 Crawler lookup: original='{original_slug}' normalized='{normalized_slug}'")
             
-            # Get recent slugs for comparison
-            recent_articles = db.query(DBArticle).order_by(DBArticle.created_at.desc()).limit(10).all()
+            # Get recent slugs for comparison (increased to 20 for better debugging)
+            recent_articles = db.query(DBArticle).order_by(DBArticle.created_at.desc()).limit(20).all()
             recent_slugs = [art.slug for art in recent_articles]
-            logger.info(f"📊 Recent slugs in DB: {recent_slugs}")
+            logger.info(f"📊 Last 20 slugs in DB: {recent_slugs}")
             
             # Case-insensitive slug lookup
             from sqlalchemy import func
             db_article = db.query(DBArticle).filter(func.lower(DBArticle.slug) == normalized_slug).first()
             
             if not db_article:
-                logger.warning(f"📄 Article not found for slug: {original_slug} (normalized: {normalized_slug})")
+                logger.warning(f"📄 Article not found for slug: original='{original_slug}' normalized='{normalized_slug}'")
                 
                 # Find closest matching slug using Levenshtein distance
                 all_slugs = [art.slug for art in db.query(DBArticle).all()]
@@ -481,6 +481,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
                         "Cache-Control": "public, max-age=300",
                         "X-Robots-Tag": "all",
                         "Vary": "User-Agent",
+                        "X-Debug-Slug": normalized_slug,
                         "X-Debug-Closest-Slug": closest_slug
                     }
                 )
