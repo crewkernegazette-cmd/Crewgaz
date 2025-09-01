@@ -198,6 +198,8 @@ const Dashboard = () => {
           category_labels: article.category_labels || [],
           is_breaking: article.is_breaking,
           is_published: article.is_published,
+          pin: article.pin || false,
+          priority: article.priority || 0,
         };
 
         response = await axios.post(`${API_BASE}/api/articles.json`, jsonPayload, {
