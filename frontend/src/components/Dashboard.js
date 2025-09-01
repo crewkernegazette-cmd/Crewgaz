@@ -210,7 +210,7 @@ const Dashboard = () => {
         formData.append('title', article.title);
         formData.append('subheading', article.subheading || '');
         formData.append('content', article.content);
-        formData.append('category', article.category);
+        formData.append('category', article.category.toLowerCase());
         formData.append('publisher_name', article.publisher_name);
         formData.append('image_caption', article.image_caption || '');
         formData.append('video_url', article.video_url || '');
