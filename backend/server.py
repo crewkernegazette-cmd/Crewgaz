@@ -1847,6 +1847,7 @@ async def debug_env(current_user: User = Depends(get_current_user)):
             "has_cloudinary_key": bool(os.getenv('CLOUDINARY_API_KEY')),
             "has_cloudinary_secret": bool(os.getenv('CLOUDINARY_API_SECRET')),
             "has_fb_app_id": bool(os.getenv('FB_APP_ID')),
+            "has_facebook_app_id": bool(os.getenv('FACEBOOK_APP_ID')),
             "database_url_host": database_host,
             "has_jwt_secret": bool(os.getenv('JWT_SECRET')),
             "environment": "development"  # Could be made dynamic
