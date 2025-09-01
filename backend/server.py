@@ -59,6 +59,7 @@ JWT_EXPIRATION_HOURS = 24
 DEFAULT_OG_IMAGE = os.getenv("DEFAULT_OG_IMAGE")
 CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
 FB_APP_ID = os.getenv("FB_APP_ID")
+FACEBOOK_APP_ID = os.getenv("FACEBOOK_APP_ID")  # Alternative env var name
 
 # Log if using fallback JWT secret
 if os.getenv('JWT_SECRET') is None:
@@ -69,8 +70,15 @@ def pick_og_image(article_obj):
     """Pick the best available og:image URL, always returns absolute HTTPS URL"""
     # 1. Use article featured image if absolute http(s)
     if article_obj and article_obj.featured_image and article_obj.featured_image.startswith("http"):
-        logger.info(f"🖼️ Using article featured image: {article_obj.featured_image}")
-        return article_obj.featured_image
+        image_url = article_obj.featured_image
+        
+        # Add Cloudinary transformation if it's a Cloudinary URL without size transform
+        if 'cloudinary.com' in image_url and '/upload/' in image_url and ',w_' not in image_url and ',h_' not in image_url:
+            # Insert transformation after /upload/
+            image_url = image_url.replace('/upload/', '/upload/f_auto,q_auto,w_1200,h_630,c_fill/')
+        
+        logger.info(f"🖼️ Using article featured image: {image_url}")
+        return image_url
     
     # 2. Use DEFAULT_OG_IMAGE from env
     if DEFAULT_OG_IMAGE and DEFAULT_OG_IMAGE.startswith("http"):
@@ -85,6 +93,26 @@ def pick_og_image(article_obj):
 def absolutize(url):
     """Ensure URL is absolute HTTPS"""
     return url if url.startswith("http") else f"https://crewkernegazette.co.uk{url}"
+
+def calculate_levenshtein_distance(s1, s2):
+    """Calculate Levenshtein distance between two strings"""
+    if len(s1) < len(s2):
+        return calculate_levenshtein_distance(s2, s1)
+
+    if len(s2) == 0:
+        return len(s1)
+
+    previous_row = list(range(len(s2) + 1))
+    for i, c1 in enumerate(s1):
+        current_row = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = previous_row[j + 1] + 1
+            deletions = current_row[j] + 1
+            substitutions = previous_row[j] + (c1 != c2)
+            current_row.append(min(insertions, deletions, substitutions))
+        previous_row = current_row
+    
+    return previous_row[-1]
 
 # Available article categories
 AVAILABLE_CATEGORY_LABELS = [
