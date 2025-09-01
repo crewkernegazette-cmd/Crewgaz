@@ -63,7 +63,7 @@ function App() {
       
       // Store token and set up authentication
       localStorage.setItem('access_token', access_token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       
       // Create user object from response data
       const userData = {
