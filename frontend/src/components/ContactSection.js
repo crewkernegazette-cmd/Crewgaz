@@ -85,25 +85,9 @@ const ContactSection = () => {
       const requestData = { name, email, message };
       console.log('🌐 CONTACT FORM: Sending request:', requestData);
       
-      // Make the API call
-      const response = await fetch(`${API}/contacts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      console.log('📡 CONTACT FORM: Response received:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.log('❌ CONTACT FORM: Error response:', errorData);
-        throw new Error(`Server error: ${response.status}`);
-      }
-
-      const responseData = await response.json();
-      console.log('✅ CONTACT FORM: Success response:', responseData);
+      // Make the API call using centralized client
+      const response = await apiClient.post('/api/contacts', requestData);
+      console.log('✅ CONTACT FORM: Success response:', response.data);
 
       // Clear timeout since we succeeded
       clearTimeout(timeoutId);
