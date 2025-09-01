@@ -1689,7 +1689,7 @@ async def create_test_article(
         
         # Generate unique UUID and slug
         article_uuid = str(uuid.uuid4())
-        article_slug = generate_slug(db, article_data.title)
+        article_slug = generate_slug(article_data.title, db)
         
         # Create database article
         db_article = DBArticle(
