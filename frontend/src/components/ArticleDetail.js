@@ -22,21 +22,34 @@ const ArticleDetail = () => {
 
   const fetchArticle = async () => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/articles/${slug}`);
+      setLoading(true);
+      setError(null);
+      
+      // Fetch article detail using correct API endpoint
+      const response = await apiClient.get(`/articles/${slug}`);
       setArticle(response.data);
       
-      // Fetch related articles (for now, use general articles endpoint)
-      const relatedResponse = await axios.get(`${BACKEND_URL}/articles?limit=3&category=${response.data.category}`);
+      // Fetch related articles
+      const relatedResponse = await apiClient.get(`/articles?limit=3&category=${response.data.category}`);
       const filteredRelated = relatedResponse.data.filter(a => a.slug !== slug);
       setRelatedArticles(filteredRelated.slice(0, 3));
       
       // Fetch structured data
-      const structuredResponse = await axios.get(`${BACKEND_URL}/articles/${slug}/structured-data`);
-      setStructuredData(structuredResponse.data);
+      try {
+        const structuredResponse = await apiClient.get(`/articles/${slug}/structured-data`);
+        setStructuredData(structuredResponse.data);
+      } catch (structuredError) {
+        console.warn('Structured data not available for this article');
+        // Not critical, continue without structured data
+      }
       
     } catch (error) {
       console.error('Error fetching article:', error);
-      setError('Article not found');
+      if (error.response?.status === 404) {
+        setError('Article not found (maybe it was unpublished)');
+      } else {
+        setError('Failed to load article. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
