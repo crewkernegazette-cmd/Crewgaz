@@ -224,6 +224,8 @@ const Dashboard = () => {
         formData.append('category_labels', JSON.stringify(article.category_labels));
         formData.append('is_breaking', article.is_breaking);
         formData.append('is_published', article.is_published);
+        formData.append('pin', article.pin || false);
+        formData.append('priority', article.priority || 0);
 
         if (selectedImageFile) {
           formData.append('featured_image', selectedImageFile);
