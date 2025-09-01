@@ -141,6 +141,22 @@ class ArticleCreate(BaseModel):
     pin: Optional[bool] = False  # Frontend boolean for pinning
     priority: int = 0
 
+    @validator('category', pre=True)
+    def validate_category(cls, v):
+        """Convert string category to enum, case-insensitive"""
+        if isinstance(v, ArticleCategory):
+            return v
+        if isinstance(v, str):
+            raw = v.strip()
+            # Try by value then by name
+            for c in ArticleCategory:
+                if raw.lower() == c.value.lower() or raw.lower() == c.name.lower():
+                    return c
+            # If no match, raise validation error
+            valid = [c.value for c in ArticleCategory]
+            raise ValueError(f"Invalid category '{v}'. Allowed values: {valid}")
+        raise ValueError(f"Category must be string or ArticleCategory enum, got {type(v)}")
+
     @validator('content', pre=True)
     def sanitize_content(cls, v):
         if v:
