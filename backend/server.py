@@ -788,7 +788,14 @@ async def get_articles(limit: int = 10, category: Optional[str] = None, db: Sess
     if category:
         query = query.filter(DBArticle.category == category)
     
-    db_articles = query.order_by(DBArticle.is_breaking.desc(), DBArticle.created_at.desc()).limit(limit).all()
+    # Order by pinning logic: pinned first, then by priority, breaking, then newest
+    db_articles = query.order_by(
+        (DBArticle.pinned_at.isnot(None)).desc(),  # Pinned articles first
+        DBArticle.pinned_at.desc(),                # Newest pin wins among pinned
+        DBArticle.priority.desc(),                 # Higher priority first
+        DBArticle.is_breaking.desc(),              # Breaking news next
+        DBArticle.created_at.desc()                # Then by newest
+    ).limit(limit).all()
     
     # Convert to Pydantic models
     articles = []
