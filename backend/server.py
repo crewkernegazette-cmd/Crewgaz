@@ -979,6 +979,9 @@ async def create_article(
     except:
         valid_category_labels = []
     
+    # Use robust category coercion
+    category_enum = coerce_category(category)
+    
     # Sanitize content
     cleaned_content = bleach.clean(
         content, 
@@ -990,6 +993,9 @@ async def create_article(
     article_uuid = str(uuid.uuid4())
     article_slug = generate_slug(title, db)
     
+    # Handle pinning with timezone-aware datetime
+    pinned_at = datetime.now(timezone.utc) if pin else None
+    
     # Create database article
     db_article = DBArticle(
         uuid=article_uuid,
@@ -997,7 +1003,7 @@ async def create_article(
         title=title,
         subheading=subheading,
         content=cleaned_content,
-        category=category,
+        category=category_enum,
         publisher_name=publisher_name,
         author_name=current_user.username,
         author_id=str(current_user.id),
@@ -1007,7 +1013,9 @@ async def create_article(
         tags=json.dumps(tags_list),
         category_labels=json.dumps(valid_category_labels),
         is_breaking=is_breaking,
-        is_published=is_published
+        is_published=is_published,
+        pinned_at=pinned_at,
+        priority=priority
     )
     
     db.add(db_article)
