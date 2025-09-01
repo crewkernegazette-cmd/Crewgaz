@@ -391,6 +391,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
                 image_caption=db_article.image_caption,
                 video_url=db_article.video_url,
                 tags=json.loads(db_article.tags) if db_article.tags else [],
+                category_labels=json.loads(db_article.category_labels) if db_article.category_labels else [],
                 is_breaking=db_article.is_breaking,
                 is_published=db_article.is_published,
                 created_at=db_article.created_at,
