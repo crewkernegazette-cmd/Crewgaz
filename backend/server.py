@@ -1640,6 +1640,41 @@ def whoami(request: Request):
         "have_auth_cookie": "auth" in request.cookies
     }
 
+@api_router.get("/debug/check-image")
+async def debug_check_image(url: str):
+    """Debug endpoint to validate og:image URLs for social media crawlers"""
+    try:
+        import requests
+        
+        # Fetch the URL with Facebook crawler user agent
+        response = requests.get(
+            url, 
+            timeout=10, 
+            headers={"User-Agent": "facebookexternalhit/1.1"},
+            allow_redirects=True
+        )
+        
+        return {
+            "url": url,
+            "status_code": response.status_code,
+            "content_type": response.headers.get('content-type', 'unknown'),
+            "content_length": response.headers.get('content-length', 'unknown'),
+            "ok": response.status_code == 200 and response.headers.get('content-type', '').startswith('image/'),
+            "headers": dict(response.headers),
+            "final_url": response.url  # In case of redirects
+        }
+        
+    except Exception as e:
+        return {
+            "url": url,
+            "status_code": 0,
+            "content_type": "error",
+            "content_length": 0,
+            "ok": False,
+            "error": str(e),
+            "headers": {}
+        }
+
 @api_router.get("/debug/article-exists")
 async def debug_article_exists(slug: str, db: Session = Depends(get_db)):
     """Debug endpoint to check if article exists by slug"""
