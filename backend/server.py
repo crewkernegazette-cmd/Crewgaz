@@ -129,7 +129,7 @@ class ArticleCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     subheading: Optional[str] = Field(None, max_length=500)
     content: str = Field(..., min_length=10)
-    category: ArticleCategory
+    category: Union[ArticleCategory, str]  # Accept both enum and string
     publisher_name: Optional[str] = "The Crewkerne Gazette"
     featured_image: Optional[str] = None
     image_caption: Optional[str] = None
