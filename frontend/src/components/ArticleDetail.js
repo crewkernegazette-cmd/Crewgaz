@@ -137,7 +137,7 @@ const ArticleDetail = () => {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Article Not Found</h1>
-          <p className="text-slate-300 mb-6">The article you're looking for doesn't exist.</p>
+          <p className="text-slate-300 mb-6">{error}</p>
           <Link to="/">
             <Button className="bg-red-600 hover:bg-red-700">
               <ArrowLeft className="w-4 h-4 mr-2" />
