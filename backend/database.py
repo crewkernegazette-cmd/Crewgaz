@@ -11,6 +11,7 @@ import bcrypt
 import logging
 import re
 import unicodedata
+from datetime import datetime
 from collections import deque
 from dotenv import load_dotenv
 from alembic import command
@@ -18,6 +19,21 @@ from alembic.config import Config
 
 # Global error log ring buffer (for mobile debugging)
 ERROR_LOG_BUFFER = deque(maxlen=20)
+
+def log_error(message: str, exception: Exception = None):
+    """Log error to both Python logger and ring buffer for mobile debugging"""
+    timestamp = datetime.now().isoformat()
+    error_entry = {
+        "timestamp": timestamp,
+        "message": message,
+        "exception": str(exception) if exception else None
+    }
+    ERROR_LOG_BUFFER.append(error_entry)
+    
+    if exception:
+        logging.error(f"{message}: {exception}", exc_info=True)
+    else:
+        logging.error(message)
 
 # Load environment variables
 load_dotenv()
