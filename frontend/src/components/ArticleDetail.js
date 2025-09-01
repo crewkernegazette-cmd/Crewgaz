@@ -56,23 +56,28 @@ const ArticleDetail = () => {
   };
 
   const shareArticle = (platform) => {
-    const url = window.location.href;
+    // Use OG endpoint for social media crawlers, canonical URL for clipboard
+    const canonicalUrl = window.location.href;
+    const ogUrl = `https://api.crewkernegazette.co.uk/og/article/${article.slug}`;
     const text = `${article.title}${article.subheading ? ` - ${article.subheading}` : ''} | The Crewkerne Gazette`;
     
     let shareUrl = '';
     switch (platform) {
       case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+        // Twitter uses OG endpoint for rich previews
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(ogUrl)}`;
         break;
       case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        // Facebook uses OG endpoint for rich previews
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(ogUrl)}`;
         break;
       case 'linkedin':
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&title=${encodeURIComponent(article.title)}`;
+        // LinkedIn uses OG endpoint for rich previews
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(ogUrl)}&title=${encodeURIComponent(article.title)}`;
         break;
       default:
-        // Copy to clipboard
-        navigator.clipboard.writeText(url).then(() => {
+        // Copy canonical URL to clipboard (for human use)
+        navigator.clipboard.writeText(canonicalUrl).then(() => {
           showToast('Link copied to clipboard!', 'success');
         }).catch(() => {
           showToast('Failed to copy link', 'error');
