@@ -1112,7 +1112,7 @@ async def create_article_json(
             title=db_article.title,
             subheading=db_article.subheading,
             content=db_article.content,
-            category=db_article.category,
+            category=category_enum,
             publisher_name=db_article.publisher_name,
             author_name=db_article.author_name,
             author_id=db_article.author_id,
