@@ -154,7 +154,24 @@ const ArticleDetail = () => {
     );
   }
 
-  if (!article) return null;
+  // Don't render null - this causes blank screens
+  // Loading and error states are handled above
+  if (!article && !loading && !error) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Article Not Available</h1>
+          <p className="text-slate-300 mb-6">The article could not be loaded. Please try refreshing the page.</p>
+          <Link to="/">
+            <Button className="bg-red-600 hover:bg-red-700">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const fullImageUrl = getFullImageUrl(article.featured_image);
   const fullUrl = `${window.location.origin}/article/${article.slug}`;
