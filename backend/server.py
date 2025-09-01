@@ -506,7 +506,100 @@ def set_setting(db: Session, key: str, value: str):
         db.add(setting)
     db.commit()
 
-# Article page route for social media crawlers  
+@app.get("/og/article/{slug}")
+async def og_article(slug: str, db: Session = Depends(get_db)):
+    """
+    Dedicated OG endpoint for social media crawlers.
+    Returns HTML with OG meta tags and meta-refresh to canonical SPA URL.
+    """
+    import html
+    
+    canonical = f"https://crewkernegazette.co.uk/article/{html.escape(slug)}"
+    
+    # Try to get article data
+    article = get_article_by_slug(slug, db)
+    
+    if not article:
+        logger.info(f"🔗 OG endpoint: Article not found for slug '{slug}', serving 404 with default OG tags")
+        
+        doc = f"""<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Article Not Found | The Crewkerne Gazette</title>
+    <link rel="canonical" href="{canonical}"/>
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content="Article Not Found | The Crewkerne Gazette"/>
+    <meta property="og:description" content="This article does not exist on The Crewkerne Gazette."/>
+    <meta property="og:url" content="{canonical}"/>
+    <meta property="og:image" content="{DEFAULT_OG_IMAGE}"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <meta property="og:site_name" content="The Crewkerne Gazette"/>
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="Article Not Found | The Crewkerne Gazette"/>
+    <meta name="twitter:description" content="This article does not exist on The Crewkerne Gazette."/>
+    <meta name="twitter:image" content="{DEFAULT_OG_IMAGE}"/>
+    
+    <!-- Redirect humans to the SPA -->
+    <meta http-equiv="refresh" content="0; url={canonical}" />
+</head>
+<body>
+    <h1>Redirecting...</h1>
+    <p>If you are not redirected automatically, <a href="{canonical}">click here</a>.</p>
+</body>
+</html>"""
+        return Response(doc, media_type="text/html", status_code=404)
+    
+    # Article found - generate rich OG tags
+    title = html.escape(article.get("title") or "The Crewkerne Gazette")
+    desc = html.escape((article.get("excerpt") or "").strip()[:300])
+    img = force_og_image(article.get("heroImageUrl"))
+    author = html.escape(article.get("author_name") or article.get("publisher_name") or "The Crewkerne Gazette")
+    
+    logger.info(f"🔗 OG endpoint: Serving rich preview for '{title}' with image: {img}")
+    
+    doc = f"""<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>{title} | The Crewkerne Gazette</title>
+    <link rel="canonical" href="{canonical}"/>
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content="{title}"/>
+    <meta property="og:description" content="{desc}"/>
+    <meta property="og:url" content="{canonical}"/>
+    <meta property="og:image" content="{img}"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <meta property="og:site_name" content="The Crewkerne Gazette"/>
+    <meta property="article:author" content="{author}"/>
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="{title}"/>
+    <meta name="twitter:description" content="{desc}"/>
+    <meta name="twitter:image" content="{img}"/>
+    <meta name="twitter:site" content="@CrewkerneGazette"/>
+    
+    <!-- Redirect humans to the SPA (instant redirect) -->
+    <meta http-equiv="refresh" content="0; url={canonical}" />
+</head>
+<body>
+    <h1>Redirecting to {title}...</h1>
+    <p>If you are not redirected automatically, <a href="{canonical}">click here</a>.</p>
+</body>
+</html>"""
+    
+    return Response(doc, media_type="text/html", status_code=200)
+
+# Article page route for social media crawlers (LEGACY - to be phased out)  
 @app.get("/article/{article_slug}")
 async def serve_article_page(article_slug: str, request: Request, db: Session = Depends(get_db)):
     """
