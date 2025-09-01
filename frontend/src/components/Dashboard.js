@@ -326,7 +326,7 @@ const Dashboard = () => {
   };
 
   const handleDeleteArticle = async (article) => {
-    const identifier = article.uuid || article.slug || article.id;
+    const identifier = article.uuid || article.slug;
     const displayName = article.title || `Article ${identifier}`;
     
     if (!window.confirm(`Are you sure you want to delete "${displayName}"?`)) {
@@ -337,16 +337,13 @@ const Dashboard = () => {
       let endpoint;
       let identifierType;
       
-      // Prefer UUID for delete actions
+      // Prefer UUID for delete actions, fallback to slug
       if (article.uuid) {
         endpoint = `/articles/${article.uuid}`;
         identifierType = 'UUID';
       } else if (article.slug) {
         endpoint = `/articles/by-slug/${article.slug}`;
         identifierType = 'slug';
-      } else if (article.id) {
-        endpoint = `/articles/id/${article.id}`;
-        identifierType = 'ID';
       } else {
         throw new Error('No valid identifier found for article');
       }
@@ -367,8 +364,7 @@ const Dashboard = () => {
       setArticles(prevArticles => 
         prevArticles.filter(a => 
           a.uuid !== article.uuid && 
-          a.slug !== article.slug && 
-          a.id !== article.id
+          a.slug !== article.slug
         )
       );
       
