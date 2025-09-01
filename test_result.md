@@ -591,11 +591,49 @@
   test_all: false
   test_priority: "deployment_validation_completed"
 
+  - task: "GB News-style top rail layout implementation"
+    implemented: true
+    working: "unknown"
+    file: "TopRail.js, Homepage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "🚀 IMPLEMENTED GB NEWS-STYLE TOP RAIL: 1) Created TopRail component with lead story (2/3 width), secondary stories (1/3 width), and more stories grid layout, 2) Integrated with existing /api/top-rail endpoint that orders by pinned_at, priority, breaking, then newest, 3) Replaced simple grid in Homepage with TopRail component, 4) Added placeholder image system for articles without featured images, 5) Responsive design with proper mobile/tablet breakpoints, 6) Visual indicators for pinned and breaking news articles"
+
+  - task: "Pin to top and priority UI controls in dashboard"
+    implemented: true
+    working: "unknown"
+    file: "Dashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "🔧 ADDED PINNING UI CONTROLS: 1) Added 'Pin to Top' switch in article creation/edit form, 2) Added Priority selector (0-10) with descriptive labels, 3) Updated article state, resetForm, and handleEditArticle to include pin and priority fields, 4) Modified both JSON and multipart form submission to include pin and priority data, 5) Added helper text explaining how priority works with pinning functionality"
+
+  - task: "Mobile debugging endpoints"
+    implemented: true
+    working: "unknown"
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "📱 ADDED MOBILE DEBUG ENDPOINTS: 1) POST /api/debug/create-test-article - creates timestamped test articles with optional is_breaking and pin parameters (admin only), 2) GET /api/debug/last-errors - returns last 20 error logs from ERROR_LOG_BUFFER for mobile debugging (no auth required), 3) Both endpoints include proper error handling and structured responses, 4) Test article creation includes all standard fields and metadata"
+
 ## agent_communication:
     - agent: "main"
       message: "All pending dashboard and article features appear to be already implemented. Backend has all necessary endpoints and models. Frontend has complete UI components. Need to verify functionality through testing."
     - agent: "main"
       message: "🔧 BACKEND CATEGORY LABELS IMPLEMENTATION COMPLETED: Added category_labels field to all Article model conversions, updated ArticleCreate to accept category_labels, added /api/categories/labels endpoint with 20 predefined categories. Backend ready for testing to validate category labels functionality before proceeding with frontend homepage redesign and category UI implementation."
+    - agent: "main"
+      message: "🚀 GB NEWS TOP RAIL IMPLEMENTATION COMPLETED: 1) Added mobile debugging endpoints (create-test-article, last-errors), 2) Created complete TopRail component with lead/secondary/more sections using proper responsive GB News-style layout, 3) Added Pin to Top and Priority UI controls in Dashboard with intuitive switches and selectors, 4) Integrated TopRail into Homepage replacing simple grid, 5) Updated all form handling to support pinning functionality. Backend pinning system was already implemented. Ready for comprehensive testing to validate the complete top rail workflow from article creation with pinning to homepage display."
     - agent: "testing"
       message: "✅ COMPREHENSIVE BACKEND TESTING COMPLETED: All 6 priority backend tasks tested successfully with 100% pass rate (21/21 tests passed). High priority dashboard features (password change, settings, maintenance mode) working perfectly. Medium priority article features (new fields, breaking news filtering, related articles) all functional. JWT authentication, validation, and error handling working correctly. Backend API is production-ready."
     - agent: "testing"
