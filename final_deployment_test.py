@@ -13,7 +13,7 @@ import uuid
 class FinalDeploymentTester:
     def __init__(self):
         # Use production URL from frontend/.env
-        self.base_url = "https://gazette-cms.preview.emergentagent.com"
+        self.base_url = "https://article-repair.preview.emergentagent.com"
         self.api_url = f"{self.base_url}/api"
         self.token = None
         self.tests_run = 0
