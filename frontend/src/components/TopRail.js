@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, Eye, Pin } from 'lucide-react';
 import { Badge } from './ui/badge';
-import axios from 'axios';
-import { API_BASE } from '../config/api';
+import { apiClient } from '../config/api';
 
 const TopRail = () => {
   const [topRailData, setTopRailData] = useState({
