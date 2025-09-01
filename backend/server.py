@@ -1658,6 +1658,107 @@ async def debug_articles(db: Session = Depends(get_db)):
             for article in recent_articles
         ]
     }
+@api_router.post("/debug/create-test-article")
+async def create_test_article(
+    is_breaking: bool = False, 
+    pin: bool = False,
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+):
+    """Create a test article for mobile debugging (admin only)"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        
+        # Create test article
+        article_data = ArticleCreate(
+            title=f"CGZ TEST {timestamp}",
+            subheading=f"Test article created at {timestamp}",
+            content=f"This is a test article created for debugging purposes on {timestamp}. It includes all standard fields and can be used to verify article creation functionality.",
+            category=ArticleCategory.NEWS,
+            publisher_name="The Crewkerne Gazette",
+            is_breaking=is_breaking,
+            is_published=True,
+            pin=pin,
+            priority=5 if pin else 0,
+            tags=["test", "debug", "mobile"],
+            category_labels=["News", "Special"] if is_breaking else ["News"]
+        )
+        
+        # Generate unique UUID and slug
+        article_uuid = str(uuid.uuid4())
+        article_slug = generate_slug(db, article_data.title)
+        
+        # Create database article
+        db_article = DBArticle(
+            uuid=article_uuid,
+            slug=article_slug,
+            title=article_data.title,
+            subheading=article_data.subheading,
+            content=article_data.content,
+            category=article_data.category,
+            publisher_name=article_data.publisher_name,
+            author_name="Debug System",
+            author_id=str(current_user.id),
+            featured_image=None,
+            image_caption=None,
+            video_url=None,
+            tags=json.dumps(article_data.tags),
+            category_labels=json.dumps(article_data.category_labels),
+            is_breaking=article_data.is_breaking,
+            is_published=article_data.is_published,
+            pinned_at=datetime.now(timezone.utc) if pin else None,
+            priority=article_data.priority,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc)
+        )
+        
+        db.add(db_article)
+        db.commit()
+        db.refresh(db_article)
+        
+        return {
+            "ok": True,
+            "message": "Test article created successfully",
+            "article": {
+                "id": db_article.id,
+                "uuid": db_article.uuid,
+                "slug": db_article.slug,
+                "title": db_article.title,
+                "is_breaking": db_article.is_breaking,
+                "pinned_at": db_article.pinned_at,
+                "priority": db_article.priority,
+                "url": f"/article/{db_article.slug}"
+            }
+        }
+        
+    except Exception as e:
+        error_msg = f"Failed to create test article: {str(e)}"
+        log_error(error_msg, e)
+        raise HTTPException(status_code=500, detail={
+            "ok": False,
+            "error": "Test article creation failed",
+            "details": {"message": str(e)}
+        })
+
+@api_router.get("/debug/last-errors")
+async def get_last_errors():
+    """Get last 20 error logs for mobile debugging (no auth required)"""
+    try:
+        return {
+            "ok": True,
+            "errors": list(ERROR_LOG_BUFFER),
+            "count": len(ERROR_LOG_BUFFER),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        return {
+            "ok": False,
+            "error": f"Failed to retrieve error logs: {str(e)}",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
 
 @api_router.get("/articles/{article_slug}/structured-data")
 async def get_article_structured_data(article_slug: str, db: Session = Depends(get_db)):
