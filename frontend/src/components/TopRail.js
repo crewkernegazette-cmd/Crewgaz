@@ -19,9 +19,7 @@ const TopRail = () => {
 
   const fetchTopRailData = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/api/top-rail`, {
-        withCredentials: true
-      });
+      const response = await apiClient.get('/api/top-rail');
       
       setTopRailData({
         lead: response.data.lead || null,
