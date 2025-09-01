@@ -720,6 +720,46 @@ const Dashboard = () => {
                       />
                       <Label htmlFor="is_published" className="text-slate-200">Published</Label>
                     </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="pin_to_top"
+                        checked={article.pin}
+                        onCheckedChange={(checked) => setArticle({...article, pin: checked})}
+                      />
+                      <Label htmlFor="pin_to_top" className="text-slate-200">Pin to Top</Label>
+                    </div>
+                  </div>
+
+                  {/* Priority Setting */}
+                  <div>
+                    <Label htmlFor="priority" className="text-slate-200">Priority (0-10)</Label>
+                    <div className="space-y-2">
+                      <Select 
+                        value={article.priority?.toString() || "0"} 
+                        onValueChange={(value) => setArticle({...article, priority: parseInt(value)})}
+                      >
+                        <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 border-slate-600">
+                          <SelectItem value="0">0 - Normal</SelectItem>
+                          <SelectItem value="1">1 - Low Priority</SelectItem>
+                          <SelectItem value="2">2</SelectItem>
+                          <SelectItem value="3">3</SelectItem>
+                          <SelectItem value="4">4</SelectItem>
+                          <SelectItem value="5">5 - Medium Priority</SelectItem>
+                          <SelectItem value="6">6</SelectItem>
+                          <SelectItem value="7">7</SelectItem>
+                          <SelectItem value="8">8</SelectItem>
+                          <SelectItem value="9">9</SelectItem>
+                          <SelectItem value="10">10 - Highest Priority</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-slate-400">
+                        Higher priority articles appear first among pinned articles. Use with "Pin to Top" for best results.
+                      </p>
+                    </div>
                   </div>
 
                   {/* Submit Buttons */}
