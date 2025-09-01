@@ -57,6 +57,8 @@ JWT_EXPIRATION_HOURS = 24
 
 # Default OG image from environment
 DEFAULT_OG_IMAGE = os.getenv("DEFAULT_OG_IMAGE")
+CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+FB_APP_ID = os.getenv("FB_APP_ID")
 
 # Log if using fallback JWT secret
 if os.getenv('JWT_SECRET') is None:
@@ -65,12 +67,20 @@ if os.getenv('JWT_SECRET') is None:
 # Helper functions for OG image handling
 def pick_og_image(article_obj):
     """Pick the best available og:image URL, always returns absolute HTTPS URL"""
+    # 1. Use article featured image if absolute http(s)
     if article_obj and article_obj.featured_image and article_obj.featured_image.startswith("http"):
+        logger.info(f"🖼️ Using article featured image: {article_obj.featured_image}")
         return article_obj.featured_image
+    
+    # 2. Use DEFAULT_OG_IMAGE from env
     if DEFAULT_OG_IMAGE and DEFAULT_OG_IMAGE.startswith("http"):
+        logger.info(f"🖼️ Using DEFAULT_OG_IMAGE: {DEFAULT_OG_IMAGE}")
         return DEFAULT_OG_IMAGE
-    # Last-ditch Cloudinary fallback that always exists in our account
-    return "https://res.cloudinary.com/dqren9j0f/image/upload/f_auto,q_auto/og-fallback.jpg"
+    
+    # 3. Last-ditch Cloudinary fallback that should always exist
+    fallback_url = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME or 'dqren9j0f'}/image/upload/f_auto,q_auto,w_1200,h_630,c_fill/og-fallback.jpg"
+    logger.info(f"🖼️ Using Cloudinary fallback: {fallback_url}")
+    return fallback_url
 
 def absolutize(url):
     """Ensure URL is absolute HTTPS"""
