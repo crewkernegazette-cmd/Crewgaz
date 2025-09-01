@@ -16,8 +16,16 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add category_labels column to articles table
-    op.add_column('articles', sa.Column('category_labels', sa.Text(), nullable=True))
+    # Check if column exists before adding
+    conn = op.get_bind()
+    result = conn.execute(sa.text("""
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_name = 'articles' AND column_name = 'category_labels'
+    """))
+    
+    if not result.fetchone():
+        # Add category_labels column to articles table
+        op.add_column('articles', sa.Column('category_labels', sa.Text(), nullable=True))
 
 
 def downgrade() -> None:
