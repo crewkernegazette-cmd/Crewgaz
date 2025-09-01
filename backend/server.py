@@ -72,14 +72,14 @@ def force_og_image(url: str = None) -> str:
     
     # Ensure Cloudinary serves 1200x630 JPEG for scrapers
     if 'cloudinary.com' in url and '/upload/' in url:
-        # Replace or add transformation to force optimal OG format
-        if '/upload/w_' in url or '/upload/f_' in url:
-            # Already has transforms, replace them
+        # Use the correct transform pattern: f_jpg,w_1200,h_630,c_fill,q_auto
+        if '/upload/f_jpg,' in url or '/upload/w_' in url:
+            # Already has transforms, replace them with our preferred format
             import re
-            url = re.sub(r'/upload/[^/]+/', '/upload/w_1200,h_630,c_fill,f_jpg,q_auto/', url)
+            url = re.sub(r'/upload/[^/]+/', '/upload/f_jpg,w_1200,h_630,c_fill,q_auto/', url)
         else:
-            # No transforms, add them
-            url = url.replace("/upload/", "/upload/w_1200,h_630,c_fill,f_jpg,q_auto/")
+            # No transforms, add them with correct order
+            url = url.replace("/upload/", "/upload/f_jpg,w_1200,h_630,c_fill,q_auto/")
         return url
     
     # Non-Cloudinary URLs: validate they exist, fallback if not
