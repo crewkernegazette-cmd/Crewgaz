@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import { apiClient } from '../config/api';
 import { Clock, Play, Music as MusicIcon, ExternalLink, Youtube, Music2, Users } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
