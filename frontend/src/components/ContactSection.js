@@ -52,11 +52,7 @@ const ContactSection = () => {
 
   const submitContactForm = async () => {
     console.log('🔄 CONTACT FORM: Starting async submission');
-    console.log('📤 Environment check:');
-    console.log('  - REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
-    console.log('  - REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
-    console.log('  - Final API:', API);
-    console.log('  - Full endpoint:', `${API}/contacts`);
+    console.log('📤 Using centralized API client for /api/contacts');
     
     // Prevent double submission
     if (loading) {
