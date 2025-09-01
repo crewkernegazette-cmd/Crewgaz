@@ -344,7 +344,6 @@ def set_setting(db: Session, key: str, value: str):
 
 # Article page route for social media crawlers  
 @app.get("/article/{article_slug}")
-@app.head("/article/{article_slug}")
 async def serve_article_page(article_slug: str, request: Request, db: Session = Depends(get_db)):
     """
     Serve article page with proper meta tags for crawlers,
@@ -361,8 +360,9 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
             db_article = db.query(DBArticle).filter(DBArticle.slug == article_slug).first()
             if not db_article:
                 logger.warning(f"📄 Article not found for slug: {article_slug}")
-                # Return basic 404 HTML with meta tags instead of raising exception
+                # Return 200 HTML with default meta tags for non-existent articles
                 # This prevents "Bad Response Code" in Facebook debugger
+                fallback_image = pick_og_image(None)
                 default_meta_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -378,17 +378,18 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <meta property="og:description" content="The requested article could not be found.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_slug}">
-    <meta property="og:image" content="https://crewkernegazette.co.uk/logo.png">
+    <meta property="og:image" content="{fallback_image}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:secure_url" content="{fallback_image}">
     <meta property="og:site_name" content="The Crewkerne Gazette">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Article Not Found | The Crewkerne Gazette">
     <meta name="twitter:description" content="The requested article could not be found.">
-    <meta name="twitter:image" content="https://crewkernegazette.co.uk/logo.png">
+    <meta name="twitter:image" content="{fallback_image}">
     <meta name="twitter:site" content="@CrewkerneGazette">
     
     <!-- Canonical URL -->
@@ -403,6 +404,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
                     content=default_meta_html, 
                     status_code=200,
                     headers={
+                        "Accept-Ranges": "none",
                         "Cache-Control": "public, max-age=300",
                         "X-Robots-Tag": "all"
                     }
@@ -446,53 +448,12 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
                 description_safe = plain_content[:160].replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
             
             # Safe timestamp handling - use created_at as fallback for updated_at
-            updated_iso = (article_obj.updated_at or article_obj.created_at or datetime.now(timezone.utc)).isoformat()
-            published_iso = (article_obj.created_at or datetime.now(timezone.utc)).isoformat()
+            current_time = datetime.now(timezone.utc)
+            updated_iso = (article_obj.updated_at or article_obj.created_at or current_time).isoformat()
+            published_iso = (article_obj.created_at or current_time).isoformat()
             
-            # Calculate image dimensions for better social sharing
-            image_width_tag = ''
-            image_height_tag = ''
-            image_type_tag = ''
-            
-            # Ensure og:image uses full absolute URLs
-            if article_obj.featured_image and article_obj.featured_image.startswith('http'):
-                # Use the full Cloudinary URL or other absolute URL
-                image_url = article_obj.featured_image
-                # Set image type for Cloudinary images
-                if 'cloudinary.com' in image_url:
-                    image_type_tag = '    <meta property="og:image:type" content="image/jpeg">'
-                else:
-                    image_type_tag = '    <meta property="og:image:type" content="image/jpeg">'
-            elif article_obj.featured_image and article_obj.featured_image.startswith('data:image/'):
-                # Base64 image - convert to Cloudinary or use placeholder
-                image_url = 'https://crewkernegazette.co.uk/logo.png'
-                image_type_tag = '    <meta property="og:image:type" content="image/png">'
-            else:
-                # Fallback to default logo - ensure absolute URL
-                image_url = 'https://crewkernegazette.co.uk/logo.png'
-                image_type_tag = '    <meta property="og:image:type" content="image/png">'
-            
-            if article_obj.featured_image:
-                if article_obj.featured_image.startswith('http'):
-                    # Cloudinary or other hosted image - use standard dimensions
-                    image_width_tag = '    <meta property="og:image:width" content="1200">'
-                    image_height_tag = '    <meta property="og:image:height" content="630">'
-                elif article_obj.featured_image.startswith('data:image/'):
-                    # Base64 image (legacy) - calculate dimensions
-                    try:
-                        header, data = article_obj.featured_image.split(',', 1)
-                        image_data = base64.b64decode(data)
-                        img = Image.open(io.BytesIO(image_data))
-                        image_width_tag = f'    <meta property="og:image:width" content="{img.width}">'
-                        image_height_tag = f'    <meta property="og:image:height" content="{img.height}">'
-                    except Exception as e:
-                        print(f"⚠️ Failed to get image dimensions: {e}")
-                        image_width_tag = '    <meta property="og:image:width" content="1200">'
-                        image_height_tag = '    <meta property="og:image:height" content="630">'
-            else:
-                # Default dimensions for logo
-                image_width_tag = '    <meta property="og:image:width" content="1200">'
-                image_height_tag = '    <meta property="og:image:height" content="630">'
+            # Use proper Cloudinary image
+            image_url = pick_og_image(article_obj)
             
             # Generate SEO-friendly meta HTML for crawlers
             meta_html = f"""<!DOCTYPE html>
@@ -511,9 +472,9 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_slug}">
     <meta property="og:image" content="{image_url}">
-{image_width_tag}
-{image_height_tag}
-{image_type_tag}
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:secure_url" content="{image_url}">
     <meta property="og:site_name" content="The Crewkerne Gazette">
     <meta property="article:published_time" content="{published_iso}">
@@ -550,7 +511,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
             "name": "The Crewkerne Gazette",
             "logo": {{
                 "@type": "ImageObject",
-                "url": "https://crewkernegazette.co.uk/logo.png"
+                "url": "{image_url}"
             }}
         }},
         "mainEntityOfPage": {{
@@ -567,7 +528,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     {f"<h2>{(article_obj.subheading or '').replace('<', '&lt;').replace('>', '&gt;')}</h2>" if article_obj.subheading else ""}
     <p>{article_obj.content[:300].replace('<', '&lt;').replace('>', '&gt;')}...</p>
     <p><strong>Category:</strong> {article_obj.category.value if hasattr(article_obj.category, 'value') else article_obj.category}</p>
-    <p><strong>Published:</strong> {article_obj.created_at.strftime('%B %d, %Y')}</p>
+    <p><strong>Published:</strong> {article_obj.created_at.strftime('%B %d, %Y') if article_obj.created_at else 'Recently'}</p>
     <p><em>Read the full article at: <a href="https://crewkernegazette.co.uk/article/{article_slug}">The Crewkerne Gazette</a></em></p>
 </body>
 </html>"""
@@ -576,6 +537,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
                 content=meta_html, 
                 status_code=200,
                 headers={
+                    "Accept-Ranges": "none",
                     "Cache-Control": "public, max-age=300",
                     "X-Robots-Tag": "all"
                 }
@@ -586,6 +548,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
         except Exception as e:
             logger.error(f"❌ Error generating article meta HTML for crawler: {e}")
             # For crawlers, ALWAYS return 200 HTML even on database errors
+            fallback_image = pick_og_image(None)
             fallback_meta_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -601,18 +564,18 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <meta property="og:description" content="Bold, unapologetic journalism from Somerset to the nation.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_slug}">
-    <meta property="og:image" content="https://crewkernegazette.co.uk/logo.png">
+    <meta property="og:image" content="{fallback_image}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:type" content="image/png">
-    <meta property="og:image:secure_url" content="https://crewkernegazette.co.uk/logo.png">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:secure_url" content="{fallback_image}">
     <meta property="og:site_name" content="The Crewkerne Gazette">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="The Crewkerne Gazette">
     <meta name="twitter:description" content="Bold, unapologetic journalism from Somerset to the nation.">
-    <meta name="twitter:image" content="https://crewkernegazette.co.uk/logo.png">
+    <meta name="twitter:image" content="{fallback_image}">
     <meta name="twitter:site" content="@CrewkerneGazette">
     
     <!-- JSON-LD Structured Data -->
@@ -622,13 +585,13 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
         "@type": "NewsArticle",
         "headline": "The Crewkerne Gazette",
         "description": "Bold, unapologetic journalism from Somerset to the nation.",
-        "image": "https://crewkernegazette.co.uk/logo.png",
+        "image": "{fallback_image}",
         "publisher": {{
             "@type": "Organization", 
             "name": "The Crewkerne Gazette",
             "logo": {{
                 "@type": "ImageObject",
-                "url": "https://crewkernegazette.co.uk/logo.png"
+                "url": "{fallback_image}"
             }}
         }},
         "mainEntityOfPage": {{
@@ -648,6 +611,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
                 content=fallback_meta_html, 
                 status_code=200,
                 headers={
+                    "Accept-Ranges": "none",
                     "Cache-Control": "public, max-age=300",
                     "X-Robots-Tag": "all"
                 }
@@ -673,6 +637,35 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
                 status_code=302,
                 headers={"Location": f"/"}
             )
+
+@app.head("/article/{article_slug}")
+async def serve_article_head(article_slug: str, request: Request, db: Session = Depends(get_db)):
+    """
+    HEAD handler for article pages - returns same headers as GET would for crawlers
+    Always returns 200 OK with proper headers, never 206/302/404 for crawlers
+    """
+    user_agent = request.headers.get('user-agent', '')
+    
+    if is_crawler(user_agent):
+        logger.info(f"🤖 HEAD request from crawler for article '{article_slug}'")
+        # Return 200 with proper headers (no body for HEAD)
+        return HTMLResponse(
+            content="", 
+            status_code=200, 
+            headers={
+                "Accept-Ranges": "none",
+                "Cache-Control": "public, max-age=300",
+                "X-Robots-Tag": "all",
+                "Content-Type": "text/html; charset=utf-8"
+            }
+        )
+    else:
+        # For regular users, return basic 200 headers
+        return HTMLResponse(
+            content="", 
+            status_code=200,
+            headers={"Content-Type": "text/html; charset=utf-8"}
+        )
 
 # Authentication Routes
 @api_router.post("/auth/login")
