@@ -28,7 +28,7 @@ const MusicSection = () => {
 
   const fetchMusic = async () => {
     try {
-      const response = await axios.get(`${API}/articles?category=music&limit=12`);
+      const response = await apiClient.get('/api/articles?category=music&limit=12');
       setArticles(response.data);
     } catch (error) {
       console.error('Error fetching music:', error);
