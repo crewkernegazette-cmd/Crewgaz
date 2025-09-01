@@ -1141,8 +1141,9 @@ async def create_article_json(
     except HTTPException:
         raise  # Re-raise HTTP exceptions as-is
     except Exception as e:
-        error_msg = f"Failed to create article: {str(e)}"
-        log_error(error_msg, e)
+        error_msg = f"ARTICLES_JSON failed: {str(e)}"
+        logging.error(f"{error_msg}\n{traceback.format_exc()}")
+        log_error("create_article_json exception", e)
         raise HTTPException(status_code=500, detail={
             "ok": False,
             "error": "Internal server error while creating article",
