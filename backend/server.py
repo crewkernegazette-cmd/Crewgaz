@@ -1760,6 +1760,61 @@ async def get_last_errors():
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
+@api_router.get("/debug/create-test-article-simple")
+async def create_test_article_simple(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Create a simple test article for mobile smoke testing (admin only)"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin required")
+    
+    try:
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        title = f"CGZ TEST {timestamp}"
+        article_uuid = str(uuid.uuid4())
+        slug = generate_slug(title, db)
+        
+        db_article = DBArticle(
+            uuid=article_uuid,
+            slug=slug,
+            title=title,
+            subheading="Smoke test (pinned & breaking)",
+            content="Automated test content for production validation.",
+            category=ArticleCategory.NEWS,
+            publisher_name="The Crewkerne Gazette",
+            author_name=current_user.username,
+            author_id=str(current_user.id),
+            tags=json.dumps(["test", "smoke"]),
+            category_labels=json.dumps(["News", "Special"]),
+            is_breaking=True,
+            is_published=True,
+            priority=10,
+            pinned_at=datetime.now(timezone.utc),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc)
+        )
+        
+        db.add(db_article)
+        db.commit()
+        db.refresh(db_article)
+        
+        return {
+            "ok": True, 
+            "slug": slug,
+            "title": title,
+            "url": f"/article/{slug}",
+            "is_breaking": True,
+            "pinned_at": db_article.pinned_at,
+            "priority": db_article.priority
+        }
+        
+    except Exception as e:
+        error_msg = f"Failed to create simple test article: {str(e)}"
+        log_error(error_msg, e)
+        raise HTTPException(status_code=500, detail={
+            "ok": False,
+            "error": "Test article creation failed",
+            "details": {"message": str(e)}
+        })
+
 @api_router.get("/articles/{article_slug}/structured-data")
 async def get_article_structured_data(article_slug: str, db: Session = Depends(get_db)):
     """Generate structured data for an article"""
