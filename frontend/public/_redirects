@@ -7,7 +7,7 @@
 /robots.txt  https://api.crewkernegazette.co.uk/robots.txt  200
 
 # Social media crawler routes - redirect to backend OG endpoint
-/article/*  https://api.crewkernegazette.co.uk/og/article/:splat  200
+/article/:slug  https://api.crewkernegazette.co.uk/og/article/:slug  200
 
 # All other routes go to React app (SPA fallback)
 /*  /index.html  200
