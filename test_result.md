@@ -105,6 +105,29 @@
 ## user_problem_statement: Complete pending dashboard and article features including admin password change, maintenance mode toggle, publisher selection, breaking news flag, subheading field, trending topics section, and Google News optimization for The Crewkerne Gazette news CMS.
 
 ## backend:
+  - task: "Social sharing crawler HTML fixes"
+    implemented: true
+    working: "unknown"
+    file: "server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "🔧 CRITICAL FIXES IMPLEMENTED: 1) Fixed updated_at=None crash in serve_article_page by adding safe timestamp handling (use created_at as fallback), 2) Enhanced description generation to use subheading first then plain text excerpt from content with HTML stripping, 3) Ensured all og:image URLs are absolute HTTPS, 4) Added proper HTTP headers for crawlers (Cache-Control: public max-age=300, X-Robots-Tag: all), 5) Improved error handling to always return 200 HTML to crawlers even on exceptions"
+
+  - task: "Debug endpoints for crawler testing"
+    implemented: true
+    working: "unknown"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "🔧 DEBUG ENDPOINTS IMPLEMENTED: 1) Added GET /api/debug/article-exists?slug=... endpoint to check if article exists and return basic info (exists, article_id, title), 2) Added GET /api/debug/crawler-meta?slug=... endpoint to preview actual crawler HTML with meta tags and visual social media preview, 3) Both endpoints include proper error handling and HTML responses for debugging social sharing issues"
   - task: "Admin password change functionality"
     implemented: true
     working: true
