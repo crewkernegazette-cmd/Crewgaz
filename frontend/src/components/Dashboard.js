@@ -229,13 +229,7 @@ const Dashboard = () => {
           response = await apiClient.put(`/api/articles/${editingArticle.slug}`, formData);
           toast.success('Article updated successfully!');
         } else {
-          response = await axios.post(`${API_BASE}/api/articles`, formData, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data'
-            },
-            withCredentials: true
-          });
+          response = await apiClient.post('/api/articles', formData);
           toast.success('Article created successfully!');
         }
       }
