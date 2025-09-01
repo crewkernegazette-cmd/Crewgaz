@@ -19,6 +19,7 @@ import bleach
 from PIL import Image
 import io
 import json
+import traceback
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
