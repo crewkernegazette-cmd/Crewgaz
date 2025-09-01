@@ -36,7 +36,7 @@ const ArticleDetail = () => {
       
       // Fetch structured data
       try {
-        const structuredResponse = await apiClient.get(`/article/${slug}/structured-data`);
+        const structuredResponse = await apiClient.get(`/articles/${slug}/structured-data`);
         setStructuredData(structuredResponse.data);
       } catch (structuredError) {
         console.warn('Structured data not available for this article');
