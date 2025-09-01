@@ -1091,18 +1091,6 @@ async def create_article_json(
         pinned_at = datetime.now(timezone.utc) if payload.pin else None
         logging.info(f"ARTICLES_JSON pinning: pin={payload.pin}, pinned_at={pinned_at}, priority={payload.priority}")
 
-        # Generate ids/slug
-        article_uuid = str(uuid.uuid4())
-        article_slug = generate_slug(payload.title, db)
-
-        # Filter category labels to only include valid ones
-        valid_category_labels = []
-        if payload.category_labels:
-            valid_category_labels = [label for label in payload.category_labels if label in AVAILABLE_CATEGORY_LABELS]
-
-        # Handle pinning with timezone-aware datetime  
-        pinned_at = datetime.now(timezone.utc) if payload.pin else None
-
         logging.info("ARTICLES_JSON creating DBArticle object")
         db_article = DBArticle(
             uuid=article_uuid,
