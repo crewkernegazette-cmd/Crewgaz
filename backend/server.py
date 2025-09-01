@@ -1307,6 +1307,26 @@ async def delete_article(article_uuid: str, current_user: User = Depends(get_cur
     
     return {"message": "Article deleted successfully", "deleted_article_uuid": article_uuid}
 
+@api_router.delete("/articles/id/{article_id}")
+async def delete_article_by_id(article_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Delete article by numeric ID"""
+    db_article = db.query(DBArticle).filter(DBArticle.id == article_id).first()
+    if not db_article:
+        raise HTTPException(status_code=404, detail={"error": "Article not found"})
+    
+    # Check permissions
+    if current_user.role != UserRole.ADMIN and db_article.author_id != str(current_user.id):
+        raise HTTPException(status_code=403, detail={"error": "You can only delete your own articles"})
+    
+    article_title = db_article.title
+    article_slug = db_article.slug
+    db.delete(db_article)
+    db.commit()
+    
+    logger.info(f"🗑️ Article deleted by {current_user.username}: '{article_title}' (ID: {article_id}, slug: {article_slug})")
+    
+    return {"message": "Article deleted successfully", "deleted_identifier": str(article_id), "title": article_title}
+
 @api_router.delete("/articles/by-slug/{article_slug}")
 async def delete_article_by_slug(article_slug: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Delete article by slug"""
