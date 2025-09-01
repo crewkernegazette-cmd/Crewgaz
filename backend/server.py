@@ -1755,6 +1755,76 @@ def whoami(request: Request):
         "have_auth_cookie": "auth" in request.cookies
     }
 
+@api_router.get("/debug/list-slugs")
+async def debug_list_slugs(limit: int = 50, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Debug endpoint to list recent article slugs (admin only)"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        articles = db.query(DBArticle).order_by(DBArticle.created_at.desc()).limit(limit).all()
+        return [
+            {
+                "id": article.id,
+                "slug": article.slug,
+                "title": article.title,
+                "created_at": article.created_at.isoformat() if article.created_at else None
+            }
+            for article in articles
+        ]
+    except Exception as e:
+        logger.error(f"Error in debug/list-slugs: {e}")
+        return {"error": str(e)}
+
+@api_router.get("/debug/resolve-slug")
+async def debug_resolve_slug(slug: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Debug endpoint to resolve and find closest matching slugs"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        original_slug = slug
+        normalized_slug = slug.strip().lower()
+        
+        # Look for exact match (case-insensitive)
+        from sqlalchemy import func
+        exact_match = db.query(DBArticle).filter(func.lower(DBArticle.slug) == normalized_slug).first()
+        
+        exact_result = None
+        if exact_match:
+            exact_result = {
+                "id": exact_match.id,
+                "slug": exact_match.slug,
+                "title": exact_match.title
+            }
+        
+        # Find closest matches using Levenshtein distance
+        all_articles = db.query(DBArticle).all()
+        closest_matches = []
+        
+        for article in all_articles:
+            distance = calculate_levenshtein_distance(normalized_slug, article.slug.lower())
+            closest_matches.append({
+                "slug": article.slug,
+                "title": article.title,
+                "distance": distance
+            })
+        
+        # Sort by distance and take top 5
+        closest_matches.sort(key=lambda x: x['distance'])
+        closest_matches = closest_matches[:5]
+        
+        return {
+            "input": original_slug,
+            "normalized": normalized_slug,
+            "exactMatch": exact_result,
+            "closest": closest_matches
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in debug/resolve-slug: {e}")
+        return {"error": str(e)}
+
 @api_router.get("/debug/env")
 async def debug_env(current_user: User = Depends(get_current_user)):
     """Debug endpoint to show masked environment configuration (admin only)"""
