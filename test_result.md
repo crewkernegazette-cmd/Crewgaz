@@ -606,6 +606,18 @@
           agent: "testing"
           comment: "✅ COMPREHENSIVE FRONTEND AUTHENTICATION TESTING COMPLETED: Final validation shows EXCELLENT authentication integration. Frontend login form working perfectly with admin/admin123 credentials, JWT token storage and retrieval working correctly, authentication state management operational (login redirects, protected routes, logout functionality), dashboard access working with all tabs functional, authentication persistence across page refreshes working correctly. Frontend API configuration fixed to use proper /api endpoints. All authentication flows working as expected."
 
+  - task: "Frontend article fetch path correction"
+    implemented: true
+    working: "unknown"
+    file: "ArticleDetail.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "🔧 CRITICAL FRONTEND API PATH FIX: Fixed fundamental API path mismatch causing 'article not found' errors in SPA. Updated ArticleDetail.js to use correct backend endpoint '/articles/{slug}' (plural, with /api prefix via apiClient) instead of '/article/{slug}' (singular, no /api prefix). The backend has two distinct endpoints: 1) /api/articles/{slug} for JSON article data (used by frontend), and 2) /article/{slug} for HTML crawler pages (used by social media bots). Fixed both main article fetch and structured data fetch calls. This addresses the user's core issue where clicking articles in the SPA resulted in 'article not found' errors."
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
