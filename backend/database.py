@@ -68,7 +68,7 @@ engine = create_engine(
     connect_args={"sslmode": "require"} if DATABASE_URL and "localhost" not in DATABASE_URL else {},
     echo=False  # Set to True for SQL debugging
 )
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
 
 # Base class for models
 Base = declarative_base()
