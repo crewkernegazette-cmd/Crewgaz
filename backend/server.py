@@ -118,6 +118,8 @@ class Article(BaseModel):
     category_labels: List[str] = []  # New field for article category labels
     is_breaking: bool = False
     is_published: bool = True
+    pinned_at: Optional[datetime] = None
+    priority: int = 0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
