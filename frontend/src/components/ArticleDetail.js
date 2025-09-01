@@ -117,8 +117,8 @@ const ArticleDetail = () => {
     if (imageUrl.startsWith('data:') || imageUrl.startsWith('http')) {
       return imageUrl;
     }
-    // Fallback for relative URLs
-    return `${BACKEND_URL}${imageUrl}`;
+    // Fallback for relative URLs - use a default image
+    return imageUrl;
   };
 
   if (loading) {
