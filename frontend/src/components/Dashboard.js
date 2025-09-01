@@ -10,9 +10,7 @@ import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Calendar, Clock, Edit2, Trash2, Users, FileText, Settings, MessageSquare, Eye, Tag, Copy, Mail } from 'lucide-react';
 import { toast } from 'sonner';
-import axios from 'axios';
-
-import { API_BASE } from '../config/api';
+import { apiClient } from '../config/api';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
