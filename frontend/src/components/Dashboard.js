@@ -274,6 +274,8 @@ const Dashboard = () => {
       video_url: articleToEdit.video_url || '',
       is_breaking: articleToEdit.is_breaking || false,
       is_published: articleToEdit.is_published !== false, // Default to true
+      pin: articleToEdit.pinned_at ? true : false, // Convert pinned_at to boolean
+      priority: articleToEdit.priority || 0,
       tags: Array.isArray(articleToEdit.tags) ? articleToEdit.tags : [],
       category_labels: Array.isArray(articleToEdit.category_labels) ? articleToEdit.category_labels : []
     });
