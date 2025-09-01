@@ -32,7 +32,7 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       // Set user from stored token info
       const userData = {
         username: 'admin',  // We'll get this from a proper auth check later
