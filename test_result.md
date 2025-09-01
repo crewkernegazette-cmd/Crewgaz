@@ -585,9 +585,9 @@
 
 ## test_plan:
   current_focus: 
-    - "GB News-style top rail layout implementation"
-    - "Pin to top and priority UI controls in dashboard" 
-    - "Mobile debugging endpoints"
+    - "Social sharing crawler HTML fixes"
+    - "Debug endpoints for crawler testing"
+    - "Article linking verification"
   stuck_tasks: 
     - "Production backend API deployment issue"
   test_all: false
