@@ -3034,7 +3034,7 @@ else:
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "HEAD"], include_in_schema=False)
 async def spa_fallback(path: str, request: Request):
     """Serve React app for all non-API routes (SPA routing support)"""
-    if not path.startswith('api/') and not path.startswith('static/') and not path.startswith('article/'):
+    if not path.startswith('api/') and not path.startswith('static/') and not path.startswith('article/') and not path.startswith('og/'):
         # For all React Router routes, serve index.html
         try:
             frontend_build_path = Path("../frontend/build/index.html")
