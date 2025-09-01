@@ -634,6 +634,9 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
             logger.error(f"❌ Error generating article meta HTML for crawler: {e}")
             # For crawlers, ALWAYS return 200 HTML even on database errors
             fallback_image = pick_og_image(None)
+            fb_app_id = FACEBOOK_APP_ID or FB_APP_ID
+            fb_app_id_tag = f'    <meta property="fb:app_id" content="{fb_app_id}">' if fb_app_id else ""
+            
             fallback_meta_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -655,6 +658,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:secure_url" content="{fallback_image}">
     <meta property="og:site_name" content="The Crewkerne Gazette">
+{fb_app_id_tag}
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
@@ -699,7 +703,8 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
                     "Accept-Ranges": "none",
                     "Cache-Control": "public, max-age=300",
                     "X-Robots-Tag": "all",
-                    "Vary": "User-Agent"
+                    "Vary": "User-Agent",
+                    "X-Debug-Slug": article_slug.strip().lower()
                 }
             )
     
