@@ -592,7 +592,7 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
             fb_app_id = FACEBOOK_APP_ID or FB_APP_ID
             fb_app_id_tag = f'    <meta property="fb:app_id" content="{fb_app_id}">' if fb_app_id else ""
             
-            # Generate SEO-friendly meta HTML for crawlers
+            # Generate OG meta tags with complete, validated values
             meta_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -603,16 +603,16 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <title>{title_safe} | The Crewkerne Gazette</title>
     <meta name="description" content="{description_safe}">
     
-    <!-- Open Graph Meta Tags -->
+    <!-- Open Graph Meta Tags - Complete Set -->
     <meta property="og:title" content="{title_safe}">
     <meta property="og:description" content="{description_safe}">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_slug}">
     <meta property="og:image" content="{image_url}">
+    <meta property="og:image:secure_url" content="{image_url}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:type" content="image/jpeg">
-    <meta property="og:image:secure_url" content="{image_url}">
     <meta property="og:site_name" content="The Crewkerne Gazette">
     <meta property="article:published_time" content="{published_iso}">
     <meta property="article:modified_time" content="{updated_iso}">
