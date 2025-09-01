@@ -56,10 +56,78 @@ JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = 24
 
 # Default OG image from environment
-DEFAULT_OG_IMAGE = os.getenv("DEFAULT_OG_IMAGE")
+DEFAULT_OG_IMAGE = os.getenv("DEFAULT_OG_IMAGE", "https://res.cloudinary.com/dqren9j0f/image/upload/w_1200,h_630,c_fill,f_jpg,q_auto/v123/og-default.jpg")
 CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
 FB_APP_ID = os.getenv("FB_APP_ID")
 FACEBOOK_APP_ID = os.getenv("FACEBOOK_APP_ID")  # Alternative env var name
+
+# OG image optimization functions
+def force_og_image(url: str = None) -> str:
+    """Force Cloudinary image to serve as 1200x630 JPEG for scrapers"""
+    if not url:
+        return DEFAULT_OG_IMAGE
+    
+    if not url.startswith("http"):
+        return DEFAULT_OG_IMAGE
+    
+    # Ensure Cloudinary serves 1200x630 JPEG for scrapers
+    if 'cloudinary.com' in url and '/upload/' in url:
+        # Replace or add transformation to force optimal OG format
+        if '/upload/w_' in url or '/upload/f_' in url:
+            # Already has transforms, replace them
+            import re
+            url = re.sub(r'/upload/[^/]+/', '/upload/w_1200,h_630,c_fill,f_jpg,q_auto/', url)
+        else:
+            # No transforms, add them
+            url = url.replace("/upload/", "/upload/w_1200,h_630,c_fill,f_jpg,q_auto/")
+        return url
+    
+    # Non-Cloudinary URLs: validate they exist, fallback if not
+    try:
+        import requests
+        response = requests.head(url, timeout=2)
+        if response.status_code == 200 and response.headers.get('content-type', '').startswith('image/'):
+            return url
+    except:
+        pass
+    
+    return DEFAULT_OG_IMAGE
+
+def get_article_by_slug(slug: str, db: Session) -> dict:
+    """Get article data optimized for OG tags"""
+    try:
+        # Normalize slug for case-insensitive lookup
+        normalized_slug = slug.strip().lower()
+        
+        from sqlalchemy import func
+        db_article = db.query(DBArticle).filter(func.lower(DBArticle.slug) == normalized_slug).first()
+        
+        if not db_article:
+            return None
+            
+        # Create excerpt from subheading or content
+        excerpt = ""
+        if db_article.subheading:
+            excerpt = db_article.subheading.strip()[:300]
+        elif db_article.content:
+            # Strip HTML tags and get plain text excerpt
+            import re
+            plain_content = re.sub(r'<[^>]+>', '', db_article.content)
+            excerpt = plain_content.strip()[:300]
+        
+        return {
+            "title": db_article.title,
+            "excerpt": excerpt,
+            "heroImageUrl": db_article.featured_image,
+            "slug": db_article.slug,
+            "id": db_article.id,
+            "created_at": db_article.created_at,
+            "author_name": db_article.author_name,
+            "publisher_name": db_article.publisher_name
+        }
+    except Exception as e:
+        logger.error(f"Error fetching article by slug '{slug}': {e}")
+        return None
 
 # Log if using fallback JWT secret
 if os.getenv('JWT_SECRET') is None:
