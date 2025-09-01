@@ -973,59 +973,96 @@ async def create_article_json(
     db: Session = Depends(get_db)
 ):
     """Create article via JSON (for dashboard without file upload)"""
-    # Generate ids/slug
-    article_uuid = str(uuid.uuid4())
-    article_slug = generate_slug(payload.title, db)
+    try:
+        # Log incoming request (safe fields only)
+        logging.info(f"Creating article: title='{payload.title}', category='{payload.category}', author='{current_user.username}', breaking={payload.is_breaking}, pin={payload.pin}")
+        
+        # Validate category
+        if payload.category not in [cat.value for cat in ArticleCategory]:
+            valid_categories = [cat.value for cat in ArticleCategory]
+            error_msg = f"Invalid category '{payload.category}'. Allowed values: {valid_categories}"
+            log_error(error_msg)
+            raise HTTPException(status_code=422, detail={
+                "ok": False,
+                "error": error_msg,
+                "details": {"field": "category", "allowed_values": valid_categories}
+            })
 
-    # Filter category labels to only include valid ones
-    valid_category_labels = []
-    if payload.category_labels:
-        valid_category_labels = [label for label in payload.category_labels if label in AVAILABLE_CATEGORY_LABELS]
+        # Generate ids/slug
+        article_uuid = str(uuid.uuid4())
+        article_slug = generate_slug(payload.title, db)
 
-    db_article = DBArticle(
-        uuid=article_uuid,
-        slug=article_slug,
-        title=payload.title,
-        subheading=payload.subheading,
-        content=payload.content,
-        category=payload.category,  # must match enum
-        publisher_name=payload.publisher_name or "The Crewkerne Gazette",
-        author_name=current_user.username,
-        author_id=str(current_user.id),
-        featured_image=payload.featured_image,   # JSON route expects a URL if provided
-        image_caption=payload.image_caption,
-        video_url=payload.video_url,
-        tags=json.dumps(payload.tags or []),
-        category_labels=json.dumps(valid_category_labels),
-        is_breaking=payload.is_breaking,
-        is_published=payload.is_published,
-    )
+        # Filter category labels to only include valid ones
+        valid_category_labels = []
+        if payload.category_labels:
+            valid_category_labels = [label for label in payload.category_labels if label in AVAILABLE_CATEGORY_LABELS]
 
-    db.add(db_article)
-    db.commit()
-    db.refresh(db_article)
+        # Handle pinning
+        pinned_at = None
+        if payload.pin:
+            pinned_at = datetime.now()
 
-    return Article(
-        id=db_article.id,
-        uuid=db_article.uuid,
-        slug=db_article.slug,
-        title=db_article.title,
-        subheading=db_article.subheading,
-        content=db_article.content,
-        category=db_article.category,
-        publisher_name=db_article.publisher_name,
-        author_name=db_article.author_name,
-        author_id=db_article.author_id,
-        featured_image=db_article.featured_image,
-        image_caption=db_article.image_caption,
-        video_url=db_article.video_url,
-        tags=json.loads(db_article.tags) if db_article.tags else [],
-        category_labels=json.loads(db_article.category_labels) if db_article.category_labels else [],
-        is_breaking=db_article.is_breaking,
-        is_published=db_article.is_published,
-        created_at=db_article.created_at,
-        updated_at=db_article.updated_at
-    )
+        db_article = DBArticle(
+            uuid=article_uuid,
+            slug=article_slug,
+            title=payload.title,
+            subheading=payload.subheading,
+            content=payload.content,
+            category=payload.category,
+            publisher_name=payload.publisher_name or "The Crewkerne Gazette",
+            author_name=current_user.username,
+            author_id=str(current_user.id),
+            featured_image=payload.featured_image,
+            image_caption=payload.image_caption,
+            video_url=payload.video_url,
+            tags=json.dumps(payload.tags or []),
+            category_labels=json.dumps(valid_category_labels),
+            is_breaking=payload.is_breaking,
+            is_published=payload.is_published,
+            pinned_at=pinned_at,
+            priority=payload.priority,
+        )
+
+        db.add(db_article)
+        db.commit()
+        db.refresh(db_article)
+        
+        logging.info(f"Successfully created article: id={db_article.id}, slug='{db_article.slug}'")
+
+        return Article(
+            id=db_article.id,
+            uuid=db_article.uuid,
+            slug=db_article.slug,
+            title=db_article.title,
+            subheading=db_article.subheading,
+            content=db_article.content,
+            category=db_article.category,
+            publisher_name=db_article.publisher_name,
+            author_name=db_article.author_name,
+            author_id=db_article.author_id,
+            featured_image=db_article.featured_image,
+            image_caption=db_article.image_caption,
+            video_url=db_article.video_url,
+            tags=json.loads(db_article.tags) if db_article.tags else [],
+            category_labels=json.loads(db_article.category_labels) if db_article.category_labels else [],
+            is_breaking=db_article.is_breaking,
+            is_published=db_article.is_published,
+            pinned_at=db_article.pinned_at,
+            priority=db_article.priority,
+            created_at=db_article.created_at,
+            updated_at=db_article.updated_at
+        )
+        
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions as-is
+    except Exception as e:
+        error_msg = f"Failed to create article: {str(e)}"
+        log_error(error_msg, e)
+        raise HTTPException(status_code=500, detail={
+            "ok": False,
+            "error": "Internal server error while creating article",
+            "details": {"message": str(e)}
+        })
 
 @api_router.put("/articles/{article_uuid}", response_model=Article)
 async def update_article(article_uuid: str, article_data: ArticleCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
