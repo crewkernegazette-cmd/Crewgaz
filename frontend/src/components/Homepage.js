@@ -145,75 +145,8 @@ const Homepage = () => {
         </div>
       )}
 
-      {/* Clean Articles Section - GB News Style */}
-      <div className="py-8 bg-slate-900 min-h-screen">
-        <div className="container mx-auto px-4">
-          {Array.isArray(articles) && articles.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {articles.map((article, index) => (
-                <Link 
-                  key={article.id || index} 
-                  to={`/article/${article.slug || article.id}`} 
-                  className="group bg-slate-800 rounded-lg overflow-hidden hover:bg-slate-700 transition-colors"
-                >
-                  {article.featured_image && (
-                    <div className="aspect-video overflow-hidden">
-                      <img 
-                        src={article.featured_image} 
-                        alt={article.title || 'Article'}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {e.target.style.display = 'none'}}
-                      />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <Badge className="bg-red-600 text-white text-xs px-2 py-1">
-                        {(article.category || 'news').toUpperCase()}
-                      </Badge>
-                      {article.is_breaking && (
-                        <Badge className="bg-red-700 text-white text-xs px-2 py-1 animate-pulse">
-                          BREAKING
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    {/* Category Labels */}
-                    {renderCategoryLabels(article.category_labels)}
-                    
-                    <h3 className="text-white font-bold text-lg mb-2 group-hover:text-red-400 transition-colors">
-                      {article.title || 'Untitled Article'}
-                    </h3>
-                    
-                    {article.subheading && (
-                      <p className="text-slate-300 text-sm mb-2">
-                        {article.subheading}
-                      </p>
-                    )}
-                    
-                    <p className="text-slate-400 text-sm mb-3">
-                      {article.content ? `${article.content.substring(0, 120)}...` : 'Read more...'}
-                    </p>
-                    
-                    <div className="flex items-center justify-between text-xs text-slate-500">
-                      <span className="flex items-center">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {article.created_at ? formatDate(article.created_at) : 'Recently'}
-                      </span>
-                      <span>{article.author_name || 'Admin'}</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <h2 className="text-white text-2xl font-bold mb-4">Latest News Coming Soon</h2>
-              <p className="text-slate-400">We're preparing the latest stories for you.</p>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* GB News Style Top Rail */}
+      <TopRail />
 
       {/* News Section */}
       <NewsSection />
