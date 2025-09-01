@@ -1043,16 +1043,28 @@ async def create_article_json(
         # Log incoming request (safe fields only)
         logging.info(f"Creating article: title='{payload.title}', category='{payload.category}', author='{current_user.username}', breaking={payload.is_breaking}, pin={payload.pin}")
         
-        # Validate category
-        if payload.category not in [cat.value for cat in ArticleCategory]:
-            valid_categories = [cat.value for cat in ArticleCategory]
-            error_msg = f"Invalid category '{payload.category}'. Allowed values: {valid_categories}"
-            log_error(error_msg)
-            raise HTTPException(status_code=422, detail={
-                "ok": False,
-                "error": error_msg,
-                "details": {"field": "category", "allowed_values": valid_categories}
-            })
+        # Normalize and validate category
+        try:
+            if isinstance(payload.category, ArticleCategory):
+                category_enum = payload.category
+            else:
+                category_enum = ArticleCategory(payload.category)
+        except Exception:
+            raw = str(payload.category).strip()
+            match = next(
+                (c for c in ArticleCategory if c.value.lower() == raw.lower() or c.name.lower() == raw.lower()),
+                None
+            )
+            if not match:
+                valid = [c.value for c in ArticleCategory]
+                error_msg = f"Invalid category '{payload.category}'. Allowed values: {valid}"
+                log_error(error_msg)
+                raise HTTPException(status_code=422, detail={
+                    "ok": False,
+                    "error": error_msg,
+                    "details": {"field": "category", "allowed_values": valid}
+                })
+            category_enum = match
 
         # Generate ids/slug
         article_uuid = str(uuid.uuid4())
