@@ -926,11 +926,14 @@ async def create_article(
     category_labels: Optional[str] = Form("[]"),  # New field for category labels
     is_breaking: bool = Form(False),
     is_published: bool = Form(True),
+    pin: bool = Form(False),  # Add pin parameter
+    priority: int = Form(0),  # Add priority parameter
     featured_image: Optional[UploadFile] = File(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Create new article with optional image upload"""
+    logging.info(f"ARTICLES_FORM inbound title={title!r} category={category} is_breaking={is_breaking} is_published={is_published} pin={pin} priority={priority}")
     
     # Handle image upload if provided
     featured_image_url = None
