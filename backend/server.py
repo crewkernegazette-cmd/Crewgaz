@@ -216,10 +216,30 @@ def decode_jwt_token(token: str) -> dict:
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Get current authenticated user with emergency fallback"""
-    try:
+async def get_current_user(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+):
+    """
+    Accept auth from either:
+      - Authorization: Bearer <JWT>
+      - HttpOnly cookie: auth=<JWT>
+    """
+    token = None
+
+    # 1) Prefer Authorization header if present
+    if credentials and credentials.scheme and credentials.scheme.lower() == "bearer":
         token = credentials.credentials
+
+    # 2) Otherwise fall back to cookie
+    if not token:
+        token = request.cookies.get("auth")
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # Continue with existing token validation logic
+    try:
         token_data = decode_jwt_token(token)
         username = token_data.get('username')
         role = token_data.get('role')
