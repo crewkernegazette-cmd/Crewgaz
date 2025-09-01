@@ -12,7 +12,7 @@ from datetime import datetime
 class PostgreSQLValidationTester:
     def __init__(self):
         # Use the current production URL from frontend/.env
-        self.base_url = "https://crewkerne-cms.preview.emergentagent.com"
+        self.base_url = "https://gazette-cms.preview.emergentagent.com"
         self.api_url = f"{self.base_url}/api"
         self.token = None
         self.tests_run = 0
