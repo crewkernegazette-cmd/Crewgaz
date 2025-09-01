@@ -43,6 +43,8 @@ const Dashboard = () => {
     video_url: '',
     is_breaking: false,
     is_published: true,
+    pin: false,
+    priority: 0,
     tags: [],
     category_labels: []
   });
