@@ -7,9 +7,9 @@ export const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8001'
 // For production, use the environment variable pointing to api.crewkernegazette.co.uk
 console.log('API_BASE configured as:', API_BASE);
 
-// Create centralized axios instance
+// Create centralized axios instance  
 export const apiClient = axios.create({
-  baseURL: `${API_BASE}/api`,
+  baseURL: `${API_BASE.replace(/\/$/, '')}/api`,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
