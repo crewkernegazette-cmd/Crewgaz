@@ -614,8 +614,6 @@
 
 ## test_plan:
   current_focus: 
-    - "Social sharing crawler HTML fixes"
-    - "Debug endpoints for crawler testing"
     - "Article linking verification"
   stuck_tasks: 
     - "Production backend API deployment issue"
