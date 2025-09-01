@@ -6,8 +6,7 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = BACKEND_URL;
+// Using centralized API client
 
 const ComedySection = () => {
   const [articles, setArticles] = useState([]);
