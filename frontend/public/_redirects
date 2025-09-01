@@ -1,7 +1,4 @@
 # Render Static Site Rewrites for SEO/Social
-# Social media crawler routes - redirect to backend OG endpoint  
-/article/* https://api.crewkernegazette.co.uk/og/article/* 200
-
 # SEO files served by backend API
 /sitemap.xml https://api.crewkernegazette.co.uk/sitemap.xml 200
 /news-sitemap.xml https://api.crewkernegazette.co.uk/news-sitemap.xml 200
