@@ -66,32 +66,65 @@ if os.getenv('JWT_SECRET') is None:
     logger.warning("⚠️ Using emergency JWT_SECRET fallback - please set JWT_SECRET environment variable for security")
 
 # Helper functions for OG image handling
+def validate_image_url(url, timeout=2):
+    """Validate that an image URL returns 200 and proper content-type"""
+    try:
+        import requests
+        response = requests.head(url, timeout=timeout, headers={'User-Agent': 'Mozilla/5.0'})
+        content_type = response.headers.get('content-type', '')
+        
+        return {
+            'ok': response.status_code == 200 and content_type.startswith('image/'),
+            'status_code': response.status_code,
+            'content_type': content_type
+        }
+    except Exception as e:
+        logger.warning(f"Image validation failed for {url}: {str(e)}")
+        return {'ok': False, 'status_code': 0, 'content_type': 'error', 'error': str(e)}
+
 def pick_og_image(article_obj):
-    """Pick the best available og:image URL, always returns absolute HTTPS URL with proper transforms"""
-    # 1. Use article featured image if absolute http(s)
+    """Pick the best available og:image URL with bulletproof validation and fallbacks"""
+    
+    # Hardcoded safe fallback (guaranteed to exist)
+    SAFE_FALLBACK = "https://res.cloudinary.com/dqren9j0f/image/upload/w_1200,h_630,c_fill,f_jpg/crewkerne-gazette/og-default.jpg"
+    
+    # 1. Try article featured image if available
     if article_obj and article_obj.featured_image and article_obj.featured_image.startswith("http"):
         image_url = article_obj.featured_image
         
-        # Add Cloudinary transformation if it's a Cloudinary URL without existing transform
-        if ('cloudinary.com' in image_url and '/upload/' in image_url and 
-            'f_auto' not in image_url and 'w_' not in image_url and 'h_' not in image_url):
-            # Insert transformation after /upload/
-            image_url = image_url.replace('/upload/', '/upload/f_auto,q_auto,w_1200,h_630,c_fill/')
-            logger.info(f"🖼️ Enhanced Cloudinary image with transform: {image_url}")
-        else:
-            logger.info(f"🖼️ Using article featured image as-is: {image_url}")
+        # Enhance Cloudinary URLs without existing transforms
+        if ('cloudinary.com' in image_url and '/upload/' in image_url):
+            # Check if it already has transforms
+            if not any(param in image_url for param in ['f_auto', 'w_', 'h_', 'c_fill']):
+                # Insert our transform after /upload/
+                image_url = image_url.replace('/upload/', '/upload/f_auto,q_auto,w_1200,h_630,c_fill,f_jpg/')
+                logger.info(f"🖼️ Enhanced Cloudinary image: {image_url}")
+            else:
+                # Force JPEG format for existing transforms
+                if 'f_' not in image_url:
+                    image_url = image_url.replace('/upload/', '/upload/f_jpg/')
+                logger.info(f"🖼️ Using enhanced article image: {image_url}")
         
-        return image_url
+        # Validate the URL
+        validation = validate_image_url(image_url)
+        if validation['ok']:
+            logger.info(f"🖼️ Validated article featured image: {image_url}")
+            return image_url
+        else:
+            logger.warning(f"🖼️ Article image validation failed: {validation}")
     
-    # 2. Use DEFAULT_OG_IMAGE from env
+    # 2. Try DEFAULT_OG_IMAGE from environment
     if DEFAULT_OG_IMAGE and DEFAULT_OG_IMAGE.startswith("http"):
-        logger.info(f"🖼️ Using DEFAULT_OG_IMAGE: {DEFAULT_OG_IMAGE}")
-        return DEFAULT_OG_IMAGE
+        validation = validate_image_url(DEFAULT_OG_IMAGE)
+        if validation['ok']:
+            logger.info(f"🖼️ Using validated DEFAULT_OG_IMAGE: {DEFAULT_OG_IMAGE}")
+            return DEFAULT_OG_IMAGE
+        else:
+            logger.warning(f"🖼️ DEFAULT_OG_IMAGE validation failed: {validation}")
     
-    # 3. Last-ditch Cloudinary fallback that should always exist
-    fallback_url = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME or 'demo'}/image/upload/f_auto,q_auto,w_1200,h_630,c_fill/sample.jpg"
-    logger.info(f"🖼️ Using Cloudinary fallback: {fallback_url}")
-    return fallback_url
+    # 3. Last resort: hardcoded safe fallback
+    logger.info(f"🖼️ Using hardcoded safe fallback: {SAFE_FALLBACK}")
+    return SAFE_FALLBACK
 
 def absolutize(url):
     """Ensure URL is absolute HTTPS"""
