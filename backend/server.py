@@ -150,6 +150,28 @@ def calculate_levenshtein_distance(s1, s2):
     
     return previous_row[-1]
 
+# Startup self-check for DEFAULT_OG_IMAGE
+try:
+    if DEFAULT_OG_IMAGE:
+        validation = validate_image_url(DEFAULT_OG_IMAGE, timeout=5)
+        if validation['ok']:
+            logger.info(f"✅ DEFAULT_OG_IMAGE startup check: PASSED - {DEFAULT_OG_IMAGE}")
+            logger.info(f"   Status: {validation['status_code']}, Content-Type: {validation['content_type']}")
+        else:
+            logger.error(f"❌ DEFAULT_OG_IMAGE startup check: FAILED - {DEFAULT_OG_IMAGE}")
+            logger.error(f"   Status: {validation.get('status_code', 0)}, Content-Type: {validation.get('content_type', 'unknown')}")
+    else:
+        logger.warning("⚠️ DEFAULT_OG_IMAGE not set in environment")
+except Exception as e:
+    logger.error(f"❌ DEFAULT_OG_IMAGE startup check error: {str(e)}")
+
+# Cloudinary configuration self-check (mask secrets)
+cloudinary_cloud = os.getenv('CLOUDINARY_CLOUD_NAME', 'not_set')
+cloudinary_key = os.getenv('CLOUDINARY_API_KEY', 'not_set')
+cloudinary_secret = os.getenv('CLOUDINARY_API_SECRET', 'not_set')
+
+logger.info(f"🔧 Cloudinary config: cloud={cloudinary_cloud}, key={'*' * (len(cloudinary_key) - 4) + cloudinary_key[-4:] if len(cloudinary_key) > 4 else 'not_set'}, secret={'SET' if cloudinary_secret != 'not_set' else 'NOT_SET'}")
+
 # Available article categories
 AVAILABLE_CATEGORY_LABELS = [
     'Satire', 'Straight Talking', 'Opinion', 'Sports', 'Gossip', 
