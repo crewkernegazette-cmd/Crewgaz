@@ -28,7 +28,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Configure axios defaults
+  // Configure apiClient defaults
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (token) {
