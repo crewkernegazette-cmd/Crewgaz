@@ -50,7 +50,7 @@ function App() {
     console.log('Submitting login:', { username: credentials.username });
     
     try {
-      const response = await apiClient.post(`${API_BASE}/api/auth/login`, credentials, {
+      const response = await apiClient.post('/api/auth/login', credentials, {
         headers: {
           'Content-Type': 'application/json'
         },
