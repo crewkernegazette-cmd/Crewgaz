@@ -327,6 +327,7 @@ def set_setting(db: Session, key: str, value: str):
 
 # Article page route for social media crawlers  
 @app.get("/article/{article_slug}")
+@app.head("/article/{article_slug}")
 async def serve_article_page(article_slug: str, request: Request, db: Session = Depends(get_db)):
     """
     Serve article page with proper meta tags for crawlers,
