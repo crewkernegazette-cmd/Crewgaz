@@ -23,7 +23,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 
 class GBNewsTopRailTester:
-    def __init__(self, base_url: str = "https://api.crewkernegazette.co.uk"):
+    def __init__(self, base_url: str = "http://localhost:8001/api"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
