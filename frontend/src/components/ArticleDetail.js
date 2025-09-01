@@ -25,8 +25,8 @@ const ArticleDetail = () => {
       setLoading(true);
       setError(null);
       
-      // Fetch article detail using correct API endpoint (singular)
-      const response = await apiClient.get(`/article/${slug}`);
+      // Fetch article detail using correct API endpoint (plural)
+      const response = await apiClient.get(`/articles/${slug}`);
       setArticle(response.data);
       
       // Fetch related articles
