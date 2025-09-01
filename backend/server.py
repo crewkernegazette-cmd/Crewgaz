@@ -67,17 +67,20 @@ if os.getenv('JWT_SECRET') is None:
 
 # Helper functions for OG image handling
 def pick_og_image(article_obj):
-    """Pick the best available og:image URL, always returns absolute HTTPS URL"""
+    """Pick the best available og:image URL, always returns absolute HTTPS URL with proper transforms"""
     # 1. Use article featured image if absolute http(s)
     if article_obj and article_obj.featured_image and article_obj.featured_image.startswith("http"):
         image_url = article_obj.featured_image
         
-        # Add Cloudinary transformation if it's a Cloudinary URL without size transform
-        if 'cloudinary.com' in image_url and '/upload/' in image_url and ',w_' not in image_url and ',h_' not in image_url:
+        # Add Cloudinary transformation if it's a Cloudinary URL without existing transform
+        if ('cloudinary.com' in image_url and '/upload/' in image_url and 
+            'f_auto' not in image_url and 'w_' not in image_url and 'h_' not in image_url):
             # Insert transformation after /upload/
             image_url = image_url.replace('/upload/', '/upload/f_auto,q_auto,w_1200,h_630,c_fill/')
+            logger.info(f"🖼️ Enhanced Cloudinary image with transform: {image_url}")
+        else:
+            logger.info(f"🖼️ Using article featured image as-is: {image_url}")
         
-        logger.info(f"🖼️ Using article featured image: {image_url}")
         return image_url
     
     # 2. Use DEFAULT_OG_IMAGE from env
@@ -86,7 +89,7 @@ def pick_og_image(article_obj):
         return DEFAULT_OG_IMAGE
     
     # 3. Last-ditch Cloudinary fallback that should always exist
-    fallback_url = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME or 'dqren9j0f'}/image/upload/f_auto,q_auto,w_1200,h_630,c_fill/og-fallback.jpg"
+    fallback_url = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME or 'demo'}/image/upload/f_auto,q_auto,w_1200,h_630,c_fill/sample.jpg"
     logger.info(f"🖼️ Using Cloudinary fallback: {fallback_url}")
     return fallback_url
 
