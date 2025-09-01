@@ -74,28 +74,6 @@ const NewsSection = () => {
         </div>
       </section>
 
-      {/* YouTube Video Section */}
-      <section className="py-12 bg-slate-800/50">
-        <div className="container">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              News, But not as you know it
-            </h2>
-          </div>
-          <div className="max-w-4xl mx-auto">
-            <div className="relative aspect-video rounded-lg overflow-hidden shadow-2xl">
-              <iframe
-                src="https://www.youtube.com/embed/jiZkkqK2410"
-                title="News, But not as you know it"
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Articles Grid */}
       <section className="py-16">
         <div className="container">
