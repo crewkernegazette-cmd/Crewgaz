@@ -9,7 +9,7 @@ console.log('API_BASE configured as:', API_BASE);
 
 // Create centralized axios instance
 export const apiClient = axios.create({
-  baseURL: API_BASE,
+  baseURL: `${API_BASE}/api`,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
