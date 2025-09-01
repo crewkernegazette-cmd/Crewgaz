@@ -325,19 +325,76 @@ const Dashboard = () => {
     setActiveTab('create'); // Switch to create tab for editing
   };
 
-  const handleDeleteArticle = async (articleSlug) => {
-    if (!window.confirm('Are you sure you want to delete this article?')) {
+  const handleDeleteArticle = async (article) => {
+    const identifier = article.uuid || article.slug || article.id;
+    const displayName = article.title || `Article ${identifier}`;
+    
+    if (!window.confirm(`Are you sure you want to delete "${displayName}"?`)) {
       return;
     }
 
     try {
-      const token = localStorage.getItem('access_token');
-      await apiClient.delete(`/api/articles/${articleSlug}`);
-      toast.success('Article deleted successfully!');
+      let endpoint;
+      let identifierType;
+      
+      // Prefer UUID for delete actions
+      if (article.uuid) {
+        endpoint = `/articles/${article.uuid}`;
+        identifierType = 'UUID';
+      } else if (article.slug) {
+        endpoint = `/articles/by-slug/${article.slug}`;
+        identifierType = 'slug';
+      } else if (article.id) {
+        endpoint = `/articles/id/${article.id}`;
+        identifierType = 'ID';
+      } else {
+        throw new Error('No valid identifier found for article');
+      }
+
+      console.log(`Deleting article by ${identifierType}: ${identifier}`);
+      
+      const response = await apiClient.delete(endpoint);
+      
+      // Handle both 200 (JSON) and 204 (No Content) responses
+      if (response.status === 204) {
+        toast.success(`Article deleted successfully!`);
+      } else if (response.status === 200) {
+        const data = response.data;
+        toast.success(data.message || 'Article deleted successfully!');
+      }
+      
+      // Remove from local state immediately
+      setArticles(prevArticles => 
+        prevArticles.filter(a => 
+          a.uuid !== article.uuid && 
+          a.slug !== article.slug && 
+          a.id !== article.id
+        )
+      );
+      
+      // Refresh dashboard data
       fetchDashboardData();
+      
     } catch (error) {
       console.error('Error deleting article:', error);
-      toast.error('Failed to delete article');
+      
+      let errorMessage = 'Failed to delete article';
+      if (error.response) {
+        const status = error.response.status;
+        const detail = error.response.data?.detail || error.response.data?.error;
+        
+        if (status === 403) {
+          errorMessage = 'Permission denied: You can only delete your own articles';
+        } else if (status === 404) {
+          errorMessage = 'Article not found';
+        } else if (detail) {
+          errorMessage = typeof detail === 'string' ? detail : detail.error || 'Failed to delete article';
+        }
+        
+        console.log(`Delete failed - Status: ${status}, Endpoint: ${error.config?.url}, Detail:`, detail);
+      }
+      
+      toast.error(errorMessage);
     }
   };
 
