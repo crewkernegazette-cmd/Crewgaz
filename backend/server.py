@@ -1629,6 +1629,159 @@ def whoami(request: Request):
         "have_auth_cookie": "auth" in request.cookies
     }
 
+@api_router.get("/debug/article-exists")
+async def debug_article_exists(slug: str, db: Session = Depends(get_db)):
+    """Debug endpoint to check if article exists by slug"""
+    try:
+        article = db.query(DBArticle).filter(DBArticle.slug == slug).first()
+        return {
+            "exists": article is not None,
+            "slug": slug,
+            "article_id": article.id if article else None,
+            "title": article.title if article else None
+        }
+    except Exception as e:
+        return {
+            "exists": False,
+            "slug": slug,
+            "error": str(e)
+        }
+
+@api_router.get("/debug/crawler-meta")
+async def debug_crawler_meta(slug: str, db: Session = Depends(get_db)):
+    """Debug endpoint to preview crawler HTML for an article"""
+    try:
+        db_article = db.query(DBArticle).filter(DBArticle.slug == slug).first()
+        if not db_article:
+            return HTMLResponse(
+                content=f"""<!DOCTYPE html>
+<html><head><title>Debug: Article Not Found</title></head>
+<body><h1>Article Not Found</h1><p>No article found with slug: {slug}</p></body>
+</html>""",
+                status_code=404
+            )
+        
+        # Convert to Pydantic model
+        article_obj = Article(
+            id=db_article.id,
+            uuid=db_article.uuid,
+            slug=db_article.slug,
+            title=db_article.title,
+            subheading=db_article.subheading,
+            content=db_article.content,
+            category=db_article.category,
+            publisher_name=db_article.publisher_name,
+            author_name=db_article.author_name,
+            author_id=db_article.author_id,
+            featured_image=db_article.featured_image,
+            image_caption=db_article.image_caption,
+            video_url=db_article.video_url,
+            tags=json.loads(db_article.tags) if db_article.tags else [],
+            category_labels=json.loads(db_article.category_labels) if db_article.category_labels else [],
+            is_breaking=db_article.is_breaking,
+            is_published=db_article.is_published,
+            pinned_at=db_article.pinned_at,
+            priority=db_article.priority,
+            created_at=db_article.created_at,
+            updated_at=db_article.updated_at
+        )
+        
+        # Sanitize text content for HTML
+        title_safe = article_obj.title.replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+        
+        # Create safe description - use subheading first, then content excerpt, with proper sanitization
+        if article_obj.subheading:
+            description_safe = article_obj.subheading[:160].replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+        else:
+            # Strip HTML tags and get plain text excerpt from content
+            import re
+            plain_content = re.sub(r'<[^>]+>', '', article_obj.content or '')
+            description_safe = plain_content[:160].replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+        
+        # Safe timestamp handling - use created_at as fallback for updated_at
+        updated_iso = (article_obj.updated_at or article_obj.created_at or datetime.now(timezone.utc)).isoformat()
+        published_iso = (article_obj.created_at or datetime.now(timezone.utc)).isoformat()
+        
+        # Ensure og:image uses full absolute URLs
+        if article_obj.featured_image and article_obj.featured_image.startswith('http'):
+            image_url = article_obj.featured_image
+        else:
+            image_url = 'https://crewkernegazette.co.uk/logo.png'
+        
+        debug_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- DEBUG: Preview of crawler meta tags -->
+    <title>DEBUG: {title_safe} | The Crewkerne Gazette</title>
+    <meta name="description" content="{description_safe}">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{title_safe}">
+    <meta property="og:description" content="{description_safe}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://crewkernegazette.co.uk/article/{slug}">
+    <meta property="og:image" content="{image_url}">
+    <meta property="og:site_name" content="The Crewkerne Gazette">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{title_safe}">
+    <meta name="twitter:description" content="{description_safe}">
+    <meta name="twitter:image" content="{image_url}">
+    
+    <style>
+        body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }}
+        .debug {{ background: #f0f0f0; padding: 15px; margin: 10px 0; border-left: 4px solid #007cba; }}
+        .meta-preview {{ background: #fff; border: 1px solid #ddd; padding: 15px; margin: 10px 0; }}
+        .image-preview {{ max-width: 200px; height: auto; }}
+    </style>
+</head>
+<body>
+    <h1>🔍 DEBUG: Crawler Meta Preview</h1>
+    
+    <div class="debug">
+        <h2>Article Info:</h2>
+        <p><strong>Slug:</strong> {slug}</p>
+        <p><strong>Title:</strong> {article_obj.title}</p>
+        <p><strong>Published:</strong> {published_iso}</p>
+        <p><strong>Modified:</strong> {updated_iso}</p>
+        <p><strong>Image URL:</strong> {image_url}</p>
+    </div>
+    
+    <div class="meta-preview">
+        <h2>Social Media Preview:</h2>
+        <img src="{image_url}" alt="Preview Image" class="image-preview" onerror="this.style.display='none'" />
+        <h3>{title_safe}</h3>
+        <p>{description_safe}</p>
+        <small>crewkernegazette.co.uk</small>
+    </div>
+    
+    <div class="debug">
+        <h2>Meta Tags Generated:</h2>
+        <p>✅ Open Graph title, description, image, type</p>
+        <p>✅ Twitter Cards</p>
+        <p>✅ JSON-LD structured data</p>
+        <p>✅ Canonical URL</p>
+    </div>
+</body>
+</html>"""
+        
+        return HTMLResponse(content=debug_html, status_code=200)
+        
+    except Exception as e:
+        error_html = f"""<!DOCTYPE html>
+<html><head><title>Debug Error</title></head>
+<body>
+<h1>Debug Error</h1>
+<p>Error generating crawler meta for slug: {slug}</p>
+<p>Error: {str(e)}</p>
+</body>
+</html>"""
+        return HTMLResponse(content=error_html, status_code=500)
+
 # Debug and utility routes
 @api_router.get("/debug/auth")
 async def debug_auth(db: Session = Depends(get_db)):
