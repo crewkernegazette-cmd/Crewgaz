@@ -1,11 +1,7 @@
-# Render Static Site Rewrites for SEO/Social Meta
-# IMPORTANT: These are rewrites (200), not redirects (301/302)
-# The URL stays on crewkernegazette.co.uk but content comes from API
+# Render Static Site Rewrites for SEO/Social
+# Only SEO files go to API - everything else serves React SPA
 
-# Article pages - rewrite to API for crawler meta tags
-/article/*  https://api.crewkernegazette.co.uk/article/:splat  200
-
-# SEO files - serve dynamic versions from API  
+# SEO files served by backend API
 /sitemap.xml  https://api.crewkernegazette.co.uk/sitemap.xml  200
 /news-sitemap.xml  https://api.crewkernegazette.co.uk/news-sitemap.xml  200
 /robots.txt  https://api.crewkernegazette.co.uk/robots.txt  200
