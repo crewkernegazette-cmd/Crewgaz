@@ -780,6 +780,64 @@ async def get_available_category_labels():
     """Get available category labels for articles"""
     return {"category_labels": AVAILABLE_CATEGORY_LABELS}
 
+@api_router.get("/top-rail")
+async def get_top_rail(db: Session = Depends(get_db)):
+    """Get articles formatted for GB News-style top rail layout"""
+    try:
+        # Get articles with the same ordering logic as main listing
+        query = db.query(DBArticle).filter(DBArticle.is_published == True)
+        
+        db_articles = query.order_by(
+            (DBArticle.pinned_at.isnot(None)).desc(),
+            DBArticle.pinned_at.desc(),
+            DBArticle.priority.desc(),
+            DBArticle.is_breaking.desc(),
+            DBArticle.created_at.desc()
+        ).limit(15).all()
+        
+        articles = []
+        for db_article in db_articles:
+            article = Article(
+                id=db_article.id,
+                uuid=db_article.uuid,
+                slug=db_article.slug,
+                title=db_article.title,
+                subheading=db_article.subheading,
+                content=db_article.content,
+                category=db_article.category,
+                publisher_name=db_article.publisher_name,
+                author_name=db_article.author_name,
+                author_id=db_article.author_id,
+                featured_image=db_article.featured_image,
+                image_caption=db_article.image_caption,
+                video_url=db_article.video_url,
+                tags=json.loads(db_article.tags) if db_article.tags else [],
+                category_labels=json.loads(db_article.category_labels) if db_article.category_labels else [],
+                is_breaking=db_article.is_breaking,
+                is_published=db_article.is_published,
+                pinned_at=db_article.pinned_at,
+                priority=db_article.priority,
+                created_at=db_article.created_at,
+                updated_at=db_article.updated_at
+            )
+            articles.append(article)
+        
+        # Format for top rail layout
+        return {
+            "lead": articles[0] if articles else None,
+            "secondary": articles[1:4] if len(articles) > 1 else [],
+            "more": articles[4:] if len(articles) > 4 else []
+        }
+        
+    except Exception as e:
+        error_msg = f"Failed to fetch top rail: {str(e)}"
+        log_error(error_msg, e)
+        raise HTTPException(status_code=500, detail={
+            "ok": False,
+            "error": "Failed to load top rail content",
+            "details": {"message": str(e)}
+        })
+
 @api_router.get("/articles", response_model=List[Article])
 async def get_articles(limit: int = 10, category: Optional[str] = None, db: Session = Depends(get_db)):
     """Get all published articles"""
