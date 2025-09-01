@@ -176,42 +176,72 @@ const Dashboard = () => {
         return;
       }
 
-      const formData = new FormData();
-      formData.append('title', article.title);
-      formData.append('subheading', article.subheading || '');
-      formData.append('content', article.content);
-      formData.append('category', article.category);
-      formData.append('publisher_name', article.publisher_name);
-      formData.append('image_caption', article.image_caption || '');
-      formData.append('video_url', article.video_url || '');
-      formData.append('tags', JSON.stringify(article.tags));
-      formData.append('category_labels', JSON.stringify(article.category_labels));
-      formData.append('is_breaking', article.is_breaking);
-      formData.append('is_published', article.is_published);
-
-      if (selectedImageFile) {
-        formData.append('featured_image', selectedImageFile);
-      }
-
       let response;
-      if (isEditing && editingArticle) {
-        response = await axios.put(`${API_BASE}/api/articles/${editingArticle.slug}`, formData, {
+      
+      // Use JSON endpoint if no image upload, otherwise use multipart
+      if (!selectedImageFile && !isEditing) {
+        // JSON creation for new articles without images
+        const jsonPayload = {
+          title: article.title,
+          subheading: article.subheading || '',
+          content: article.content,
+          category: article.category,
+          publisher_name: article.publisher_name,
+          featured_image: article.featured_image || '',
+          image_caption: article.image_caption || '',
+          video_url: article.video_url || '',
+          tags: article.tags || [],
+          category_labels: article.category_labels || [],
+          is_breaking: article.is_breaking,
+          is_published: article.is_published,
+        };
+
+        response = await axios.post(`${API_BASE}/api/articles.json`, jsonPayload, {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          },
-          withCredentials: true
-        });
-        toast.success('Article updated successfully!');
-      } else {
-        response = await axios.post(`${API_BASE}/api/articles`, formData, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'application/json'
           },
           withCredentials: true
         });
         toast.success('Article created successfully!');
+      } else {
+        // Use multipart for image uploads or edits
+        const formData = new FormData();
+        formData.append('title', article.title);
+        formData.append('subheading', article.subheading || '');
+        formData.append('content', article.content);
+        formData.append('category', article.category);
+        formData.append('publisher_name', article.publisher_name);
+        formData.append('image_caption', article.image_caption || '');
+        formData.append('video_url', article.video_url || '');
+        formData.append('tags', JSON.stringify(article.tags));
+        formData.append('category_labels', JSON.stringify(article.category_labels));
+        formData.append('is_breaking', article.is_breaking);
+        formData.append('is_published', article.is_published);
+
+        if (selectedImageFile) {
+          formData.append('featured_image', selectedImageFile);
+        }
+
+        if (isEditing && editingArticle) {
+          response = await axios.put(`${API_BASE}/api/articles/${editingArticle.slug}`, formData, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            },
+            withCredentials: true
+          });
+          toast.success('Article updated successfully!');
+        } else {
+          response = await axios.post(`${API_BASE}/api/articles`, formData, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            },
+            withCredentials: true
+          });
+          toast.success('Article created successfully!');
+        }
       }
 
       resetForm();
