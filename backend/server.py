@@ -1877,6 +1877,55 @@ async def create_test_article_simple(current_user: User = Depends(get_current_us
             "details": {"message": str(e)}
         })
 
+@api_router.post("/debug/seed-one", tags=["debug"])
+async def debug_seed_one(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Create a single seed article to prove DB writes work in production (admin only)"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin required")
+    
+    try:
+        now = datetime.now(timezone.utc)
+        title = f"SEED {now.strftime('%Y%m%d_%H%M%S')}"
+        slug = generate_slug(title, db)
+        
+        db_article = DBArticle(
+            uuid=str(uuid.uuid4()),
+            slug=slug,
+            title=title,
+            subheading="seed",
+            content="seed content",
+            category=ArticleCategory.NEWS,
+            publisher_name="The Crewkerne Gazette",
+            author_name=current_user.username,
+            author_id=str(current_user.id),
+            is_breaking=True,
+            is_published=True,
+            pinned_at=now,
+            priority=10,
+            tags=json.dumps(["seed"]),
+            category_labels=json.dumps(["News", "Special"]),
+            created_at=now,
+            updated_at=now,
+        )
+        
+        db.add(db_article)
+        db.commit()
+        db.refresh(db_article)
+        
+        logging.info(f"DEBUG_SEED_ONE: Successfully created article id={db_article.id}, slug='{db_article.slug}'")
+        
+        return {"ok": True, "slug": db_article.slug}
+        
+    except Exception as e:
+        error_msg = f"Failed to seed article: {str(e)}"
+        logging.error(f"DEBUG_SEED_ONE failed: {error_msg}\n{traceback.format_exc()}")
+        log_error(error_msg, e)
+        raise HTTPException(status_code=500, detail={
+            "ok": False,
+            "error": "Seed article creation failed",
+            "details": {"message": str(e)}
+        })
+
 @api_router.get("/articles/{article_slug}/structured-data")
 async def get_article_structured_data(article_slug: str, db: Session = Depends(get_db)):
     """Generate structured data for an article"""
