@@ -1331,6 +1331,8 @@ async def get_dashboard_articles(current_user: User = Depends(get_current_user))
                     category_labels=json.loads(db_article.category_labels) if db_article.category_labels else [],
                     is_breaking=db_article.is_breaking,
                     is_published=db_article.is_published,
+                    pinned_at=db_article.pinned_at,
+                    priority=db_article.priority,
                     created_at=db_article.created_at,
                     updated_at=db_article.updated_at
                 )
