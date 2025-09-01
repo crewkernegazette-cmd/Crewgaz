@@ -585,11 +585,12 @@
 
 ## test_plan:
   current_focus: 
-    - "Category labels system deployment validation - COMPLETED"
-    - "News prioritization system validation - COMPLETED"
+    - "GB News-style top rail layout implementation"
+    - "Pin to top and priority UI controls in dashboard" 
+    - "Mobile debugging endpoints"
   stuck_tasks: []
   test_all: false
-  test_priority: "deployment_validation_completed"
+  test_priority: "high_first"
 
   - task: "GB News-style top rail layout implementation"
     implemented: true
