@@ -547,7 +547,14 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
 </body>
 </html>"""
             
-            return HTMLResponse(content=meta_html)
+            return HTMLResponse(
+                content=meta_html, 
+                status_code=200,
+                headers={
+                    "Cache-Control": "public, max-age=300",
+                    "X-Robots-Tag": "all"
+                }
+            )
             
         except HTTPException:
             raise
