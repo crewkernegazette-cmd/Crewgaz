@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiClient } from '../config/api';
 
 const SimpleLogin = () => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
