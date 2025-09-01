@@ -198,12 +198,10 @@ const Dashboard = () => {
           priority: article.priority || 0,
         };
 
-        response = await axios.post(`${API_BASE}/api/articles.json`, jsonPayload, {
+        response = await apiClient.post('/api/articles.json', jsonPayload, {
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
-          },
-          withCredentials: true
+          }
         });
         toast.success('Article created successfully!');
       } else {
