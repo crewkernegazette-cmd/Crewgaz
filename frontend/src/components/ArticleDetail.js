@@ -56,7 +56,7 @@ const ArticleDetail = () => {
   };
 
   const shareArticle = (platform) => {
-    // Use OG endpoint for social media crawlers, canonical URL for clipboard
+    // Use OG endpoint for social media crawlers (top-level path)
     const canonicalUrl = window.location.href;
     const ogUrl = `https://api.crewkernegazette.co.uk/og/article/${article.slug}`;
     const text = `${article.title}${article.subheading ? ` - ${article.subheading}` : ''} | The Crewkerne Gazette`;
