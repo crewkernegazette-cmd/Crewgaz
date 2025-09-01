@@ -600,6 +600,57 @@ async def og_article(slug: str, db: Session = Depends(get_db)):
     
     return Response(doc, media_type="text/html", status_code=200)
 
+@app.get("/test/create-sample-article")
+async def create_sample_article(db: Session = Depends(get_db)):
+    """Create a sample article for testing Facebook sharing"""
+    try:
+        # Check if sample article already exists
+        existing = db.query(DBArticle).filter(DBArticle.slug == "sample-facebook-test-article").first()
+        if existing:
+            return {
+                "message": "Sample article already exists",
+                "slug": existing.slug,
+                "title": existing.title,
+                "og_url": f"https://api.crewkernegazette.co.uk/og/article/{existing.slug}"
+            }
+        
+        # Create sample article
+        sample_article = DBArticle(
+            uuid=str(uuid.uuid4()),
+            slug="sample-facebook-test-article",
+            title="Facebook Sharing Test Article",
+            subheading="This article tests Facebook Open Graph sharing functionality",
+            content="<p>This is a sample article created to test Facebook sharing and Open Graph meta tags. The article contains rich content that should display properly when shared on social media platforms.</p><p>The featured image should appear as a large preview, and the title and description should be correctly formatted for social media sharing.</p>",
+            category=ArticleCategory.NEWS,
+            publisher_name="The Crewkerne Gazette",
+            author_name="Test Author",
+            author_id="test-author-123",
+            featured_image="https://res.cloudinary.com/demo/image/upload/w_1200,h_630,c_fill,f_jpg,q_auto/sample.jpg",
+            image_caption="Sample image for Facebook sharing test",
+            tags='["facebook", "sharing", "test", "og-tags"]',
+            category_labels='["News", "Tech"]',
+            is_breaking=False,
+            is_published=True,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc)
+        )
+        
+        db.add(sample_article)
+        db.commit()
+        db.refresh(sample_article)
+        
+        return {
+            "message": "Sample article created successfully",
+            "slug": sample_article.slug,
+            "title": sample_article.title,
+            "og_url": f"https://api.crewkernegazette.co.uk/og/article/{sample_article.slug}",
+            "share_url": f"https://www.facebook.com/sharer/sharer.php?u=https://api.crewkernegazette.co.uk/og/article/{sample_article.slug}"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating sample article: {e}")
+        return {"error": str(e), "message": "Failed to create sample article"}
+
 # Article page route for social media crawlers (LEGACY - to be phased out)  
 @app.get("/article/{article_slug}")
 async def serve_article_page(article_slug: str, request: Request, db: Session = Depends(get_db)):
