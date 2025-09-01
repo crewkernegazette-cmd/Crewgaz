@@ -554,7 +554,16 @@ async def og_article(slug: str, db: Session = Depends(get_db)):
 </body>
 </html>"""
         # CRITICAL: Return 200 OK, not 404 - Facebook requires 200 to parse OG tags
-        return Response(doc, media_type="text/html", status_code=200)
+        return Response(
+            doc, 
+            media_type="text/html", 
+            status_code=200,
+            headers={
+                "Cache-Control": "public, max-age=300",
+                "X-Robots-Tag": "all",
+                "Vary": "User-Agent"
+            }
+        )
     
     # Article found - generate rich OG tags
     title = html.escape(article.get("title") or "The Crewkerne Gazette")
