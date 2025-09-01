@@ -136,6 +136,8 @@ class ArticleCreate(BaseModel):
     category_labels: List[str] = []  # New field for article category labels
     is_breaking: bool = False
     is_published: bool = True
+    pin: Optional[bool] = False  # Frontend boolean for pinning
+    priority: int = 0
 
     @validator('content', pre=True)
     def sanitize_content(cls, v):
