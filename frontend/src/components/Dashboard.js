@@ -565,7 +565,7 @@ const Dashboard = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleDeleteArticle(article.slug)}
+                            onClick={() => handleDeleteArticle(article)}
                             className="border-red-600 text-red-400 hover:bg-red-900/20"
                           >
                             <Trash2 className="w-3 h-3" />
