@@ -237,7 +237,17 @@ const Dashboard = () => {
       resetForm();
       setIsEditing(false);
       setEditingArticle(null);
-      fetchDashboardData();
+      
+      // Switch to articles tab to show the new article
+      setActiveTab('articles');
+      
+      // Refresh dashboard data and trigger top-rail refresh
+      await fetchDashboardData();
+      
+      // Trigger a page-wide refresh for top-rail if possible
+      if (window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('articleCreated'));
+      }
     } catch (error) {
       console.error('Error submitting article:', error);
       console.error('Error response:', error.response?.data);
