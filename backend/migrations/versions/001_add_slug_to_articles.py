@@ -18,11 +18,19 @@ depends_on = None
 
 def upgrade() -> None:
     """Add slug column to articles table"""
-    # Add slug column
-    op.add_column('articles', sa.Column('slug', sa.String(length=255), nullable=True))
+    # Check if column exists before adding
+    conn = op.get_bind()
+    result = conn.execute(sa.text("""
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_name = 'articles' AND column_name = 'slug'
+    """))
     
-    # Create unique index on slug
-    op.create_index('ix_articles_slug', 'articles', ['slug'], unique=True)
+    if not result.fetchone():
+        # Add slug column
+        op.add_column('articles', sa.Column('slug', sa.String(length=255), nullable=True))
+        
+        # Create unique index on slug
+        op.create_index('ix_articles_slug', 'articles', ['slug'], unique=True)
     
     # Backfill slugs for existing articles
     # This will be handled in the application code using generate_slug function
