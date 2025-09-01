@@ -226,7 +226,7 @@ const Dashboard = () => {
         }
 
         if (isEditing && editingArticle) {
-          response = await apiClient.put(`/api/articles/${editingArticle.slug}`, formData);
+          response = await apiClient.put(`/articles/${editingArticle.slug}`, formData);
           toast.success('Article updated successfully!');
         } else {
           response = await apiClient.post('/articles', formData);
