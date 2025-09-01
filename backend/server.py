@@ -66,7 +66,7 @@ AVAILABLE_CATEGORY_LABELS = [
 ]
 
 # Security
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 # Pydantic Models (API Models)
 class User(BaseModel):
