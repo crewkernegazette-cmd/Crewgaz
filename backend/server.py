@@ -431,15 +431,19 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
             
             # Ensure og:image uses full absolute URLs
             if article_obj.featured_image and article_obj.featured_image.startswith('http'):
-                # Use the full Cloudinary URL
+                # Use the full Cloudinary URL or other absolute URL
                 image_url = article_obj.featured_image
                 # Set image type for Cloudinary images
                 if 'cloudinary.com' in image_url:
                     image_type_tag = '    <meta property="og:image:type" content="image/jpeg">'
                 else:
                     image_type_tag = '    <meta property="og:image:type" content="image/jpeg">'
+            elif article_obj.featured_image and article_obj.featured_image.startswith('data:image/'):
+                # Base64 image - convert to Cloudinary or use placeholder
+                image_url = 'https://crewkernegazette.co.uk/logo.png'
+                image_type_tag = '    <meta property="og:image:type" content="image/png">'
             else:
-                # Fallback to default logo
+                # Fallback to default logo - ensure absolute URL
                 image_url = 'https://crewkernegazette.co.uk/logo.png'
                 image_type_tag = '    <meta property="og:image:type" content="image/png">'
             
