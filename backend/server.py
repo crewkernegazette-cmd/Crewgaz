@@ -1084,7 +1084,7 @@ async def create_article_json(
             title=payload.title,
             subheading=payload.subheading,
             content=payload.content,
-            category=payload.category,
+            category=category_enum,
             publisher_name=payload.publisher_name or "The Crewkerne Gazette",
             author_name=current_user.username,
             author_id=str(current_user.id),
