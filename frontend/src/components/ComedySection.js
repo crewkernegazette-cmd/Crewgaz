@@ -26,7 +26,7 @@ const ComedySection = () => {
 
   const fetchComedy = async () => {
     try {
-      const response = await axios.get(`${API}/articles?category=comedy&limit=12`);
+      const response = await apiClient.get('/api/articles?category=comedy&limit=12');
       setArticles(response.data);
     } catch (error) {
       console.error('Error fetching comedy:', error);
