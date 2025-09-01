@@ -520,7 +520,7 @@ async def og_article(slug: str, db: Session = Depends(get_db)):
     article = get_article_by_slug(slug, db)
     
     if not article:
-        logger.info(f"🔗 OG endpoint: Article not found for slug '{slug}', serving 404 with default OG tags")
+        logger.info(f"🔗 OG endpoint: Article not found for slug '{slug}', serving 200 OK with default OG tags")
         
         doc = f"""<!doctype html>
 <html lang="en">
@@ -553,7 +553,8 @@ async def og_article(slug: str, db: Session = Depends(get_db)):
     <p>If you are not redirected automatically, <a href="{canonical}">click here</a>.</p>
 </body>
 </html>"""
-        return Response(doc, media_type="text/html", status_code=404)
+        # CRITICAL: Return 200 OK, not 404 - Facebook requires 200 to parse OG tags
+        return Response(doc, media_type="text/html", status_code=200)
     
     # Article found - generate rich OG tags
     title = html.escape(article.get("title") or "The Crewkerne Gazette")
