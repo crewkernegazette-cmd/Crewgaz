@@ -1909,6 +1909,20 @@ async def create_test_article_simple(current_user: User = Depends(get_current_us
             "details": {"message": str(e)}
         })
 
+@api_router.get("/debug/article-exists")
+async def debug_article_exists(slug: str, db: Session = Depends(get_db)):
+    """Check if an article with the given slug exists"""
+    try:
+        article = db.query(DBArticle).filter(DBArticle.slug == slug).first()
+        return {
+            "exists": bool(article),
+            "slug": slug,
+            "article_id": article.id if article else None,
+            "article_title": article.title if article else None
+        }
+    except Exception as e:
+        return {"exists": False, "error": str(e)}
+
 @api_router.post("/debug/seed-one", tags=["debug"])
 async def debug_seed_one(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Create a single seed article to prove DB writes work in production (admin only)"""
