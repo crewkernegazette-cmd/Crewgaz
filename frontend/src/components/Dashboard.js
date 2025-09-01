@@ -243,36 +243,7 @@ const Dashboard = () => {
         });
         toast.success('Article created successfully!');
       }
-      
-      // Remove the old multipart code entirely - we're now JSON-only
-        // Use multipart for image uploads or edits
-        const formData = new FormData();
-        formData.append('title', article.title);
-        formData.append('subheading', article.subheading || '');
-        formData.append('content', article.content);
-        formData.append('category', article.category.toLowerCase());
-        formData.append('publisher_name', article.publisher_name);
-        formData.append('image_caption', article.image_caption || '');
-        formData.append('video_url', article.video_url || '');
-        formData.append('tags', JSON.stringify(article.tags));
-        formData.append('category_labels', JSON.stringify(article.category_labels));
-        formData.append('is_breaking', article.is_breaking);
-        formData.append('is_published', article.is_published);
-        formData.append('pin', article.pin || false);
-        formData.append('priority', article.priority || 0);
 
-        if (selectedImageFile) {
-          formData.append('featured_image', selectedImageFile);
-        }
-
-        if (isEditing && editingArticle) {
-          response = await apiClient.put(`/articles/${editingArticle.slug}`, formData);
-          toast.success('Article updated successfully!');
-        } else {
-          response = await apiClient.post('/articles', formData);
-          toast.success('Article created successfully!');
-        }
-      }
 
       resetForm();
       setIsEditing(false);
