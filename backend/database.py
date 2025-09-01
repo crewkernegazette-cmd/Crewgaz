@@ -153,6 +153,23 @@ class ArticleCategory(str, Enum):
     DOCUMENTARIES = "documentaries" 
     COMEDY = "comedy"
 
+def coerce_category(value):
+    """Robust category coercion that handles strings and enums"""
+    if isinstance(value, ArticleCategory):
+        return value
+    raw = str(value or "").strip()
+    # Try by value then by name
+    for c in ArticleCategory:
+        if raw.lower() == c.value.lower() or raw.lower() == c.name.lower():
+            return c
+    valid = [c.value for c in ArticleCategory]
+    from fastapi import HTTPException
+    raise HTTPException(status_code=422, detail={
+        "ok": False,
+        "error": f"Invalid category '{value}'. Allowed values: {valid}",
+        "details": {"field": "category", "allowed_values": valid}
+    })
+
 class UserRole(str, Enum):
     ADMIN = "admin"
     USER = "user"
