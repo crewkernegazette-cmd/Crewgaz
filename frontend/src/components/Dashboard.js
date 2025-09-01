@@ -185,7 +185,7 @@ const Dashboard = () => {
           title: article.title,
           subheading: article.subheading || '',
           content: article.content,
-          category: article.category,
+          category: article.category.toLowerCase(),
           publisher_name: article.publisher_name,
           featured_image: article.featured_image || '',
           image_caption: article.image_caption || '',
