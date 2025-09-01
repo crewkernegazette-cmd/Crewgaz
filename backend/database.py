@@ -170,6 +170,8 @@ class DBArticle(Base):
     category_labels = Column(Text, nullable=True)  # JSON string of article category labels
     is_breaking = Column(Boolean, default=False, nullable=False)
     is_published = Column(Boolean, default=True, nullable=False)
+    pinned_at = Column(DateTime(timezone=True), nullable=True)
+    priority = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
