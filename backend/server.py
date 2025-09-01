@@ -626,7 +626,14 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <p><em>Visit us at: <a href="https://crewkernegazette.co.uk/">The Crewkerne Gazette</a></em></p>
 </body>
 </html>"""
-            return HTMLResponse(content=fallback_meta_html, status_code=200)
+            return HTMLResponse(
+                content=fallback_meta_html, 
+                status_code=200,
+                headers={
+                    "Cache-Control": "public, max-age=300",
+                    "X-Robots-Tag": "all"
+                }
+            )
     
     else:
         # For regular users, serve the React app's index.html
