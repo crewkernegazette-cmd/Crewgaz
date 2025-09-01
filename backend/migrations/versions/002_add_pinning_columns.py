@@ -17,13 +17,28 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add pinning columns to articles table
-    op.add_column('articles', sa.Column('pinned_at', sa.DateTime(timezone=True), nullable=True))
-    op.add_column('articles', sa.Column('priority', sa.Integer(), nullable=False, server_default='0'))
+    # Check if columns exist before adding
+    conn = op.get_bind()
     
-    # Create indexes for better query performance
-    op.create_index('ix_articles_pinned_at', 'articles', ['pinned_at'])
-    op.create_index('ix_articles_priority', 'articles', ['priority'])
+    # Check for pinned_at column
+    result = conn.execute(sa.text("""
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_name = 'articles' AND column_name = 'pinned_at'
+    """))
+    
+    if not result.fetchone():
+        op.add_column('articles', sa.Column('pinned_at', sa.DateTime(timezone=True), nullable=True))
+        op.create_index('ix_articles_pinned_at', 'articles', ['pinned_at'])
+    
+    # Check for priority column
+    result = conn.execute(sa.text("""
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_name = 'articles' AND column_name = 'priority'
+    """))
+    
+    if not result.fetchone():
+        op.add_column('articles', sa.Column('priority', sa.Integer(), nullable=False, server_default='0'))
+        op.create_index('ix_articles_priority', 'articles', ['priority'])
 
 
 def downgrade() -> None:
