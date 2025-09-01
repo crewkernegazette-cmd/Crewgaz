@@ -1040,32 +1040,35 @@ async def create_article_json(
     db: Session = Depends(get_db)
 ):
     """Create article via JSON (for dashboard without file upload)"""
+    logging.info("ARTICLES_JSON inbound")
+    
     try:
-        # Log incoming request (safe fields only)
-        logging.info(f"Creating article: title='{payload.title}', category='{payload.category}', author='{current_user.username}', breaking={payload.is_breaking}, pin={payload.pin}")
-        
-        # Normalize and validate category
+        # Comprehensive payload logging
         try:
-            if isinstance(payload.category, ArticleCategory):
-                category_enum = payload.category
-            else:
-                category_enum = ArticleCategory(payload.category)
-        except Exception:
-            raw = str(payload.category).strip()
-            match = next(
-                (c for c in ArticleCategory if c.value.lower() == raw.lower() or c.name.lower() == raw.lower()),
-                None
-            )
-            if not match:
-                valid = [c.value for c in ArticleCategory]
-                error_msg = f"Invalid category '{payload.category}'. Allowed values: {valid}"
-                log_error(error_msg)
-                raise HTTPException(status_code=422, detail={
-                    "ok": False,
-                    "error": error_msg,
-                    "details": {"field": "category", "allowed_values": valid}
-                })
-            category_enum = match
+            body = payload.dict()
+            logging.info(f"ARTICLES_JSON payload: {json.dumps(body, default=str)[:2000]}")
+        except Exception as e:
+            logging.warning(f"ARTICLES_JSON could not serialize payload: {e}")
+        
+        logging.info(f"ARTICLES_JSON user: {current_user.username}, role: {current_user.role}")
+        
+        # Use robust category coercion
+        category_enum = coerce_category(payload.category)
+        logging.info(f"ARTICLES_JSON category coerced: '{payload.category}' -> {category_enum}")
+        
+        # Generate ids/slug
+        article_uuid = str(uuid.uuid4())
+        article_slug = generate_slug(payload.title, db)
+        logging.info(f"ARTICLES_JSON generated: uuid={article_uuid}, slug='{article_slug}'")
+
+        # Filter category labels to only include valid ones
+        valid_category_labels = []
+        if payload.category_labels:
+            valid_category_labels = [label for label in payload.category_labels if label in AVAILABLE_CATEGORY_LABELS]
+
+        # Handle pinning with timezone-aware datetime  
+        pinned_at = datetime.now(timezone.utc) if payload.pin else None
+        logging.info(f"ARTICLES_JSON pinning: pin={payload.pin}, pinned_at={pinned_at}, priority={payload.priority}")
 
         # Generate ids/slug
         article_uuid = str(uuid.uuid4())
