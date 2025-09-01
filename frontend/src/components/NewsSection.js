@@ -15,9 +15,7 @@ const NewsSection = () => {
 
   const fetchNews = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/api/articles?category=news&limit=12`, {
-        withCredentials: true
-      });
+      const response = await apiClient.get('/api/articles?category=news&limit=12');
       const articlesData = Array.isArray(response.data) ? response.data : [];
       setArticles(articlesData);
       console.warn('NewsSection - Articles state after fetch:', articlesData);
