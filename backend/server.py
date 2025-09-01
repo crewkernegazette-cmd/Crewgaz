@@ -2953,7 +2953,12 @@ Crawl-delay: 1
 app.include_router(api_router)
 
 # Mount frontend static files FIRST for static assets
-app.mount("/static", StaticFiles(directory="../frontend/build/static"), name="static")
+# Mount static files (only if directory exists)
+static_dir = Path("../frontend/build/static")
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory="../frontend/build/static"), name="static")
+else:
+    logger.warning("Static files directory not found, skipping mount")
 
 # SPA fallback route - catch all non-API routes and serve React app
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "HEAD"], include_in_schema=False)
