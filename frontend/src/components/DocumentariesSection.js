@@ -28,7 +28,7 @@ const DocumentariesSection = () => {
 
   const fetchDocumentaries = async () => {
     try {
-      const response = await apiClient.get('/api/articles?category=documentaries&limit=12');
+      const response = await apiClient.get('/articles?category=documentaries&limit=12');
       setArticles(response.data);
     } catch (error) {
       console.error('Error fetching documentaries:', error);

@@ -23,7 +23,7 @@ const Homepage = () => {
 
   const fetchPublicSettings = async () => {
     try {
-      const response = await apiClient.get('/api/settings/public');
+      const response = await apiClient.get('/settings/public');
       setShowBanner(response.data?.show_breaking_news_banner || true);
     } catch (error) {
       console.error('Error fetching public settings:', error);
@@ -34,7 +34,7 @@ const Homepage = () => {
 
   const fetchBreakingNews = async () => {
     try {
-      const response = await apiClient.get('/api/articles?is_breaking=true&limit=3');
+      const response = await apiClient.get('/articles?is_breaking=true&limit=3');
       const breakingData = Array.isArray(response.data) ? response.data : [];
       setBreakingNews(breakingData);
       console.warn('Breaking news state:', breakingData);

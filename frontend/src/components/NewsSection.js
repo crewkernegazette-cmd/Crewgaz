@@ -15,7 +15,7 @@ const NewsSection = () => {
 
   const fetchNews = async () => {
     try {
-      const response = await apiClient.get('/api/articles?category=news&limit=12');
+      const response = await apiClient.get('/articles?category=news&limit=12');
       const articlesData = Array.isArray(response.data) ? response.data : [];
       setArticles(articlesData);
       console.warn('NewsSection - Articles state after fetch:', articlesData);

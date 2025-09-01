@@ -62,10 +62,10 @@ const Dashboard = () => {
     try {
       setLoading(true);
       const [statsRes, articlesRes, contactsRes, settingsRes] = await Promise.all([
-        apiClient.get('/api/dashboard/stats'),
-        apiClient.get('/api/dashboard/articles'),
-        apiClient.get('/api/contacts'),
-        apiClient.get('/api/settings')
+        apiClient.get('/dashboard/stats'),
+        apiClient.get('/dashboard/articles'),
+        apiClient.get('/contacts'),
+        apiClient.get('/settings')
       ]);
 
       setStats(statsRes.data);
@@ -91,7 +91,7 @@ const Dashboard = () => {
 
   const fetchCategoryLabels = async () => {
     try {
-      const response = await apiClient.get('/api/categories/labels');
+      const response = await apiClient.get('/categories/labels');
       const labels = Array.isArray(response.data.category_labels) ? response.data.category_labels : [];
       setAvailableCategoryLabels(labels);
       console.warn('Available category labels:', labels);
@@ -198,7 +198,7 @@ const Dashboard = () => {
           priority: article.priority || 0,
         };
 
-        response = await apiClient.post('/api/articles.json', jsonPayload, {
+        response = await apiClient.post('/articles.json', jsonPayload, {
           headers: {
             'Content-Type': 'application/json'
           }
@@ -229,7 +229,7 @@ const Dashboard = () => {
           response = await apiClient.put(`/api/articles/${editingArticle.slug}`, formData);
           toast.success('Article updated successfully!');
         } else {
-          response = await apiClient.post('/api/articles', formData);
+          response = await apiClient.post('/articles', formData);
           toast.success('Article created successfully!');
         }
       }
@@ -288,7 +288,7 @@ const Dashboard = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('access_token');
-      await apiClient.put('/api/settings', settings);
+      await apiClient.put('/settings', settings);
       toast.success('Settings updated successfully!');
     } catch (error) {
       console.error('Error updating settings:', error);

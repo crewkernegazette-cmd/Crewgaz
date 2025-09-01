@@ -12,7 +12,7 @@ const SimpleLogin = () => {
     setError('');
     
     try {
-      const response = await apiClient.post('/api/auth/login', credentials);
+      const response = await apiClient.post('/auth/login', credentials);
       
       if (response.data.access_token) {
         localStorage.setItem('access_token', response.data.access_token);

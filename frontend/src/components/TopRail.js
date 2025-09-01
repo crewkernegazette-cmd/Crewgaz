@@ -19,7 +19,7 @@ const TopRail = () => {
 
   const fetchTopRailData = async () => {
     try {
-      const response = await apiClient.get('/api/top-rail');
+      const response = await apiClient.get('/top-rail');
       
       setTopRailData({
         lead: response.data.lead || null,

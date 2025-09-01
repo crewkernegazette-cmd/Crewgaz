@@ -86,7 +86,7 @@ const ContactSection = () => {
       console.log('🌐 CONTACT FORM: Sending request:', requestData);
       
       // Make the API call using centralized client
-      const response = await apiClient.post('/api/contacts', requestData);
+      const response = await apiClient.post('/contacts', requestData);
       console.log('✅ CONTACT FORM: Success response:', response.data);
 
       // Clear timeout since we succeeded
