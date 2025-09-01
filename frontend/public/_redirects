@@ -6,5 +6,8 @@
 /news-sitemap.xml  https://api.crewkernegazette.co.uk/news-sitemap.xml  200
 /robots.txt  https://api.crewkernegazette.co.uk/robots.txt  200
 
+# Social media crawler routes - redirect to backend OG endpoint
+/article/*  https://api.crewkernegazette.co.uk/og/article/:splat  200
+
 # All other routes go to React app (SPA fallback)
 /*  /index.html  200
