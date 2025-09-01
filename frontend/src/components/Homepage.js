@@ -9,9 +9,7 @@ import MusicSection from './MusicSection';
 import DocumentariesSection from './DocumentariesSection';
 import ComedySection from './ComedySection';
 import ContactSection from './ContactSection';
-import axios from 'axios';
-
-import { API_BASE } from '../config/api';
+import { apiClient } from '../config/api';
 
 const Homepage = () => {
   const [breakingNews, setBreakingNews] = useState([]);
