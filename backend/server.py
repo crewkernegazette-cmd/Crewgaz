@@ -1082,6 +1082,7 @@ async def create_article_json(
         # Handle pinning with timezone-aware datetime  
         pinned_at = datetime.now(timezone.utc) if payload.pin else None
 
+        logging.info("ARTICLES_JSON creating DBArticle object")
         db_article = DBArticle(
             uuid=article_uuid,
             slug=article_slug,
@@ -1103,11 +1104,12 @@ async def create_article_json(
             priority=payload.priority,
         )
 
+        logging.info("ARTICLES_JSON adding to database")
         db.add(db_article)
         db.commit()
         db.refresh(db_article)
         
-        logging.info(f"Successfully created article: id={db_article.id}, slug='{db_article.slug}'")
+        logging.info(f"ARTICLES_JSON SUCCESS: Created article id={db_article.id}, slug='{db_article.slug}', category={db_article.category}")
 
         return Article(
             id=db_article.id,
