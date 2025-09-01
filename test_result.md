@@ -630,7 +630,6 @@
 ## test_plan:
   current_focus: 
     - "Article linking verification"
-    - "Frontend article fetch path correction"
   stuck_tasks: 
     - "Production backend API deployment issue"
   test_all: false
