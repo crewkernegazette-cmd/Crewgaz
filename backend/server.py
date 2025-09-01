@@ -702,16 +702,16 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
     <title>The Crewkerne Gazette - Where Common Sense Meets Headlines</title>
     <meta name="description" content="Bold, unapologetic journalism from Somerset to the nation.">
     
-    <!-- Open Graph Meta Tags -->
+    <!-- Open Graph Meta Tags - Complete Set -->
     <meta property="og:title" content="The Crewkerne Gazette">
     <meta property="og:description" content="Bold, unapologetic journalism from Somerset to the nation.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://crewkernegazette.co.uk/article/{article_slug}">
     <meta property="og:image" content="{fallback_image}">
+    <meta property="og:image:secure_url" content="{fallback_image}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:type" content="image/jpeg">
-    <meta property="og:image:secure_url" content="{fallback_image}">
     <meta property="og:site_name" content="The Crewkerne Gazette">
 {fb_app_id_tag}
     
