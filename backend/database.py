@@ -11,9 +11,13 @@ import bcrypt
 import logging
 import re
 import unicodedata
+from collections import deque
 from dotenv import load_dotenv
 from alembic import command
 from alembic.config import Config
+
+# Global error log ring buffer (for mobile debugging)
+ERROR_LOG_BUFFER = deque(maxlen=20)
 
 # Load environment variables
 load_dotenv()
