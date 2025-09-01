@@ -5,9 +5,7 @@ import { AuthContext } from '../App';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Calendar, User, Share2, ArrowLeft, Clock, Eye } from 'lucide-react';
-import axios from 'axios';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+import { apiClient } from '../config/api';
 
 const ArticleDetail = () => {
   const { slug } = useParams();
