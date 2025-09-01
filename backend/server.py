@@ -507,6 +507,7 @@ def set_setting(db: Session, key: str, value: str):
     db.commit()
 
 @app.get("/og/article/{slug}")
+@app.head("/og/article/{slug}")
 async def og_article(slug: str, db: Session = Depends(get_db)):
     """
     Dedicated OG endpoint for social media crawlers.
