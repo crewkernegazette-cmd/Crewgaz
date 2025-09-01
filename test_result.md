@@ -588,7 +588,8 @@
     - "GB News-style top rail layout implementation"
     - "Pin to top and priority UI controls in dashboard" 
     - "Mobile debugging endpoints"
-  stuck_tasks: []
+  stuck_tasks: 
+    - "Production backend API deployment issue"
   test_all: false
   test_priority: "high_first"
 
