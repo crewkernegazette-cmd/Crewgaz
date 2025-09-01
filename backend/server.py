@@ -623,7 +623,8 @@ async def serve_article_page(article_slug: str, request: Request, db: Session = 
                     "Accept-Ranges": "none",
                     "Cache-Control": "public, max-age=300",
                     "X-Robots-Tag": "all",
-                    "Vary": "User-Agent"
+                    "Vary": "User-Agent",
+                    "X-Debug-Slug": normalized_slug
                 }
             )
             
