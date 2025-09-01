@@ -1127,8 +1127,20 @@ async def create_article_json(
 
         logging.info("ARTICLES_JSON adding to database")
         db.add(db_article)
+        db.flush()  # Flush to get the ID before commit
         db.commit()
         db.refresh(db_article)
+        
+        # Verify the article was actually saved
+        verification = db.query(DBArticle).filter(DBArticle.id == db_article.id).first()
+        if not verification:
+            logging.error(f"ARTICLES_JSON ERROR: Article not found after commit! ID: {db_article.id}")
+            raise HTTPException(status_code=500, detail={
+                "ok": False,
+                "error": "Article creation failed - database transaction error"
+            })
+        else:
+            logging.info(f"ARTICLES_JSON VERIFIED: Article {db_article.id} successfully saved to database")
         
         logging.info(f"ARTICLES_JSON SUCCESS: Created article id={db_article.id}, slug='{db_article.slug}', category={db_article.category}")
 
