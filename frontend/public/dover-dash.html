@@ -1187,44 +1187,26 @@
         function launchDrone() {
             if (Date.now() - lastDroneUse < CONFIG.defenses.drone.cooldown) return;
             
-            // Priority: Target illegal carriers first, then regular boats
+            // Find nearest boat
             let target = null;
-            let targetType = 'boat';
             let nearestDistance = Infinity;
             
-            // Check for illegal carriers first
-            gameState.illegals.forEach(carrier => {
-                if (!carrier.destroyed) {
-                    const distance = Math.abs(carrier.x - player.x);
+            gameState.boats.forEach(boat => {
+                if (!boat.intercepted) {
+                    const distance = Math.abs(boat.x - player.x);
                     if (distance < nearestDistance) {
                         nearestDistance = distance;
-                        target = carrier;
-                        targetType = 'carrier';
+                        target = boat;
                     }
                 }
             });
-            
-            // If no carriers, target regular boats
-            if (!target) {
-                gameState.boats.forEach(boat => {
-                    if (!boat.intercepted) {
-                        const distance = Math.abs(boat.x - player.x);
-                        if (distance < nearestDistance) {
-                            nearestDistance = distance;
-                            target = boat;
-                            targetType = 'boat';
-                        }
-                    }
-                });
-            }
             
             if (target) {
                 gameState.defenses.push(new Drone(
                     player.x + player.width/2,
                     player.y + player.height/2,
                     target.x + target.width/2,
-                    target.y + target.height/2,
-                    targetType
+                    target.y + target.height/2
                 ));
                 lastDroneUse = Date.now();
                 playSound('scoreSound');
