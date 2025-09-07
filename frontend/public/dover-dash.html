@@ -1098,10 +1098,30 @@
             
             gameState.gameTime += deltaTime;
             
-            // Spawn boats
-            if (Date.now() - lastBoatSpawn > CONFIG.boats.spawnRate / gameState.level) {
-                spawnBoat();
-                lastBoatSpawn = Date.now();
+            // Handle wave system
+            if (gameState.isWaveBreak) {
+                // Check if wave break is over
+                if (Date.now() - gameState.waveBreakStartTime >= CONFIG.waves.breakDuration) {
+                    gameState.isWaveBreak = false;
+                    gameState.waveStartTime = Date.now();
+                    createParticles(CONFIG.canvas.width/2, 100, '#FFD700', `WAVE ${gameState.wave} START!`);
+                }
+            } else {
+                // Check if current wave is complete
+                const waveElapsed = Date.now() - gameState.waveStartTime;
+                if (waveElapsed >= CONFIG.waves.duration) {
+                    gameState.wave++;
+                    gameState.isWaveBreak = true;
+                    gameState.waveBreakStartTime = Date.now();
+                    createParticles(CONFIG.canvas.width/2, 100, '#00FF00', `WAVE ${gameState.wave - 1} COMPLETE!`);
+                    playSound('scoreSound');
+                }
+                
+                // Spawn boats based on current wave difficulty
+                if (Date.now() - lastBoatSpawn > getCurrentSpawnRate()) {
+                    spawnBoat();
+                    lastBoatSpawn = Date.now();
+                }
             }
             
             // Spawn power-ups
@@ -1194,13 +1214,11 @@
             );
             gameState.particles = gameState.particles.filter(particle => particle.life > 0);
             
-            // Level progression
-            const newLevel = Math.floor(gameState.score / 200) + 1;
-            if (newLevel > gameState.level) {
-                gameState.level = newLevel;
-                createParticles(CONFIG.canvas.width/2, CONFIG.canvas.height/2, '#FFD700', `LEVEL ${gameState.level}!`);
-                playSound('scoreSound');
-            }
+            // Check unlocks
+            checkUnlocks();
+            
+            // Update mobile controls
+            updateMobileControls();
             
             // Check game over
             if (gameState.lives <= 0) {
