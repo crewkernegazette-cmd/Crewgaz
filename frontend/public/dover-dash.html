@@ -939,6 +939,59 @@
             return "Rookie PM";
         }
 
+        function activateDelay() {
+            if (Date.now() - gameState.lastDelayUse < CONFIG.defenses.delay.cooldown) return;
+            if (gameState.score < CONFIG.defenses.delay.cost) return;
+            
+            gameState.score -= CONFIG.defenses.delay.cost;
+            gameState.lastDelayUse = Date.now();
+            
+            // Pause all boats for delay duration
+            gameState.boats.forEach(boat => {
+                if (!boat.intercepted) {
+                    boat.delayStartTime = Date.now();
+                    boat.originalSpeed = boat.speed;
+                    boat.speed = 0;
+                }
+            });
+            
+            // Restore speed after delay
+            setTimeout(() => {
+                gameState.boats.forEach(boat => {
+                    if (boat.delayStartTime && !boat.intercepted) {
+                        boat.speed = boat.originalSpeed;
+                        delete boat.delayStartTime;
+                        delete boat.originalSpeed;
+                    }
+                });
+            }, CONFIG.defenses.delay.duration);
+            
+            createParticles(CONFIG.canvas.width/2, CONFIG.canvas.height/2, '#FFD700', 'POLICY DELAY!');
+            playSound('scoreSound');
+        }
+
+        function checkUnlocks() {
+            // Unlock forms at 100 points
+            if (gameState.score >= CONFIG.defenses.forms.unlockScore && !gameState.unlockedDefenses.includes('forms')) {
+                gameState.unlockedDefenses.push('forms');
+                showAchievement('FORMS UNLOCKED! Press F or tap FORMS button');
+            }
+            
+            // Unlock delay at 300 points
+            if (gameState.score >= CONFIG.defenses.delay.unlockScore && !gameState.unlockedDefenses.includes('delay')) {
+                gameState.unlockedDefenses.push('delay');
+                showAchievement('POLICY DELAY UNLOCKED! Press D or tap DELAY button');
+            }
+        }
+
+        function getCurrentSpawnRate() {
+            const waveMultiplier = Math.pow(CONFIG.waves.difficultyIncrease, gameState.wave - 1);
+            return Math.max(
+                CONFIG.boats.minSpawnRate,
+                CONFIG.boats.baseSpawnRate / waveMultiplier
+            );
+        }
+
         function spawnBoat() {
             const y = Math.random() * (CONFIG.canvas.height - 200) + 100;
             gameState.boats.push(new Boat(CONFIG.canvas.width, y));
