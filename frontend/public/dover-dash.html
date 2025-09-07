@@ -1269,9 +1269,29 @@
                 const waveElapsed = Date.now() - gameState.waveStartTime;
                 if (waveElapsed >= CONFIG.waves.duration) {
                     gameState.wave++;
+                    gameState.level = gameState.wave; // Level matches wave number
                     gameState.isWaveBreak = true;
                     gameState.waveBreakStartTime = Date.now();
+                    
+                    // Add quirky wave completion message
+                    const completionMessages = [
+                        "Jolly good show, PM!",
+                        "Smashing work, old chap!",
+                        "Keep calm and carry on!",
+                        "Rule Britannia! Wave conquered!",
+                        "Blimey, that was brilliant!",
+                        "Top drawer performance, PM!",
+                        "Spiffing job, absolutely spiffing!",
+                        "Bob's your uncle! Well done!",
+                        "Cracking work, Prime Minister!",
+                        "Tally ho! Another wave defeated!"
+                    ];
+                    const randomMessage = completionMessages[Math.floor(Math.random() * completionMessages.length)];
+                    
                     createParticles(CONFIG.canvas.width/2, 100, '#00FF00', `WAVE ${gameState.wave - 1} COMPLETE!`);
+                    setTimeout(() => {
+                        createParticles(CONFIG.canvas.width/2, 150, '#FFD700', randomMessage);
+                    }, 1000);
                     playSound('scoreSound');
                 }
                 
