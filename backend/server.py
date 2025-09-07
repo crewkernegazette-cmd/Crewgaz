@@ -362,7 +362,6 @@ async def submit_score(entry: LeaderboardEntry, db: Session = Depends(get_db)):
         clean_title = bleach.clean(entry.title, strip=True)
         
         # Use MongoDB for leaderboard storage
-        from pymongo import MongoClient
         import os
         
         # Get MongoDB connection
