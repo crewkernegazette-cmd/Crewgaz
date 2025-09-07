@@ -1135,26 +1135,44 @@
         function launchDrone() {
             if (Date.now() - lastDroneUse < CONFIG.defenses.drone.cooldown) return;
             
-            // Find nearest boat
-            let nearestBoat = null;
+            // Priority: Target illegal carriers first, then regular boats
+            let target = null;
+            let targetType = 'boat';
             let nearestDistance = Infinity;
             
-            gameState.boats.forEach(boat => {
-                if (!boat.intercepted) {
-                    const distance = Math.abs(boat.x - player.x);
+            // Check for illegal carriers first
+            gameState.illegals.forEach(carrier => {
+                if (!carrier.destroyed) {
+                    const distance = Math.abs(carrier.x - player.x);
                     if (distance < nearestDistance) {
                         nearestDistance = distance;
-                        nearestBoat = boat;
+                        target = carrier;
+                        targetType = 'carrier';
                     }
                 }
             });
             
-            if (nearestBoat) {
+            // If no carriers, target regular boats
+            if (!target) {
+                gameState.boats.forEach(boat => {
+                    if (!boat.intercepted) {
+                        const distance = Math.abs(boat.x - player.x);
+                        if (distance < nearestDistance) {
+                            nearestDistance = distance;
+                            target = boat;
+                            targetType = 'boat';
+                        }
+                    }
+                });
+            }
+            
+            if (target) {
                 gameState.defenses.push(new Drone(
                     player.x + player.width/2,
-                    player.y,
-                    nearestBoat.x + nearestBoat.width/2,
-                    nearestBoat.y + nearestBoat.height/2
+                    player.y + player.height/2,
+                    target.x + target.width/2,
+                    target.y + target.height/2,
+                    targetType
                 ));
                 lastDroneUse = Date.now();
                 playSound('scoreSound');
