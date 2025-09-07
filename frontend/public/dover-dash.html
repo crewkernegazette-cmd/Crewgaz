@@ -1557,6 +1557,7 @@
             gameState.waveStartTime = Date.now();
             gameState.isWaveBreak = false;
             gameState.boats = [];
+            gameState.illegals = [];
             gameState.defenses = [];
             gameState.powerUps = [];
             gameState.particles = [];
@@ -1564,8 +1565,6 @@
             gameState.gameTime = 0;
             gameState.lastEventTime = Date.now();
             gameState.isPaused = false;
-            gameState.unlockedDefenses = ['drone'];
-            gameState.lastDelayUse = 0;
             
             player = new BorderPatrolBathtub();
             lastBoatSpawn = Date.now();
