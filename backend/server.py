@@ -399,7 +399,8 @@ async def get_leaderboard(weekly: bool = False, limit: int = 10, db: Session = D
     """Get Dover Dash leaderboard scores"""
     try:
         # Ensure the leaderboard table exists
-        db.execute("""
+        from sqlalchemy import text
+        db.execute(text("""
             CREATE TABLE IF NOT EXISTS leaderboard (
                 id SERIAL PRIMARY KEY,
                 player_name VARCHAR(255) NOT NULL,
@@ -407,26 +408,26 @@ async def get_leaderboard(weekly: bool = False, limit: int = 10, db: Session = D
                 title VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """))
         
         # Build query
         if weekly:
             # Get scores from last 7 days
-            query = """
+            query = text("""
                 SELECT player_name, score, title, created_at
                 FROM leaderboard 
                 WHERE created_at >= NOW() - INTERVAL '7 days'
                 ORDER BY score DESC 
                 LIMIT :limit
-            """
+            """)
         else:
             # Get all-time top scores
-            query = """
+            query = text("""
                 SELECT player_name, score, title, created_at
                 FROM leaderboard 
                 ORDER BY score DESC 
                 LIMIT :limit
-            """
+            """)
         
         result = db.execute(query, {"limit": limit})
         scores = []
