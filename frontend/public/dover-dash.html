@@ -1662,39 +1662,51 @@
             try {
                 const title = generateTitle(gameState.score, {});
                 
-                console.log('Submitting score:', {
+                const payload = {
                     player_name: gameState.playerName,
                     score: gameState.score,
                     title: title
-                });
+                };
                 
-                const response = await fetch('/api/leaderboard', {
+                console.log('Submitting score:', payload);
+                console.log('Current URL:', window.location.href);
+                
+                // Use absolute URL for debugging
+                const submitUrl = window.location.origin + '/api/leaderboard';
+                console.log('Submit URL:', submitUrl);
+                
+                const response = await fetch(submitUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        player_name: gameState.playerName,
-                        score: gameState.score,
-                        title: title
-                    })
+                    body: JSON.stringify(payload)
                 });
                 
                 console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
                 
                 if (response.ok) {
-                    const result = await response.json();
+                    let result;
+                    try {
+                        result = JSON.parse(responseText);
+                    } catch (e) {
+                        console.error('JSON parse error:', e);
+                        result = { message: responseText };
+                    }
                     console.log('Score submission result:', result);
-                    showAchievement('Score submitted to leaderboard!');
-                    setTimeout(() => showLeaderboard(), 1000);
+                    showAchievement('✅ Score submitted successfully!');
+                    setTimeout(() => showLeaderboard(), 1500);
                 } else {
-                    const errorText = await response.text();
-                    console.error('Failed to submit score:', response.status, errorText);
-                    showAchievement('Failed to submit score. Try again later.');
+                    console.error('Failed to submit score:', response.status, responseText);
+                    showAchievement(`❌ Failed: ${response.status} - ${responseText}`);
                 }
             } catch (error) {
-                console.error('Error submitting score:', error);
-                showAchievement('Network error. Score not submitted.');
+                console.error('Network error submitting score:', error);
+                showAchievement(`❌ Network error: ${error.message}`);
             }
         }
 
