@@ -1414,7 +1414,6 @@
             
             // Clean up dead objects
             gameState.boats = gameState.boats.filter(boat => !boat.isOffScreen());
-            gameState.illegals = gameState.illegals.filter(carrier => !carrier.isOffScreen());
             gameState.defenses = gameState.defenses.filter(defense => 
                 defense.active === undefined || defense.active
             );
