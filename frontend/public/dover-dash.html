@@ -438,21 +438,29 @@
             canvas: { width: 800, height: 600 },
             fps: 60,
             boats: {
-                spawnRate: 2000, // milliseconds
-                speed: 1,
+                baseSpawnRate: 4000, // milliseconds - starts slow
+                minSpawnRate: 800,   // fastest spawn rate
+                speedIncrease: 0.3,  // speed increase per level
+                baseSpeed: 0.8,      // starting speed
                 size: { width: 30, height: 20 }
+            },
+            waves: {
+                duration: 30000,     // 30 seconds per wave
+                breakDuration: 5000, // 5 second break between waves
+                difficultyIncrease: 1.5 // multiplier per wave
             },
             player: {
                 speed: 5,
                 size: { width: 80, height: 20 }
             },
             defenses: {
-                drone: { speed: 3, size: 15, cooldown: 3000 },
-                forms: { speed: 2, size: 25, cooldown: 5000 }
+                drone: { speed: 3, size: 15, cooldown: 2000 },
+                forms: { speed: 2, size: 25, cooldown: 4000, unlockScore: 100 },
+                delay: { cooldown: 25000, cost: 50, duration: 5000, unlockScore: 300 }
             },
             powerUps: {
-                spawnRate: 15000,
-                duration: 10000
+                spawnRate: 20000,
+                duration: 15000
             },
             events: {
                 interval: 45000, // 45 seconds
