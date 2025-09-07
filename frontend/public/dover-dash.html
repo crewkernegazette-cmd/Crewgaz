@@ -1712,8 +1712,16 @@
             leaderboardList.innerHTML = 'Loading leaderboard...';
             
             try {
-                const response = await fetch('/api/leaderboard');
+                console.log('Fetching leaderboard...');
+                const response = await fetch('/api/leaderboard?limit=10');
+                console.log('Leaderboard response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log('Leaderboard data:', data);
                 
                 if (data.scores && data.scores.length > 0) {
                     leaderboardList.innerHTML = data.scores.map((entry, index) => {
@@ -1734,7 +1742,7 @@
                 }
             } catch (error) {
                 console.error('Error loading leaderboard:', error);
-                leaderboardList.innerHTML = '<div class="leaderboard-item">Failed to load leaderboard. Try again later.</div>';
+                leaderboardList.innerHTML = '<div class="leaderboard-item">Failed to load leaderboard. Check your connection and try again.</div>';
             }
         }
 
