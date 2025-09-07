@@ -1728,9 +1728,9 @@
         function setupMobileControls() {
             const leftBtn = document.getElementById('leftBtn');
             const rightBtn = document.getElementById('rightBtn');
+            const upBtn = document.getElementById('upBtn');
+            const downBtn = document.getElementById('downBtn');
             const droneBtn = document.getElementById('droneBtn');
-            const formsBtn = document.getElementById('formsBtn');
-            const delayBtn = document.getElementById('delayBtn');
             
             leftBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
@@ -1750,51 +1750,40 @@
                 gameState.mobile.right = false;
             });
             
+            upBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                gameState.mobile.up = true;
+            });
+            upBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                gameState.mobile.up = false;
+            });
+            
+            downBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                gameState.mobile.down = true;
+            });
+            downBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                gameState.mobile.down = false;
+            });
+            
             droneBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (gameState.screen === 'playing') {
                     launchDrone();
                 }
             });
-            
-            formsBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                if (gameState.screen === 'playing' && gameState.unlockedDefenses.includes('forms')) {
-                    deployForms();
-                }
-            });
-            
-            delayBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                if (gameState.screen === 'playing' && gameState.unlockedDefenses.includes('delay')) {
-                    activateDelay();
-                }
-            });
         }
 
-        function updateMobileControls() {
-            const formsBtn = document.getElementById('formsBtn');
-            const delayBtn = document.getElementById('delayBtn');
-            
-            // Update forms button
-            if (gameState.unlockedDefenses.includes('forms')) {
-                formsBtn.classList.remove('disabled');
-            } else {
-                formsBtn.classList.add('disabled');
-            }
-            
-            // Update delay button
-            if (gameState.unlockedDefenses.includes('delay')) {
-                delayBtn.classList.remove('disabled');
-                const timeSinceLastDelay = Date.now() - gameState.lastDelayUse;
-                if (timeSinceLastDelay < CONFIG.defenses.delay.cooldown) {
-                    delayBtn.classList.add('disabled');
-                } else {
-                    delayBtn.classList.remove('disabled');
-                }
-            } else {
-                delayBtn.classList.add('disabled');
-            }
+        function spawnBoat() {
+            const y = Math.random() * (CONFIG.canvas.height - 200) + 100;
+            gameState.boats.push(new Boat(CONFIG.canvas.width, y));
+        }
+
+        function spawnIllegalCarrier() {
+            const y = Math.random() * (CONFIG.canvas.height - 250) + 120;
+            gameState.illegals.push(new IllegalCarrier(CONFIG.canvas.width, y));
         }
 
         // Game Loop
