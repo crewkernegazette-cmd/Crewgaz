@@ -343,8 +343,131 @@ class ContactCreate(BaseModel):
     email: str = Field(..., min_length=5, max_length=100)  # Changed from EmailStr to str for now
     message: str = Field(..., min_length=1, max_length=2000)  # Increased length and reduced min
 
-class BreakingNewsBanner(BaseModel):
-    show_breaking_news_banner: bool
+class LeaderboardEntry(BaseModel):
+    player_name: str = Field(..., min_length=1, max_length=20)
+    score: int = Field(..., ge=0)
+    title: str = Field(..., max_length=100)
+
+class LeaderboardResponse(BaseModel):
+    scores: List[dict]
+    message: str = "Leaderboard retrieved successfully"
+
+@api_router.post("/leaderboard")
+async def submit_score(entry: LeaderboardEntry, db: Session = Depends(get_db)):
+    """Submit a score to the Dover Dash leaderboard"""
+    try:
+        # Sanitize player name
+        clean_name = bleach.clean(entry.player_name, strip=True)
+        clean_title = bleach.clean(entry.title, strip=True)
+        
+        # Create leaderboard entry in database
+        # First ensure the leaderboard table exists
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS leaderboard (
+                id SERIAL PRIMARY KEY,
+                player_name VARCHAR(255) NOT NULL,
+                score INTEGER NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Insert the score
+        db.execute("""
+            INSERT INTO leaderboard (player_name, score, title)
+            VALUES (:player_name, :score, :title)
+        """, {
+            "player_name": clean_name,
+            "score": entry.score,
+            "title": clean_title
+        })
+        
+        db.commit()
+        
+        logger.info(f"Dover Dash score submitted: {clean_name} - {entry.score} points")
+        
+        return {"message": "Score submitted successfully", "ok": True}
+        
+    except Exception as e:
+        logger.error(f"Error submitting Dover Dash score: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to submit score")
+
+@api_router.get("/leaderboard", response_model=LeaderboardResponse)
+async def get_leaderboard(weekly: bool = False, limit: int = 10, db: Session = Depends(get_db)):
+    """Get Dover Dash leaderboard scores"""
+    try:
+        # Ensure the leaderboard table exists
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS leaderboard (
+                id SERIAL PRIMARY KEY,
+                player_name VARCHAR(255) NOT NULL,
+                score INTEGER NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Build query
+        if weekly:
+            # Get scores from last 7 days
+            query = """
+                SELECT player_name, score, title, created_at
+                FROM leaderboard 
+                WHERE created_at >= NOW() - INTERVAL '7 days'
+                ORDER BY score DESC 
+                LIMIT :limit
+            """
+        else:
+            # Get all-time top scores
+            query = """
+                SELECT player_name, score, title, created_at
+                FROM leaderboard 
+                ORDER BY score DESC 
+                LIMIT :limit
+            """
+        
+        result = db.execute(query, {"limit": limit})
+        scores = []
+        
+        for row in result:
+            scores.append({
+                "player_name": row[0],
+                "score": row[1],
+                "title": row[2],
+                "created_at": row[3].isoformat() if row[3] else None
+            })
+        
+        message = f"{'Weekly' if weekly else 'All-time'} top {len(scores)} scores retrieved"
+        
+        return LeaderboardResponse(scores=scores, message=message)
+        
+    except Exception as e:
+        logger.error(f"Error retrieving Dover Dash leaderboard: {e}")
+        # Return empty leaderboard instead of error to keep game playable
+        return LeaderboardResponse(scores=[], message="Leaderboard temporarily unavailable")
+
+# Mount the Dover Dash game file
+@app.get("/dover-dash")
+async def serve_dover_dash():
+    """Serve the Dover Dash game"""
+    try:
+        game_path = Path("../frontend/public/dover-dash.html")
+        if game_path.exists():
+            with open(game_path, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            return HTMLResponse(content=html_content)
+        else:
+            return HTMLResponse(
+                content="<html><body><h1>Dover Dash Not Found</h1><p>Game file not available.</p></body></html>", 
+                status_code=404
+            )
+    except Exception as e:
+        logger.error(f"Error serving Dover Dash: {e}")
+        return HTMLResponse(
+            content="<html><body><h1>Error Loading Dover Dash</h1></body></html>", 
+            status_code=500
+        )
 
 class PasswordChangeRequest(BaseModel):
     current_password: str
