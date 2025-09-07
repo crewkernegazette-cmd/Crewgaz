@@ -373,6 +373,7 @@ class DoverDashLeaderboardTester:
         print(f"   Leaderboard Table: {'✅' if table_accessible else '❌'}")
         print(f"   Score Submission: {'✅' if score_submitted else '❌'}")
         print(f"   Score Retrieval: {'✅' if leaderboard_working else '❌'}")
+        print(f"   Frontend URL Config: {'✅' if frontend_config_ok else '❌'}")
         
         if self.errors:
             print(f"\n🚨 ERRORS FOUND:")
@@ -393,6 +394,10 @@ class DoverDashLeaderboardTester:
         elif not leaderboard_working:
             print("   🚨 CRITICAL: Leaderboard retrieval is failing")
             print("   💡 Check data persistence and query logic")
+        elif not frontend_config_ok:
+            print("   🚨 CRITICAL: Frontend URL configuration issue")
+            print("   💡 Frontend is configured to use incorrect backend URL")
+            print("   💡 Update frontend/.env REACT_APP_BACKEND_URL to correct value")
         else:
             print("   ✅ All core functionality appears to be working!")
             print("   💡 If users report issues, check frontend integration")
