@@ -1268,8 +1268,8 @@
                     lastBoatSpawn = Date.now();
                 }
                 
-                // Spawn illegal carriers occasionally (every 15-20 seconds)
-                if (Math.random() < 0.0008 && gameState.wave >= 2) {
+                // Spawn illegal carriers occasionally (every 45-60 seconds approx)
+                if (Math.random() < 0.0002 && gameState.wave >= 2) {
                     spawnIllegalCarrier();
                 }
             }
