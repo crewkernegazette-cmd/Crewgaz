@@ -394,7 +394,6 @@ async def get_leaderboard(weekly: bool = False, limit: int = 10, db: Session = D
     """Get Dover Dash leaderboard scores"""
     try:
         # Use MongoDB for leaderboard retrieval
-        from pymongo import MongoClient
         import os
         
         # Get MongoDB connection
