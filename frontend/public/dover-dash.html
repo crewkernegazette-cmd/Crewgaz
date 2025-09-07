@@ -745,15 +745,18 @@
                 return this.x <= 0 && !this.destroyed;
             }
         }
-            constructor(x, y, targetX, targetY) {
+
+        class Drone {
+            constructor(x, y, targetX, targetY, targetType = 'boat') {
                 this.x = x;
                 this.y = y;
                 this.targetX = targetX;
                 this.targetY = targetY;
+                this.targetType = targetType; // 'boat' or 'carrier'
                 this.size = CONFIG.defenses.drone.size;
                 this.speed = CONFIG.defenses.drone.speed;
                 this.active = true;
-                this.life = 3000; // 3 seconds
+                this.life = 4000; // 4 seconds
             }
 
             update(deltaTime) {
@@ -782,14 +785,14 @@
                 ctx.save();
                 
                 // Drone body
-                ctx.fillStyle = '#4169E1';
+                ctx.fillStyle = this.targetType === 'carrier' ? '#FF4500' : '#4169E1';
                 ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
                 
                 // Rotors
                 ctx.strokeStyle = '#000000';
                 ctx.lineWidth = 1;
                 const rotorOffset = this.size * 0.6;
-                const time = Date.now() * 0.01;
+                const time = Date.now() * 0.02;
                 
                 // Spinning rotor effect
                 for (let i = 0; i < 4; i++) {
@@ -801,17 +804,27 @@
                     ctx.stroke();
                 }
                 
+                // Target indicator
+                if (this.targetType === 'carrier') {
+                    ctx.fillStyle = '#FF0000';
+                    ctx.font = '6px "Press Start 2P"';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('TARGET', this.x, this.y - this.size);
+                }
+                
                 ctx.restore();
             }
 
-            checkCollision(boat) {
+            checkCollision(target) {
                 if (!this.active) return false;
                 
-                const dx = this.x - (boat.x + boat.width/2);
-                const dy = this.y - (boat.y + boat.height/2);
+                const centerX = target.x + target.width/2;
+                const centerY = target.y + target.height/2;
+                const dx = this.x - centerX;
+                const dy = this.y - centerY;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                return distance < this.size;
+                return distance < this.size + 10;
             }
         }
 
