@@ -2033,16 +2033,7 @@ async def toggle_maintenance_mode(maintenance_data: MaintenanceMode, current_use
     status_text = "enabled" if maintenance_data.maintenance_mode else "disabled"
     return {"message": f"Maintenance mode {status_text} successfully"}
 
-@api_router.post("/settings/breaking-news-banner")
-async def toggle_breaking_news_banner(banner_data: BreakingNewsBanner, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    """Toggle breaking news banner"""
-    if current_user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=403, detail="Admin access required")
-    
-    set_setting(db, "show_breaking_news_banner", "true" if banner_data.show_breaking_news_banner else "false")
-    
-    status_text = "enabled" if banner_data.show_breaking_news_banner else "disabled"
-    return {"message": f"Breaking news banner {status_text} successfully"}
+
 
 # Health and debug endpoints
 @api_router.get("/health")
