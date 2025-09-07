@@ -442,7 +442,7 @@
 
   - task: "Dover Dash game backend integration"
     implemented: true
-    working: true
+    working: false
     file: "server.py"
     stuck_count: 0
     priority: "high"
@@ -451,6 +451,9 @@
         - working: true
           agent: "testing"
           comment: "🎮 DOVER DASH BACKEND INTEGRATION TESTING COMPLETED: Comprehensive testing of Dover Dash game backend functionality shows EXCELLENT RESULTS (88.9% success rate, 8/9 tests passed). ✅ DOVER DASH GAME PAGE: GET /dover-dash endpoint serving HTML correctly with proper Content-Type headers, game file accessible and loading properly. ✅ LEADERBOARD DATABASE: MongoDB-based leaderboard system operational with proper table creation and data structure, switched from PostgreSQL to MongoDB for consistency with existing system. ✅ SUBMIT SCORE API: POST /api/leaderboard endpoint working perfectly with proper input validation (player_name max 20 chars, score ≥ 0, required fields), security sanitization via bleach.clean() removing malicious HTML/script tags, realistic Dover Dash game data submission tested (Winston Churchill - 15420 points). ✅ GET LEADERBOARD API: Endpoint returning proper JSON structure with scores array and message, filtering options working (weekly=true, limit parameter), all query parameters functional. ✅ DATA PERSISTENCE: Score submission and retrieval working correctly, MongoDB storage confirmed with proper timestamps and field preservation. ✅ ERROR HANDLING: Proper HTTP status codes (422 for validation errors, 404 for non-existent endpoints), graceful error responses maintaining game playability. ✅ SECURITY IMPLEMENTATION: Input sanitization working (script tags stripped to empty strings), Pydantic validation preventing oversized inputs, proper field length limits enforced. Dover Dash backend integration is PRODUCTION-READY with robust leaderboard system, security measures, and complete API functionality for the 8-bit political satire game."
+        - working: false
+          agent: "testing"
+          comment: "🚨 DOVER DASH LEADERBOARD API ISSUE IDENTIFIED: Comprehensive testing reveals CRITICAL FRONTEND CONFIGURATION PROBLEM causing score submission failures. ✅ BACKEND API FULLY FUNCTIONAL: All Dover Dash leaderboard endpoints working perfectly on localhost (87.5% success rate, 7/8 tests passed) - POST /api/leaderboard accepts scores correctly with proper validation (TestPM, 150 points, Dover Guardian title), GET /api/leaderboard returns proper JSON with scores array, SQLite database table creation and data persistence working correctly, input validation and security sanitization operational. ❌ FRONTEND URL MISCONFIGURATION: Root cause identified - frontend/.env contains invalid REACT_APP_BACKEND_URL='https://None.preview.emergentagent.com' (contains literal 'None' string), causing all frontend API calls to fail with 404 errors. ✅ BACKEND VALIDATION: Score submission, retrieval, parameter filtering (limit, weekly), and validation all working correctly on backend. 🔧 SOLUTION REQUIRED: Update frontend/.env REACT_APP_BACKEND_URL to correct backend URL to resolve user-reported 'failure to submit' messages. Backend leaderboard system is production-ready but frontend cannot reach it due to URL configuration error."
 
   - task: "PostgreSQL database connectivity fix"
     implemented: true
