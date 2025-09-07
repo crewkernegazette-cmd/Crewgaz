@@ -3176,7 +3176,8 @@ ALLOWED_ORIGINS = [
     "https://crewkernegazette.co.uk",  # production frontend
     "https://www.crewkernegazette.co.uk",  # www subdomain
     "http://localhost:5173",           # Vite dev (if applicable)
-    "http://localhost:3000",           # CRA/Next dev (if applicable)
+    "http://localhost:8001",           # Local backend serving frontend
+    "http://localhost:3000",           # React dev server
 ]
 
 app.add_middleware(
