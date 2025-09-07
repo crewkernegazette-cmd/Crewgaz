@@ -362,25 +362,28 @@ async def submit_score(entry: LeaderboardEntry, db: Session = Depends(get_db)):
         clean_name = bleach.clean(entry.player_name, strip=True)
         clean_title = bleach.clean(entry.title, strip=True)
         
-        # Use MongoDB for leaderboard storage
-        import os
+        # Create leaderboard table if it doesn't exist
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS leaderboard (
+                id SERIAL PRIMARY KEY,
+                player_name VARCHAR(255) NOT NULL,
+                score INTEGER NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
         
-        # Get MongoDB connection
-        mongo_url = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
-        client = MongoClient(mongo_url)
-        db_name = os.getenv('DB_NAME', 'test_database')
-        mongo_db = client[db_name]
-        
-        # Create leaderboard entry
-        leaderboard_entry = {
+        # Insert the score
+        db.execute(text("""
+            INSERT INTO leaderboard (player_name, score, title)
+            VALUES (:player_name, :score, :title)
+        """), {
             "player_name": clean_name,
             "score": entry.score,
-            "title": clean_title,
-            "created_at": datetime.now(timezone.utc)
-        }
+            "title": clean_title
+        })
         
-        # Insert into MongoDB
-        result = mongo_db.leaderboard.insert_one(leaderboard_entry)
+        db.commit()
         
         logger.info(f"Dover Dash score submitted: {clean_name} - {entry.score} points")
         
@@ -388,38 +391,52 @@ async def submit_score(entry: LeaderboardEntry, db: Session = Depends(get_db)):
         
     except Exception as e:
         logger.error(f"Error submitting Dover Dash score: {e}")
+        db.rollback()
         raise HTTPException(status_code=500, detail="Failed to submit score")
 
 @api_router.get("/leaderboard", response_model=LeaderboardResponse)
 async def get_leaderboard(weekly: bool = False, limit: int = 10, db: Session = Depends(get_db)):
     """Get Dover Dash leaderboard scores"""
     try:
-        # Use MongoDB for leaderboard retrieval
-        import os
-        
-        # Get MongoDB connection
-        mongo_url = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
-        client = MongoClient(mongo_url)
-        db_name = os.getenv('DB_NAME', 'test_database')
-        mongo_db = client[db_name]
+        # Create leaderboard table if it doesn't exist
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS leaderboard (
+                id SERIAL PRIMARY KEY,
+                player_name VARCHAR(255) NOT NULL,
+                score INTEGER NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
         
         # Build query
-        query = {}
         if weekly:
             # Get scores from last 7 days
-            week_ago = datetime.now(timezone.utc) - timedelta(days=7)
-            query = {"created_at": {"$gte": week_ago}}
+            query = text("""
+                SELECT player_name, score, title, created_at
+                FROM leaderboard 
+                WHERE created_at >= NOW() - INTERVAL '7 days'
+                ORDER BY score DESC 
+                LIMIT :limit
+            """)
+        else:
+            # Get all-time top scores
+            query = text("""
+                SELECT player_name, score, title, created_at
+                FROM leaderboard 
+                ORDER BY score DESC 
+                LIMIT :limit
+            """)
         
-        # Get scores sorted by score descending
-        cursor = mongo_db.leaderboard.find(query).sort("score", -1).limit(limit)
-        
+        result = db.execute(query, {"limit": limit})
         scores = []
-        for doc in cursor:
+        
+        for row in result:
             scores.append({
-                "player_name": doc.get("player_name", ""),
-                "score": doc.get("score", 0),
-                "title": doc.get("title", ""),
-                "created_at": doc.get("created_at").isoformat() if doc.get("created_at") else None
+                "player_name": row[0],
+                "score": row[1],
+                "title": row[2],
+                "created_at": row[3].isoformat() if row[3] else None
             })
         
         message = f"{'Weekly' if weekly else 'All-time'} top {len(scores)} scores retrieved"
