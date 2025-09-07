@@ -1887,8 +1887,16 @@
         }
 
         function spawnBoat() {
-            const y = Math.random() * (CONFIG.canvas.height - 200) + 100;
-            gameState.boats.push(new Boat(CONFIG.canvas.width, y));
+            // Keep boats in accessible water area only (between cliff areas)
+            const minY = CONFIG.canvas.height * 0.45; // Just below England label
+            const maxY = CONFIG.canvas.height * 0.85; // Well above bottom where ship can reach
+            const y = Math.random() * (maxY - minY) + minY;
+            
+            // Random boat type for variety
+            const boatTypes = ['standard', 'fishing', 'yacht', 'dinghy'];
+            const randomType = boatTypes[Math.floor(Math.random() * boatTypes.length)];
+            
+            gameState.boats.push(new Boat(CONFIG.canvas.width, y, randomType));
         }
 
         function spawnIllegalCarrier() {
