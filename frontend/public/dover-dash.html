@@ -1711,6 +1711,7 @@
         }
 
         async function showLeaderboard() {
+            console.log('=== LEADERBOARD DEBUG START ===');
             document.querySelectorAll('.overlay').forEach(overlay => {
                 overlay.classList.add('hidden');
             });
@@ -1720,18 +1721,26 @@
             leaderboardList.innerHTML = 'Loading leaderboard...';
             
             try {
-                console.log('Fetching leaderboard...');
-                const response = await fetch('/api/leaderboard?limit=10');
+                console.log('Fetching leaderboard from:', window.location.origin + '/api/leaderboard?limit=10');
+                
+                const leaderboardUrl = window.location.origin + '/api/leaderboard?limit=10';
+                const response = await fetch(leaderboardUrl);
+                
                 console.log('Leaderboard response status:', response.status);
+                console.log('Leaderboard response headers:', response.headers);
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
-                const data = await response.json();
-                console.log('Leaderboard data:', data);
+                const responseText = await response.text();
+                console.log('Raw leaderboard response:', responseText);
+                
+                const data = JSON.parse(responseText);
+                console.log('Parsed leaderboard data:', data);
                 
                 if (data.scores && data.scores.length > 0) {
+                    console.log('Found', data.scores.length, 'scores');
                     leaderboardList.innerHTML = data.scores.map((entry, index) => {
                         const crown = index === 0 ? '👑 ' : '';
                         const date = new Date(entry.created_at).toLocaleDateString();
@@ -1746,11 +1755,14 @@
                         `;
                     }).join('');
                 } else {
+                    console.log('No scores found in response');
                     leaderboardList.innerHTML = '<div class="leaderboard-item">No scores yet. Be the first PM to defend Dover!</div>';
                 }
+                console.log('=== LEADERBOARD DEBUG END ===');
             } catch (error) {
                 console.error('Error loading leaderboard:', error);
-                leaderboardList.innerHTML = '<div class="leaderboard-item">Failed to load leaderboard. Check your connection and try again.</div>';
+                leaderboardList.innerHTML = `<div class="leaderboard-item">❌ Error: ${error.message}<br>Check console for details.</div>`;
+                console.log('=== LEADERBOARD DEBUG END (ERROR) ===');
             }
         }
 
