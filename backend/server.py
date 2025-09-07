@@ -362,7 +362,8 @@ async def submit_score(entry: LeaderboardEntry, db: Session = Depends(get_db)):
         
         # Create leaderboard entry in database
         # First ensure the leaderboard table exists
-        db.execute("""
+        from sqlalchemy import text
+        db.execute(text("""
             CREATE TABLE IF NOT EXISTS leaderboard (
                 id SERIAL PRIMARY KEY,
                 player_name VARCHAR(255) NOT NULL,
@@ -370,13 +371,13 @@ async def submit_score(entry: LeaderboardEntry, db: Session = Depends(get_db)):
                 title VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """))
         
         # Insert the score
-        db.execute("""
+        db.execute(text("""
             INSERT INTO leaderboard (player_name, score, title)
             VALUES (:player_name, :score, :title)
-        """, {
+        """), {
             "player_name": clean_name,
             "score": entry.score,
             "title": clean_title
