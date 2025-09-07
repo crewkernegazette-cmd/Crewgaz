@@ -1169,13 +1169,43 @@
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, CONFIG.canvas.width, CONFIG.canvas.height);
             
-            // Draw Dover cliffs (left side)
+            // Draw Dover cliffs (left side - England)
             ctx.fillStyle = '#F5F5DC';
             ctx.fillRect(0, CONFIG.canvas.height * 0.4, 50, CONFIG.canvas.height * 0.6);
+            
+            // Draw England label and flag
+            ctx.fillStyle = '#000000';
+            ctx.font = '12px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText('ENGLAND', 25, CONFIG.canvas.height * 0.35);
+            
+            // English flag (Union Jack) - simplified
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(5, CONFIG.canvas.height * 0.25, 40, 24);
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(5, CONFIG.canvas.height * 0.25 + 10, 40, 4);
+            ctx.fillRect(23, CONFIG.canvas.height * 0.25, 4, 24);
+            ctx.fillStyle = '#0000FF';
+            ctx.fillRect(7, CONFIG.canvas.height * 0.25 + 2, 36, 2);
+            ctx.fillRect(7, CONFIG.canvas.height * 0.25 + 20, 36, 2);
             
             // Draw France coastline (right side)
             ctx.fillStyle = '#D2B48C';
             ctx.fillRect(CONFIG.canvas.width - 30, CONFIG.canvas.height * 0.5, 30, CONFIG.canvas.height * 0.5);
+            
+            // Draw France label and flag
+            ctx.fillStyle = '#000000';
+            ctx.font = '12px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText('FRANCE', CONFIG.canvas.width - 15, CONFIG.canvas.height * 0.45);
+            
+            // French flag (tricolor) - vertical
+            ctx.fillStyle = '#0055A4'; // Blue
+            ctx.fillRect(CONFIG.canvas.width - 25, CONFIG.canvas.height * 0.3, 8, 24);
+            ctx.fillStyle = '#FFFFFF'; // White
+            ctx.fillRect(CONFIG.canvas.width - 17, CONFIG.canvas.height * 0.3, 8, 24);
+            ctx.fillStyle = '#EF4135'; // Red
+            ctx.fillRect(CONFIG.canvas.width - 9, CONFIG.canvas.height * 0.3, 8, 24);
             
             // Draw water
             ctx.fillStyle = '#4682B4';
@@ -1195,6 +1225,26 @@
                     ctx.lineTo(x + 10, waveY);
                     ctx.stroke();
                 }
+            }
+            
+            // Draw wave information
+            if (gameState.isWaveBreak) {
+                ctx.fillStyle = '#FFD700';
+                ctx.font = '24px "Press Start 2P"';
+                ctx.textAlign = 'center';
+                ctx.fillText(`WAVE ${gameState.wave} INCOMING...`, CONFIG.canvas.width/2, CONFIG.canvas.height/2 - 50);
+                
+                const timeLeft = Math.ceil((CONFIG.waves.breakDuration - (Date.now() - gameState.waveBreakStartTime)) / 1000);
+                ctx.font = '16px "Press Start 2P"';
+                ctx.fillText(`Get Ready: ${timeLeft}s`, CONFIG.canvas.width/2, CONFIG.canvas.height/2);
+            } else {
+                // Show current wave
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(CONFIG.canvas.width - 150, 10, 140, 30);
+                ctx.fillStyle = '#FFD700';
+                ctx.font = '12px "Press Start 2P"';
+                ctx.textAlign = 'left';
+                ctx.fillText(`WAVE ${gameState.wave}`, CONFIG.canvas.width - 145, 30);
             }
             
             // Draw objects
