@@ -1348,27 +1348,13 @@
                 // Check collisions with boats
                 gameState.boats.forEach(boat => {
                     if (!boat.intercepted && defense.checkCollision && defense.checkCollision(boat)) {
-                        if (defense.targetType === 'boat' || !defense.targetType) {
-                            boat.intercepted = true;
-                            boat.redirecting = true; // Send boat back to France
-                            gameState.score += 10;
-                            createParticles(boat.x + boat.width/2, boat.y + boat.height/2, '#00FF00', '+10 DRONE HIT!');
-                            playSound('interceptSound');
-                            if (defense.active !== undefined) {
-                                defense.active = false;
-                            }
-                        }
-                    }
-                });
-                
-                // Check collisions with illegal carriers
-                gameState.illegals.forEach(carrier => {
-                    if (!carrier.destroyed && defense.checkCollision && defense.checkCollision(carrier)) {
-                        if (defense.targetType === 'carrier') {
-                            carrier.takeDamage();
-                            if (defense.active !== undefined) {
-                                defense.active = false;
-                            }
+                        boat.intercepted = true;
+                        boat.redirecting = true; // Send boat back to France
+                        gameState.score += 10;
+                        createParticles(boat.x + boat.width/2, boat.y + boat.height/2, '#00FF00', '+10 DRONE HIT!');
+                        playSound('interceptSound');
+                        if (defense.active !== undefined) {
+                            defense.active = false;
                         }
                     }
                 });
