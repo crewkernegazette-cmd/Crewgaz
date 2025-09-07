@@ -287,6 +287,48 @@ class DoverDashLeaderboardTester:
         
         self.log_result("Score Validation", validation_working, "Input validation checks")
 
+    def test_frontend_url_configuration(self):
+        """Test frontend URL configuration"""
+        print("\n🔍 Testing Frontend URL Configuration...")
+        
+        # Read frontend .env file
+        try:
+            with open('/app/frontend/.env', 'r') as f:
+                env_content = f.read()
+            
+            backend_url = None
+            for line in env_content.split('\n'):
+                if line.startswith('REACT_APP_BACKEND_URL='):
+                    backend_url = line.split('=', 1)[1]
+                    break
+            
+            if backend_url:
+                print(f"   Frontend configured URL: {backend_url}")
+                
+                if "None" in backend_url:
+                    self.log_result("Frontend URL Configuration", False, f"Frontend URL contains 'None': {backend_url}")
+                    return False
+                else:
+                    # Test if the configured URL works
+                    try:
+                        response = requests.get(f"{backend_url}/api/leaderboard", timeout=5)
+                        if response.status_code == 200:
+                            self.log_result("Frontend URL Configuration", True, f"Frontend URL is accessible: {backend_url}")
+                            return True
+                        else:
+                            self.log_result("Frontend URL Configuration", False, f"Frontend URL returns {response.status_code}: {backend_url}")
+                            return False
+                    except Exception as e:
+                        self.log_result("Frontend URL Configuration", False, f"Frontend URL not accessible: {backend_url} - {str(e)}")
+                        return False
+            else:
+                self.log_result("Frontend URL Configuration", False, "REACT_APP_BACKEND_URL not found in frontend .env")
+                return False
+                
+        except Exception as e:
+            self.log_result("Frontend URL Configuration", False, f"Error reading frontend .env: {str(e)}")
+            return False
+
     def run_comprehensive_test(self):
         """Run all Dover Dash leaderboard tests"""
         print("🎮 DOVER DASH LEADERBOARD API TESTING")
@@ -312,6 +354,9 @@ class DoverDashLeaderboardTester:
         
         # Test 6: Validation Testing
         self.test_score_validation()
+        
+        # Test 7: Frontend URL Configuration
+        frontend_config_ok = self.test_frontend_url_configuration()
         
         # Summary
         print("\n" + "=" * 50)
