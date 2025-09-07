@@ -5,6 +5,7 @@ import './App.css';
 
 // Components
 import Navbar from './components/Navbar';
+import SocialBar from './components/SocialBar';
 import Footer from './components/Footer';
 import Homepage from './components/Homepage';
 import NewsSection from './components/NewsSection';
