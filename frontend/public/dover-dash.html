@@ -503,7 +503,7 @@
                 this.y = y;
                 this.width = CONFIG.boats.size.width;
                 this.height = CONFIG.boats.size.height;
-                this.speed = CONFIG.boats.speed + (gameState.level * 0.5);
+                this.speed = CONFIG.boats.baseSpeed + (gameState.wave * CONFIG.boats.speedIncrease);
                 this.intercepted = false;
                 this.redirecting = false;
                 this.redirectSpeed = 2;
