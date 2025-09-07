@@ -1349,20 +1349,6 @@
                 }
             });
             
-            // Update illegal carriers
-            gameState.illegals.forEach(carrier => {
-                carrier.update(deltaTime);
-                
-                // Check if carrier reached Dover
-                if (carrier.reachedDover()) {
-                    gameState.lives -= 2; // Carriers cause more damage
-                    gameState.score = Math.max(0, gameState.score - 50);
-                    carrier.destroyed = true;
-                    createParticles(carrier.x, carrier.y, '#FF0000', 'ILLEGAL CARRIER LANDED!');
-                    playSound('gameOverSound', 0.4);
-                }
-            });
-            
             // Update defenses
             gameState.defenses.forEach(defense => {
                 defense.update(deltaTime);
