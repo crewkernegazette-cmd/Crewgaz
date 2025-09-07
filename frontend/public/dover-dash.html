@@ -1284,6 +1284,7 @@
                 // Check collision with player (direct interception)
                 if (player.checkCollision(boat) && !boat.intercepted) {
                     boat.intercepted = true;
+                    boat.redirecting = true; // Send boat back to France
                     gameState.score += 15; // Direct interception bonus
                     createParticles(boat.x + boat.width/2, boat.y + boat.height/2, '#00FF00', '+15 INTERCEPTED!');
                     playSound('interceptSound');
