@@ -65,7 +65,7 @@ DATABASE_URL_WITH_SSL = DATABASE_URL
 # Create engine with SSL support and connection arguments
 engine = create_engine(
     DATABASE_URL_WITH_SSL,
-    connect_args={"sslmode": "require"} if DATABASE_URL and "localhost" not in DATABASE_URL else {},
+    connect_args={"sslmode": "require"} if DATABASE_URL and "localhost" not in DATABASE_URL and "sqlite" not in DATABASE_URL else {},
     echo=False  # Set to True for SQL debugging
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
