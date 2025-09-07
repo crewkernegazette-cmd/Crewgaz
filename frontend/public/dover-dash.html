@@ -504,15 +504,17 @@
                 this.speed = CONFIG.boats.baseSpeed + (gameState.wave * CONFIG.boats.speedIncrease);
                 this.intercepted = false;
                 this.redirecting = false;
-                this.redirectSpeed = 2;
+                this.redirectSpeed = this.speed * 1.2; // Go back faster
                 this.bobOffset = Math.random() * Math.PI * 2;
             }
 
             update(deltaTime) {
                 if (this.redirecting) {
-                    this.x += this.redirectSpeed;
-                    this.y += Math.sin(Date.now() * 0.005 + this.bobOffset) * 0.5;
+                    // Boat is going back to France
+                    this.x += this.redirectSpeed * (deltaTime / 16);
+                    this.y += Math.sin(Date.now() * 0.005 + this.bobOffset) * 0.3;
                 } else {
+                    // Boat is coming from France to Dover
                     this.x -= this.speed * (deltaTime / 16);
                     this.y += Math.sin(Date.now() * 0.003 + this.bobOffset) * 0.3;
                 }
@@ -533,9 +535,9 @@
                 ctx.fillStyle = '#654321';
                 ctx.fillRect(this.x + 17, this.y, 2, this.height);
                 
-                // Flag (French or British depending on direction)
+                // Flag (British when redirected, French when incoming)
                 if (this.redirecting) {
-                    // Union Jack
+                    // Union Jack (going back under British authority)
                     ctx.fillStyle = '#FF0000';
                     ctx.fillRect(this.x + 5, this.y, 8, 6);
                     ctx.fillStyle = '#FFFFFF';
@@ -543,13 +545,21 @@
                     ctx.fillStyle = '#0000FF';
                     ctx.fillRect(this.x + 7, this.y + 1, 4, 4);
                 } else {
-                    // French tricolor
+                    // French tricolor (incoming from France)
                     ctx.fillStyle = '#0055A4';
                     ctx.fillRect(this.x + 5, this.y, 3, 6);
                     ctx.fillStyle = '#FFFFFF';
                     ctx.fillRect(this.x + 8, this.y, 2, 6);
                     ctx.fillStyle = '#EF4135';
                     ctx.fillRect(this.x + 10, this.y, 3, 6);
+                }
+                
+                // Status indicator
+                if (this.redirecting) {
+                    ctx.fillStyle = '#00FF00';
+                    ctx.font = '6px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('RETURNING', this.x + this.width/2, this.y - 5);
                 }
                 
                 ctx.restore();
