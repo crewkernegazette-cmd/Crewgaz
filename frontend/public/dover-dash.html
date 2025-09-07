@@ -1267,18 +1267,11 @@
                     spawnBoat();
                     lastBoatSpawn = Date.now();
                 }
-            }
-            
-            // Spawn power-ups
-            if (Date.now() - lastPowerUpSpawn > CONFIG.powerUps.spawnRate) {
-                spawnPowerUp();
-                lastPowerUpSpawn = Date.now();
-            }
-            
-            // Trigger random events
-            if (Date.now() - gameState.lastEventTime > CONFIG.events.interval) {
-                triggerRandomEvent();
-                gameState.lastEventTime = Date.now();
+                
+                // Spawn illegal carriers occasionally (every 15-20 seconds)
+                if (Math.random() < 0.0008 && gameState.wave >= 2) {
+                    spawnIllegalCarrier();
+                }
             }
             
             // Update player
@@ -1288,9 +1281,12 @@
             gameState.boats.forEach(boat => {
                 boat.update(deltaTime);
                 
-                // Check collision with player
+                // Check collision with player (direct interception)
                 if (player.checkCollision(boat) && !boat.intercepted) {
-                    boat.intercept();
+                    boat.intercepted = true;
+                    gameState.score += 15; // Direct interception bonus
+                    createParticles(boat.x + boat.width/2, boat.y + boat.height/2, '#00FF00', '+15 INTERCEPTED!');
+                    playSound('interceptSound');
                 }
                 
                 // Check if boat reached Dover
@@ -1303,6 +1299,20 @@
                 }
             });
             
+            // Update illegal carriers
+            gameState.illegals.forEach(carrier => {
+                carrier.update(deltaTime);
+                
+                // Check if carrier reached Dover
+                if (carrier.reachedDover()) {
+                    gameState.lives -= 2; // Carriers cause more damage
+                    gameState.score = Math.max(0, gameState.score - 50);
+                    carrier.destroyed = true;
+                    createParticles(carrier.x, carrier.y, '#FF0000', 'ILLEGAL CARRIER LANDED!');
+                    playSound('gameOverSound', 0.4);
+                }
+            });
+            
             // Update defenses
             gameState.defenses.forEach(defense => {
                 defense.update(deltaTime);
@@ -1310,9 +1320,26 @@
                 // Check collisions with boats
                 gameState.boats.forEach(boat => {
                     if (!boat.intercepted && defense.checkCollision && defense.checkCollision(boat)) {
-                        boat.intercept();
-                        if (defense.active !== undefined) {
-                            defense.active = false;
+                        if (defense.targetType === 'boat' || !defense.targetType) {
+                            boat.intercepted = true;
+                            gameState.score += 10;
+                            createParticles(boat.x + boat.width/2, boat.y + boat.height/2, '#00FF00', '+10 DRONE HIT!');
+                            playSound('interceptSound');
+                            if (defense.active !== undefined) {
+                                defense.active = false;
+                            }
+                        }
+                    }
+                });
+                
+                // Check collisions with illegal carriers
+                gameState.illegals.forEach(carrier => {
+                    if (!carrier.destroyed && defense.checkCollision && defense.checkCollision(carrier)) {
+                        if (defense.targetType === 'carrier') {
+                            carrier.takeDamage();
+                            if (defense.active !== undefined) {
+                                defense.active = false;
+                            }
                         }
                     }
                 });
@@ -1331,7 +1358,6 @@
                             createParticles(powerUp.x, powerUp.y, '#FFD700', '+50 TEA BONUS!');
                             break;
                         case 'crumpet':
-                            // Temporary invincibility (visual effect only in this demo)
                             gameState.score += 25;
                             createParticles(powerUp.x, powerUp.y, '#90EE90', 'CRUMPET POWER!');
                             break;
@@ -1351,6 +1377,7 @@
             
             // Clean up dead objects
             gameState.boats = gameState.boats.filter(boat => !boat.isOffScreen());
+            gameState.illegals = gameState.illegals.filter(carrier => !carrier.isOffScreen());
             gameState.defenses = gameState.defenses.filter(defense => 
                 defense.active === undefined || defense.active
             );
@@ -1358,12 +1385,6 @@
                 powerUp.life > 0 && !powerUp.collected
             );
             gameState.particles = gameState.particles.filter(particle => particle.life > 0);
-            
-            // Check unlocks
-            checkUnlocks();
-            
-            // Update mobile controls
-            updateMobileControls();
             
             // Check game over
             if (gameState.lives <= 0) {
