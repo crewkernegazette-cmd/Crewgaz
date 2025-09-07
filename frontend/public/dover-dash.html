@@ -791,12 +791,11 @@
         }
 
         class Drone {
-            constructor(x, y, targetX, targetY, targetType = 'boat') {
+            constructor(x, y, targetX, targetY) {
                 this.x = x;
                 this.y = y;
                 this.targetX = targetX;
                 this.targetY = targetY;
-                this.targetType = targetType; // 'boat' or 'carrier'
                 this.size = CONFIG.defenses.drone.size;
                 this.speed = CONFIG.defenses.drone.speed;
                 this.active = true;
@@ -829,7 +828,7 @@
                 ctx.save();
                 
                 // Drone body
-                ctx.fillStyle = this.targetType === 'carrier' ? '#FF4500' : '#4169E1';
+                ctx.fillStyle = '#4169E1';
                 ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
                 
                 // Rotors
@@ -846,14 +845,6 @@
                     ctx.beginPath();
                     ctx.arc(x, y, 3, 0, Math.PI * 2);
                     ctx.stroke();
-                }
-                
-                // Target indicator
-                if (this.targetType === 'carrier') {
-                    ctx.fillStyle = '#FF0000';
-                    ctx.font = '6px "Press Start 2P"';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('TARGET', this.x, this.y - this.size);
                 }
                 
                 ctx.restore();
