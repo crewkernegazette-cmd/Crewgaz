@@ -1548,11 +1548,15 @@
             if (gameState.screen === 'playing') {
                 if (e.code === 'Space') {
                     e.preventDefault();
-                    if (e.shiftKey) {
-                        deployForms();
-                    } else {
-                        launchDrone();
-                    }
+                    launchDrone();
+                }
+                if (e.code === 'KeyF' && gameState.unlockedDefenses.includes('forms')) {
+                    e.preventDefault();
+                    deployForms();
+                }
+                if (e.code === 'KeyD' && gameState.unlockedDefenses.includes('delay')) {
+                    e.preventDefault();
+                    activateDelay();
                 }
                 if (e.code === 'Escape') {
                     e.preventDefault();
