@@ -393,46 +393,33 @@ async def submit_score(entry: LeaderboardEntry, db: Session = Depends(get_db)):
 async def get_leaderboard(weekly: bool = False, limit: int = 10, db: Session = Depends(get_db)):
     """Get Dover Dash leaderboard scores"""
     try:
-        # Ensure the leaderboard table exists
-        from sqlalchemy import text
-        db.execute(text("""
-            CREATE TABLE IF NOT EXISTS leaderboard (
-                id SERIAL PRIMARY KEY,
-                player_name VARCHAR(255) NOT NULL,
-                score INTEGER NOT NULL,
-                title VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """))
+        # Use MongoDB for leaderboard retrieval
+        from pymongo import MongoClient
+        import os
+        
+        # Get MongoDB connection
+        mongo_url = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
+        client = MongoClient(mongo_url)
+        db_name = os.getenv('DB_NAME', 'test_database')
+        mongo_db = client[db_name]
         
         # Build query
+        query = {}
         if weekly:
             # Get scores from last 7 days
-            query = text("""
-                SELECT player_name, score, title, created_at
-                FROM leaderboard 
-                WHERE created_at >= NOW() - INTERVAL '7 days'
-                ORDER BY score DESC 
-                LIMIT :limit
-            """)
-        else:
-            # Get all-time top scores
-            query = text("""
-                SELECT player_name, score, title, created_at
-                FROM leaderboard 
-                ORDER BY score DESC 
-                LIMIT :limit
-            """)
+            week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+            query = {"created_at": {"$gte": week_ago}}
         
-        result = db.execute(query, {"limit": limit})
+        # Get scores sorted by score descending
+        cursor = mongo_db.leaderboard.find(query).sort("score", -1).limit(limit)
+        
         scores = []
-        
-        for row in result:
+        for doc in cursor:
             scores.append({
-                "player_name": row[0],
-                "score": row[1],
-                "title": row[2],
-                "created_at": row[3].isoformat() if row[3] else None
+                "player_name": doc.get("player_name", ""),
+                "score": doc.get("score", 0),
+                "title": doc.get("title", ""),
+                "created_at": doc.get("created_at").isoformat() if doc.get("created_at") else None
             })
         
         message = f"{'Weekly' if weekly else 'All-time'} top {len(scores)} scores retrieved"
