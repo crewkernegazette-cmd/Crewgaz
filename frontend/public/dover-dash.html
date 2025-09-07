@@ -418,6 +418,10 @@
             score: 0,
             lives: 3,
             level: 1,
+            wave: 1,
+            waveStartTime: 0,
+            isWaveBreak: false,
+            waveBreakStartTime: 0,
             playerName: '',
             boats: [],
             defenses: [],
@@ -430,7 +434,9 @@
             isPaused: false,
             keys: {},
             mouse: { x: 0, y: 0, down: false },
-            mobile: { left: false, right: false, action: false }
+            mobile: { left: false, right: false, drone: false, forms: false, delay: false },
+            unlockedDefenses: ['drone'], // Start with drone unlocked
+            lastDelayUse: 0
         };
 
         // Game Configuration
