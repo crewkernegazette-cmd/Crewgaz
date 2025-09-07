@@ -23,6 +23,7 @@ import traceback
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+from pymongo import MongoClient
 
 # Database imports
 from sqlalchemy.orm import Session
