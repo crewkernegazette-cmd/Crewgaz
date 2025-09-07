@@ -1643,8 +1643,19 @@
 
         // Leaderboard Functions
         async function submitScore() {
+            if (!gameState.playerName || gameState.score <= 0) {
+                showAchievement('Invalid score or name!');
+                return;
+            }
+
             try {
                 const title = generateTitle(gameState.score, {});
+                
+                console.log('Submitting score:', {
+                    player_name: gameState.playerName,
+                    score: gameState.score,
+                    title: title
+                });
                 
                 const response = await fetch('/api/leaderboard', {
                     method: 'POST',
@@ -1658,11 +1669,16 @@
                     })
                 });
                 
+                console.log('Response status:', response.status);
+                
                 if (response.ok) {
+                    const result = await response.json();
+                    console.log('Score submission result:', result);
                     showAchievement('Score submitted to leaderboard!');
-                    showLeaderboard();
+                    setTimeout(() => showLeaderboard(), 1000);
                 } else {
-                    console.error('Failed to submit score');
+                    const errorText = await response.text();
+                    console.error('Failed to submit score:', response.status, errorText);
                     showAchievement('Failed to submit score. Try again later.');
                 }
             } catch (error) {
