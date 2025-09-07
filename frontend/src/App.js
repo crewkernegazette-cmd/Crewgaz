@@ -108,6 +108,7 @@ function App() {
           <ErrorBoundary>
             <Router>
               <Navbar />
+              <SocialBar />
               <Routes>
                 <Route path="/" element={<Homepage />} />
                 <Route path="/news" element={<NewsSection />} />
