@@ -360,30 +360,26 @@ async def submit_score(entry: LeaderboardEntry, db: Session = Depends(get_db)):
         clean_name = bleach.clean(entry.player_name, strip=True)
         clean_title = bleach.clean(entry.title, strip=True)
         
-        # Create leaderboard entry in database
-        # First ensure the leaderboard table exists
-        from sqlalchemy import text
-        db.execute(text("""
-            CREATE TABLE IF NOT EXISTS leaderboard (
-                id SERIAL PRIMARY KEY,
-                player_name VARCHAR(255) NOT NULL,
-                score INTEGER NOT NULL,
-                title VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """))
+        # Use MongoDB for leaderboard storage
+        from pymongo import MongoClient
+        import os
         
-        # Insert the score
-        db.execute(text("""
-            INSERT INTO leaderboard (player_name, score, title)
-            VALUES (:player_name, :score, :title)
-        """), {
+        # Get MongoDB connection
+        mongo_url = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
+        client = MongoClient(mongo_url)
+        db_name = os.getenv('DB_NAME', 'test_database')
+        mongo_db = client[db_name]
+        
+        # Create leaderboard entry
+        leaderboard_entry = {
             "player_name": clean_name,
             "score": entry.score,
-            "title": clean_title
-        })
+            "title": clean_title,
+            "created_at": datetime.now(timezone.utc)
+        }
         
-        db.commit()
+        # Insert into MongoDB
+        result = mongo_db.leaderboard.insert_one(leaderboard_entry)
         
         logger.info(f"Dover Dash score submitted: {clean_name} - {entry.score} points")
         
@@ -391,7 +387,6 @@ async def submit_score(entry: LeaderboardEntry, db: Session = Depends(get_db)):
         
     except Exception as e:
         logger.error(f"Error submitting Dover Dash score: {e}")
-        db.rollback()
         raise HTTPException(status_code=500, detail="Failed to submit score")
 
 @api_router.get("/leaderboard", response_model=LeaderboardResponse)
