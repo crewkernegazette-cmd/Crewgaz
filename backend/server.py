@@ -364,7 +364,7 @@ async def submit_score(entry: LeaderboardEntry, db: Session = Depends(get_db)):
         # Create leaderboard table if it doesn't exist
         db.execute(text("""
             CREATE TABLE IF NOT EXISTS leaderboard (
-                id SERIAL PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 player_name VARCHAR(255) NOT NULL,
                 score INTEGER NOT NULL,
                 title VARCHAR(255) NOT NULL,
@@ -400,7 +400,7 @@ async def get_leaderboard(weekly: bool = False, limit: int = 10, db: Session = D
         # Create leaderboard table if it doesn't exist
         db.execute(text("""
             CREATE TABLE IF NOT EXISTS leaderboard (
-                id SERIAL PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 player_name VARCHAR(255) NOT NULL,
                 score INTEGER NOT NULL,
                 title VARCHAR(255) NOT NULL,
@@ -414,7 +414,7 @@ async def get_leaderboard(weekly: bool = False, limit: int = 10, db: Session = D
             query = text("""
                 SELECT player_name, score, title, created_at
                 FROM leaderboard 
-                WHERE created_at >= NOW() - INTERVAL '7 days'
+                WHERE created_at >= datetime('now', '-7 days')
                 ORDER BY score DESC 
                 LIMIT :limit
             """)
@@ -435,7 +435,7 @@ async def get_leaderboard(weekly: bool = False, limit: int = 10, db: Session = D
                 "player_name": row[0],
                 "score": row[1],
                 "title": row[2],
-                "created_at": row[3].isoformat() if row[3] else None
+                "created_at": row[3] if row[3] else None
             })
         
         message = f"{'Weekly' if weekly else 'All-time'} top {len(scores)} scores retrieved"
