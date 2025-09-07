@@ -155,51 +155,52 @@
         }
 
         .mobile-controls {
-            position: absolute;
-            bottom: -80px;
+            position: fixed;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: none;
             flex-direction: column;
-            gap: 15px;
-            z-index: 5;
-            background: rgba(0,0,0,0.8);
-            padding: 20px;
-            border: 3px solid #ff0000;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(255,0,0,0.5);
+            gap: 10px;
+            z-index: 15;
+            background: rgba(0,0,0,0.9);
+            padding: 15px;
+            border: 2px solid #ff0000;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255,0,0,0.5);
+            max-width: 90vw;
         }
 
         .control-panel-title {
             text-align: center;
-            font-size: 10px;
+            font-size: 8px;
             color: #00ff00;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             text-shadow: 1px 1px 0px #000000;
         }
 
         .control-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
             align-items: center;
         }
 
         .mobile-btn {
-            width: 60px;
-            height: 50px;
+            width: 50px;
+            height: 40px;
             background: linear-gradient(145deg, #ff0000, #cc0000);
             border: 2px solid #ffffff;
-            border-radius: 8px;
+            border-radius: 6px;
             color: #ffffff;
-            font-size: 10px;
+            font-size: 8px;
             cursor: pointer;
             user-select: none;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: 3px 3px 0px #000000;
+            box-shadow: 2px 2px 0px #000000;
             transition: all 0.2s;
             font-family: 'Press Start 2P', monospace;
         }
@@ -207,7 +208,7 @@
         .mobile-btn:active {
             background: linear-gradient(145deg, #ffffff, #cccccc);
             color: #ff0000;
-            transform: translate(2px, 2px);
+            transform: translate(1px, 1px);
             box-shadow: 1px 1px 0px #000000;
         }
 
@@ -218,7 +219,7 @@
         }
 
         .mobile-btn .btn-icon {
-            font-size: 16px;
+            font-size: 12px;
             margin-bottom: 2px;
         }
 
@@ -236,12 +237,8 @@
         @media (orientation: landscape) and (max-width: 1024px) {
             .mobile-controls {
                 display: flex;
-                bottom: -100px;
-                transform: translateX(-50%) scale(0.8);
-            }
-            
-            .game-container {
-                margin-bottom: 120px;
+                bottom: 10px;
+                transform: translateX(-50%) scale(0.9);
             }
         }
 
