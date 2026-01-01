@@ -29,7 +29,7 @@ class VotingCommentsAPITester:
             if details:
                 print(f"   {details}")
 
-    def make_request(self, method, endpoint, data=None, headers=None, files=None):
+    def make_request(self, method, endpoint, data=None, headers=None, files=None, form_data=False):
         """Make HTTP request with error handling"""
         url = f"{self.api_url}/{endpoint}"
         
@@ -39,6 +39,8 @@ class VotingCommentsAPITester:
             elif method == 'POST':
                 if files:
                     response = requests.post(url, data=data, headers=headers, files=files)
+                elif form_data:
+                    response = requests.post(url, data=data, headers=headers)
                 else:
                     response = requests.post(url, json=data, headers=headers)
             elif method == 'DELETE':
