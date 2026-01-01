@@ -4,7 +4,7 @@ import { Clock, Eye, Pin } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { apiClient } from '../config/api';
 
-const TopRail = () => {
+const TopRail = ({ children }) => {
   const [topRailData, setTopRailData] = useState({
     lead: null,
     secondary: [],
