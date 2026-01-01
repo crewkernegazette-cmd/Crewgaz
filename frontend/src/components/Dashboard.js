@@ -8,7 +8,7 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Calendar, Clock, Edit2, Trash2, Users, FileText, Settings, MessageSquare, Eye, Tag, Copy, Mail } from 'lucide-react';
+import { Calendar, Clock, Edit2, Trash2, Users, FileText, Settings, MessageSquare, Eye, Tag, Copy, Mail, Image, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '../config/api';
 
@@ -22,6 +22,12 @@ const Dashboard = () => {
   const [availableCategoryLabels, setAvailableCategoryLabels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Trending Opinions state
+  const [opinions, setOpinions] = useState([]);
+  const [opinionFile, setOpinionFile] = useState(null);
+  const [opinionPreview, setOpinionPreview] = useState(null);
+  const [uploadingOpinion, setUploadingOpinion] = useState(false);
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -56,6 +62,7 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDashboardData();
     fetchCategoryLabels();
+    fetchOpinions();
   }, []);
 
   const fetchDashboardData = async () => {
