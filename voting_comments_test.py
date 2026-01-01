@@ -75,8 +75,9 @@ class VotingCommentsAPITester:
         print("\n👤 Testing User Registration...")
         
         # Test user 1 registration
+        unique_username = f'testuser_{int(time.time() * 1000)}'
         response = self.make_request('POST', 'opinion-users/register', 
-                                   data={'username': f'testuser_{int(time.time())}'})
+                                   data={'username': unique_username}, form_data=True)
         
         if response and response.status_code == 200:
             data = response.json()
@@ -86,8 +87,9 @@ class VotingCommentsAPITester:
                             f"User: {data['user']['username']}, Token: {self.test_user_session_token[:20]}...")
                 
                 # Test user 2 registration for voting tests
+                unique_username2 = f'testuser2_{int(time.time() * 1000)}'
                 response2 = self.make_request('POST', 'opinion-users/register', 
-                                            data={'username': f'testuser2_{int(time.time())}'})
+                                            data={'username': unique_username2}, form_data=True)
                 
                 if response2 and response2.status_code == 200:
                     data2 = response2.json()
