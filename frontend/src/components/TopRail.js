@@ -235,57 +235,6 @@ const TopRail = ({ children }) => {
             )}
           </div>
         </div>
-                <Link 
-                  key={article.id || index} 
-                  to={`/article/${article.slug}`} 
-                  className="group block bg-slate-800 rounded-lg overflow-hidden hover:bg-slate-700 transition-colors"
-                >
-                  <div className="flex">
-                    <div className="w-24 h-24 flex-shrink-0 overflow-hidden">
-                      <img 
-                        src={article.featured_image || getPlaceholderImage()} 
-                        alt={article.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {e.target.src = getPlaceholderImage()}}
-                      />
-                    </div>
-                    <div className="flex-1 p-4">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Badge className="bg-red-600 text-white text-xs px-2 py-1">
-                          {(article.category || 'news').toUpperCase()}
-                        </Badge>
-                        {article.is_breaking && (
-                          <Badge className="bg-red-700 text-white text-xs px-2 py-1 animate-pulse">
-                            BREAKING
-                          </Badge>
-                        )}
-                        {article.pinned_at && (
-                          <Pin className="w-3 h-3 text-yellow-500" />
-                        )}
-                      </div>
-                      
-                      {/* Category Labels */}
-                      {renderCategoryLabels(article.category_labels)}
-                      
-                      <h3 className="text-white font-semibold text-sm mb-2 group-hover:text-red-400 transition-colors leading-tight">
-                        {article.title}
-                      </h3>
-                      
-                      <div className="text-xs text-slate-500">
-                        <Clock className="w-3 h-3 inline mr-1" />
-                        {formatDate(article.created_at)}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-slate-400 text-sm">More stories coming soon</p>
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* More Stories Grid */}
         {topRailData.more.length > 0 && (
