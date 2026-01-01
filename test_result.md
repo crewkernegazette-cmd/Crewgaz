@@ -935,3 +935,69 @@
 ## agent_communication:
     - agent: "main"
       message: "🚀 TRENDING OPINIONS FEATURE IMPLEMENTED: Complete implementation of the Trending Opinions feature including: 1) Backend API endpoints for CRUD operations, 2) Homepage section with slapstick humor button, 3) Dedicated archive page with month/day grouping, 4) Dashboard upload interface. Ready for comprehensive testing."
+
+## Phase 2 Update: Voting, Comments & Swipe Features
+
+  - task: "Backend API for user registration, voting, and comments"
+    implemented: true
+    working: "unknown"
+    file: "server.py, database.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "🔧 IMPLEMENTED: Added 4 new database models (DBOpinionUser, DBOpinionVote, DBOpinionComment, DBCommentVote). Added 15+ new API endpoints for: user registration, opinion voting, opinion detail with navigation, comments CRUD, comment voting, admin comments management."
+
+  - task: "Opinion Detail Page with voting, comments, and swipe navigation"
+    implemented: true
+    working: "unknown"
+    file: "OpinionDetailPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "🔧 IMPLEMENTED: Created full Opinion Detail page with: thumbs up/down voting, user registration modal, comments section with vote-based ordering, swipe left/right navigation (touch events), arrow button navigation."
+
+  - task: "Top Trending Opinions section on archive page"
+    implemented: true
+    working: "unknown"
+    file: "TrendingOpinionsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "🔧 IMPLEMENTED: Added 'TOP TRENDING OPINIONS' section at top of archive page showing top 20 opinions ranked by net votes. Kept separate from date-organized archive below."
+
+  - task: "Dashboard Comments management tab"
+    implemented: true
+    working: "unknown"
+    file: "Dashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "🔧 IMPLEMENTED: Added Comments tab to Dashboard showing all opinion comments with username, content, vote counts, and delete button."
+
+  - task: "Homepage Trending Opinions repositioning"
+    implemented: true
+    working: "unknown"
+    file: "Homepage.js, TopRail.js, TrendingOpinionsSection.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "🔧 IMPLEMENTED: Moved Trending Opinions section to appear below lead article and above 'More Headlines'. Modified TopRail to accept children prop for slot-based layout."
+
+## agent_communication:
+    - agent: "main"
+      message: "🚀 PHASE 2 IMPLEMENTATION COMPLETE: Added voting system (upvote/downvote for opinions and comments), user registration (username only), comments with vote-based ordering, Top 20 Trending section, swipe navigation on opinion detail page, Dashboard comments management. Ready for comprehensive testing."
