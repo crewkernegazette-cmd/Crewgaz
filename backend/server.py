@@ -720,6 +720,9 @@ async def get_latest_opinions(limit: int = 6, db: Session = Depends(get_db)):
                     "id": op.id,
                     "image_url": op.image_url,
                     "uploaded_by": op.uploaded_by,
+                    "upvotes": op.upvotes,
+                    "downvotes": op.downvotes,
+                    "net_votes": op.upvotes - op.downvotes,
                     "created_at": op.created_at.isoformat() if op.created_at else None
                 }
                 for op in opinions
