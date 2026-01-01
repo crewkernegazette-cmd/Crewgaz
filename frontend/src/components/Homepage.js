@@ -79,13 +79,13 @@ const Homepage = () => {
       )}
 
       {/* GB News Style Top Rail */}
-      <TopRail />
+      <TopRail>
+        {/* Trending Opinions Section - Positioned between lead article and More Headlines */}
+        <TrendingOpinionsSection />
+      </TopRail>
 
       {/* News Section */}
       <NewsSection />
-
-      {/* Trending Opinions Section */}
-      <TrendingOpinionsSection />
 
       {/* Music Section */}
       <MusicSection />
