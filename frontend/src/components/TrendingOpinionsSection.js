@@ -105,7 +105,7 @@ const TrendingOpinionsSection = () => {
           
           {/* Sarcastic tagline */}
           <p className="mt-6 text-sm text-slate-500 italic">
-            "Because everyone's opinion is equally... interesting" - The Editor
+            &quot;Because everyone&apos;s opinion is equally... interesting&quot; - The Editor
           </p>
         </div>
       </div>
