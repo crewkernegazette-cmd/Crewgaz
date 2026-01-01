@@ -764,6 +764,9 @@ async def get_opinions_archive(db: Session = Depends(get_db)):
                     "id": op.id,
                     "image_url": op.image_url,
                     "uploaded_by": op.uploaded_by,
+                    "upvotes": op.upvotes,
+                    "downvotes": op.downvotes,
+                    "net_votes": op.upvotes - op.downvotes,
                     "created_at": op.created_at.isoformat()
                 })
         
