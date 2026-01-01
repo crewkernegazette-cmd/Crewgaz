@@ -106,17 +106,15 @@ const TopRail = () => {
   return (
     <div className="py-8 bg-slate-900">
       <div className="container mx-auto px-4">
-        {/* Top Rail Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          
-          {/* Lead Story - Takes 2/3 width on large screens */}
-          <div className="lg:col-span-2">
-            {topRailData.lead ? (
-              <Link 
-                to={`/article/${topRailData.lead.slug}`} 
-                className="group block bg-slate-800 rounded-lg overflow-hidden hover:bg-slate-700 transition-colors"
-              >
-                <div className="aspect-video overflow-hidden">
+        {/* Lead Story - Full Width */}
+        <div className="mb-8">
+          {topRailData.lead ? (
+            <Link 
+              to={`/article/${topRailData.lead.slug}`} 
+              className="group block bg-slate-800 rounded-lg overflow-hidden hover:bg-slate-700 transition-colors"
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+                <div className="aspect-video lg:aspect-auto overflow-hidden">
                   <img 
                     src={topRailData.lead.featured_image || getPlaceholderImage()} 
                     alt={topRailData.lead.title}
@@ -124,9 +122,9 @@ const TopRail = () => {
                     onError={(e) => {e.target.src = getPlaceholderImage()}}
                   />
                 </div>
-                <div className="p-6">
+                <div className="p-6 lg:p-8 flex flex-col justify-center">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 flex-wrap gap-2">
                       <Badge className="bg-red-600 text-white text-sm px-3 py-1">
                         {(topRailData.lead.category || 'news').toUpperCase()}
                       </Badge>
@@ -147,7 +145,7 @@ const TopRail = () => {
                   {/* Category Labels */}
                   {renderCategoryLabels(topRailData.lead.category_labels)}
                   
-                  <h1 className="text-white font-bold text-2xl md:text-3xl mb-3 group-hover:text-red-400 transition-colors leading-tight">
+                  <h1 className="text-white font-bold text-2xl md:text-3xl lg:text-4xl mb-3 group-hover:text-red-400 transition-colors leading-tight">
                     {topRailData.lead.title}
                   </h1>
                   
@@ -157,7 +155,7 @@ const TopRail = () => {
                     </p>
                   )}
                   
-                  <p className="text-slate-400 mb-4 leading-relaxed">
+                  <p className="text-slate-400 mb-4 leading-relaxed hidden md:block">
                     {topRailData.lead.content ? `${topRailData.lead.content.substring(0, 200)}...` : 'Read more...'}
                   </p>
                   
@@ -169,20 +167,74 @@ const TopRail = () => {
                     <span>{topRailData.lead.author_name || 'The Crewkerne Gazette'}</span>
                   </div>
                 </div>
-              </Link>
+              </div>
+            </Link>
+          ) : (
+            <div className="bg-slate-800 rounded-lg p-8 text-center">
+              <h2 className="text-white text-xl mb-2">Latest News Coming Soon</h2>
+              <p className="text-slate-400">We&apos;re preparing the latest stories for you.</p>
+            </div>
+          )}
+        </div>
+
+        {/* TRENDING OPINIONS SLOT - This will be filled by Homepage */}
+        {children}
+
+        {/* More Headlines Section */}
+        <div className="mb-8">
+          <h2 className="text-white text-xl font-bold border-b border-red-600 pb-2 mb-6">More Headlines</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {topRailData.secondary.length > 0 ? (
+              topRailData.secondary.map((article, index) => (
+                <Link 
+                  key={article.id || index} 
+                  to={`/article/${article.slug}`} 
+                  className="group block bg-slate-800 rounded-lg overflow-hidden hover:bg-slate-700 transition-colors"
+                >
+                  <div className="aspect-video overflow-hidden">
+                    <img 
+                      src={article.featured_image || getPlaceholderImage()} 
+                      alt={article.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {e.target.src = getPlaceholderImage()}}
+                    />
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Badge className="bg-red-600 text-white text-xs px-2 py-1">
+                        {(article.category || 'news').toUpperCase()}
+                      </Badge>
+                      {article.is_breaking && (
+                        <Badge className="bg-red-700 text-white text-xs px-2 py-1 animate-pulse">
+                          BREAKING
+                        </Badge>
+                      )}
+                      {article.pinned_at && (
+                        <Pin className="w-3 h-3 text-yellow-500" />
+                      )}
+                    </div>
+                    
+                    {/* Category Labels */}
+                    {renderCategoryLabels(article.category_labels)}
+                    
+                    <h3 className="text-white font-semibold text-sm mb-2 group-hover:text-red-400 transition-colors leading-tight line-clamp-2">
+                      {article.title}
+                    </h3>
+                    
+                    <div className="text-xs text-slate-500">
+                      <Clock className="w-3 h-3 inline mr-1" />
+                      {formatDate(article.created_at)}
+                    </div>
+                  </div>
+                </Link>
+              ))
             ) : (
-              <div className="bg-slate-800 rounded-lg p-8 text-center">
-                <h2 className="text-white text-xl mb-2">Latest News Coming Soon</h2>
-                <p className="text-slate-400">We're preparing the latest stories for you.</p>
+              <div className="col-span-full text-center py-4">
+                <p className="text-slate-400 text-sm">More stories coming soon</p>
               </div>
             )}
           </div>
-
-          {/* Secondary Stories - Takes 1/3 width on large screens */}
-          <div className="space-y-6">
-            <h2 className="text-white text-xl font-bold border-b border-red-600 pb-2">More Headlines</h2>
-            {topRailData.secondary.length > 0 ? (
-              topRailData.secondary.map((article, index) => (
+        </div>
                 <Link 
                   key={article.id || index} 
                   to={`/article/${article.slug}`} 
