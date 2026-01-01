@@ -237,8 +237,52 @@ class DBTrendingOpinion(Base):
     image_url = Column(String(500), nullable=False)  # Cloudinary URL
     uploaded_by = Column(String(50), nullable=True)  # Admin username who uploaded
     is_published = Column(Boolean, default=True, nullable=False)
+    upvotes = Column(Integer, default=0, nullable=False)
+    downvotes = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class DBOpinionUser(Base):
+    """Simple user registration for voting/commenting on opinions"""
+    __tablename__ = "opinion_users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, nullable=False, index=True)
+    session_token = Column(String(100), unique=True, nullable=True)  # For session management
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class DBOpinionVote(Base):
+    """Track votes on trending opinions - one vote per user per opinion"""
+    __tablename__ = "opinion_votes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    opinion_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    vote_type = Column(String(10), nullable=False)  # 'up' or 'down'
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class DBOpinionComment(Base):
+    """Comments on trending opinions"""
+    __tablename__ = "opinion_comments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    opinion_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    username = Column(String(50), nullable=False)  # Denormalized for easy display
+    content = Column(Text, nullable=False)
+    upvotes = Column(Integer, default=0, nullable=False)
+    downvotes = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class DBCommentVote(Base):
+    """Track votes on comments - one vote per user per comment"""
+    __tablename__ = "comment_votes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    comment_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    vote_type = Column(String(10), nullable=False)  # 'up' or 'down'
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 # Dependency to get database session
 def get_db():
