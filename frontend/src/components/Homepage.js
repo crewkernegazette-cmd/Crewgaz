@@ -84,45 +84,8 @@ const Homepage = () => {
       {/* News Section */}
       <NewsSection />
 
-      {/* Dover Dash Game Section */}
-      <section className="py-16 bg-gradient-to-r from-red-900 via-blue-900 to-red-900 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="container relative z-10">
-          <div className="text-center">
-            <h2 className="text-4xl font-bold text-white mb-4 tracking-wider" style={{fontFamily: '"Press Start 2P", monospace', textShadow: '3px 3px 0px #000000'}}>
-              🎮 RETRO ARCADE 🎮
-            </h2>
-            <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
-              Take control as Prime Minister in our exclusive 8-bit political satire game!
-              Defend Dover from incoming boats using British bureaucracy and border patrol bathtubs.
-            </p>
-            <div className="flex justify-center">
-              <a 
-                href="/dover-dash" 
-                className="inline-block bg-red-600 hover:bg-white text-white hover:text-red-600 font-bold py-4 px-8 border-4 border-white hover:border-red-600 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
-                style={{
-                  fontFamily: '"Press Start 2P", monospace',
-                  fontSize: '14px',
-                  textDecoration: 'none',
-                  boxShadow: '8px 8px 0px #000000',
-                  imageRendering: 'pixelated'
-                }}
-              >
-                ⚡ PLAY DOVER DASH ⚡
-              </a>
-            </div>
-            <div className="mt-6 text-sm text-white/70" style={{fontFamily: '"Press Start 2P", monospace'}}>
-              🏆 Beat the leaderboard and become PM of the week! 🏆
-            </div>
-          </div>
-        </div>
-        
-        {/* Animated background elements */}
-        <div className="absolute top-10 left-10 animate-bounce text-white/30" style={{fontSize: '24px'}}>🚤</div>
-        <div className="absolute top-20 right-20 animate-pulse text-white/30" style={{fontSize: '24px'}}>🇬🇧</div>
-        <div className="absolute bottom-10 left-1/4 animate-bounce text-white/30" style={{fontSize: '24px', animationDelay: '1s'}}>🛥️</div>
-        <div className="absolute bottom-20 right-1/3 animate-pulse text-white/30" style={{fontSize: '24px', animationDelay: '2s'}}>👑</div>
-      </section>
+      {/* Trending Opinions Section */}
+      <TrendingOpinionsSection />
 
       {/* Music Section */}
       <MusicSection />
