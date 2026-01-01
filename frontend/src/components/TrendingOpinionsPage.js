@@ -196,7 +196,7 @@ const TrendingOpinionsPage = () => {
         {totalCount > 0 && (
           <div className="text-center mt-12 text-slate-500 text-sm">
             <p>🎭 Remember: These opinions do not reflect the views of The Crewkerne Gazette</p>
-            <p className="mt-1 italic">(Except when they're really funny)</p>
+            <p className="mt-1 italic">(Except when they&apos;re really funny)</p>
           </div>
         )}
       </div>
