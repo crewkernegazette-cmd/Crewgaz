@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 import json
 
 class OGSocialSharingTester:
-    def __init__(self, base_url="https://article-repair.preview.emergentagent.com"):
+    def __init__(self, base_url="https://viewtrends-1.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.og_url = f"{base_url}/og"
@@ -470,7 +470,7 @@ class OGSocialSharingTester:
 def main():
     """Main test execution"""
     # Use the backend URL from frontend .env
-    backend_url = "https://article-repair.preview.emergentagent.com"
+    backend_url = "https://viewtrends-1.preview.emergentagent.com"
     
     tester = OGSocialSharingTester(backend_url)
     

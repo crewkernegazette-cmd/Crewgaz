@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 import html
 
 class DoverDashTester:
-    def __init__(self, base_url="https://None.preview.emergentagent.com"):
+    def __init__(self, base_url="https://viewtrends-1.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0
@@ -589,7 +589,7 @@ def main():
     import os
     
     # Get backend URL from environment or use default
-    backend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://None.preview.emergentagent.com')
+    backend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://viewtrends-1.preview.emergentagent.com')
     
     print(f"🚀 Starting Dover Dash Backend Integration Tests")
     print(f"🎯 Target: {backend_url}")

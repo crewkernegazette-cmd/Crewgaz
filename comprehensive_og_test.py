@@ -14,7 +14,7 @@ import json
 class ComprehensiveOGTester:
     def __init__(self):
         self.local_backend = "http://localhost:8001"
-        self.production_url = "https://article-repair.preview.emergentagent.com"
+        self.production_url = "https://viewtrends-1.preview.emergentagent.com"
         self.api_url = f"{self.production_url}/api"
         self.tests_run = 0
         self.tests_passed = 0
