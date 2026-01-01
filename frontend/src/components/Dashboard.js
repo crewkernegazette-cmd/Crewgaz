@@ -67,6 +67,7 @@ const Dashboard = () => {
     fetchDashboardData();
     fetchCategoryLabels();
     fetchOpinions();
+    fetchOpinionComments();
   }, []);
 
   const fetchDashboardData = async () => {
