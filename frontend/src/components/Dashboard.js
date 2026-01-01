@@ -930,7 +930,7 @@ const Dashboard = () => {
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-slate-400">
-                        Higher priority articles appear first among pinned articles. Use with "Pin to Top" for best results.
+                        Higher priority articles appear first among pinned articles. Use with &quot;Pin to Top&quot; for best results.
                       </p>
                     </div>
                   </div>
