@@ -488,7 +488,7 @@ class VotingCommentsAPITester:
         
         # Test voting without session token
         response = self.make_request('POST', f'opinions/1/vote', 
-                                   data={'vote_type': 'up', 'session_token': 'invalid_token'})
+                                   data={'vote_type': 'up', 'session_token': 'invalid_token'}, form_data=True)
         
         if response and response.status_code == 401:
             self.log_test("Voting Auth Protection", True, "Correctly rejected invalid token")
