@@ -28,7 +28,7 @@ import cloudinary.api
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from database import (
-    get_db, init_database, DBArticle, DBContact, DBUser, DBSettings,
+    get_db, init_database, DBArticle, DBContact, DBUser, DBSettings, DBTrendingOpinion,
     ArticleCategory, UserRole, hash_password, verify_password, generate_slug,
     log_error, ERROR_LOG_BUFFER, coerce_category
 )
