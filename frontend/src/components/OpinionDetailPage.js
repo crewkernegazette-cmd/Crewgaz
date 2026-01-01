@@ -155,11 +155,6 @@ const OpinionDetailPage = () => {
       setRegistering(false);
     }
   };
-      toast.error(error.response?.data?.detail || 'Registration failed. Username may be taken.');
-    } finally {
-      setRegistering(false);
-    }
-  };
 
   // Vote on opinion
   const handleVote = async (voteType) => {
