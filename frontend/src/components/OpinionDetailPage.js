@@ -128,7 +128,11 @@ const OpinionDetailPage = () => {
       const formData = new FormData();
       formData.append('username', registerUsername.trim());
       
-      const response = await apiClient.post('/opinion-users/register', formData);
+      const response = await apiClient.post('/opinion-users/register', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       
       if (response.data.ok) {
         localStorage.setItem('opinion_session_token', response.data.user.session_token);
@@ -140,9 +144,17 @@ const OpinionDetailPage = () => {
         setShowRegister(false);
         setRegisterUsername('');
         toast.success(`Welcome, ${response.data.user.username}!`);
+      } else {
+        toast.error('Registration failed. Please try again.');
       }
     } catch (error) {
       console.error('Registration error:', error);
+      const errorMessage = error.response?.data?.detail || 'Registration failed. Username may be taken.';
+      toast.error(errorMessage);
+    } finally {
+      setRegistering(false);
+    }
+  };
       toast.error(error.response?.data?.detail || 'Registration failed. Username may be taken.');
     } finally {
       setRegistering(false);
