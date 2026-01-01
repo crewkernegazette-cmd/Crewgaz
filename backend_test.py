@@ -717,62 +717,14 @@ class CrewkerneGazetteAPITester:
         return passed_tests == total_tests
 
 def main():
-    print("🚀 Starting Crewkerne Gazette API Tests - PRODUCTION ISSUE INVESTIGATION")
-    print("🎯 Target: https://CrewkerneGazette.co.uk")
+    print("🚀 Starting Crewkerne Gazette API Tests - TRENDING OPINIONS FEATURE")
+    print("🎯 Target: https://viewtrends-1.preview.emergentagent.com")
     print("=" * 80)
     
     tester = CrewkerneGazetteAPITester()
     
-    # PRODUCTION ISSUE INVESTIGATION - TOP PRIORITY
-    print("\n🚨 PRODUCTION ISSUE INVESTIGATION - CrewkerneGazette.co.uk")
-    print("=" * 60)
-    
-    # Test 1: Overall backend health
-    backend_healthy = tester.test_production_backend_health()
-    
-    # Test 2: Specific login endpoint with admin/admin123
-    login_working = tester.test_production_login_endpoint()
-    
-    # Test 3: Public settings endpoint (should work without auth)
-    public_settings_working = tester.test_production_public_settings()
-    
-    # Test 4: Articles endpoint
-    articles_working = tester.test_production_articles_endpoint()
-    
-    # Test 5: Users endpoint (mentioned in request)
-    users_working = tester.test_production_users_endpoint()
-    
-    # Test 6: Try backup admin if main admin fails
-    backup_login_working = False
-    if not login_working:
-        print("\n⚠️  Main admin login failed, testing backup admin...")
-        backup_login_working = tester.test_backup_admin_login()
-    
-    # PRODUCTION DIAGNOSIS
-    print("\n" + "=" * 80)
-    print("🔍 PRODUCTION DIAGNOSIS SUMMARY")
-    print("=" * 80)
-    
-    print(f"Backend Health Check: {'✅' if backend_healthy else '❌'}")
-    print(f"Login Endpoint (/api/auth/login): {'✅' if login_working else '❌'}")
-    print(f"Public Settings (/api/settings/public): {'✅' if public_settings_working else '❌'}")
-    print(f"Articles Endpoint (/api/articles): {'✅' if articles_working else '❌'}")
-    print(f"Users Endpoint (/api/users): {'✅' if users_working else '❌'}")
-    print(f"Backup Admin Login: {'✅' if backup_login_working else '❌'}")
-    
-    # Determine the root cause
-    if not backend_healthy:
-        print("\n🚨 ROOT CAUSE: Backend server is completely down or unreachable")
-        print("💡 RECOMMENDATION: Check server deployment and hosting configuration")
-    elif not login_working and not public_settings_working and not articles_working:
-        print("\n🚨 ROOT CAUSE: All API endpoints returning 500 errors")
-        print("💡 RECOMMENDATION: Backend deployment issue - check server logs and database connectivity")
-    elif not login_working and (public_settings_working or articles_working):
-        print("\n🚨 ROOT CAUSE: Authentication-specific issue")
-        print("💡 RECOMMENDATION: Check database user records and JWT configuration")
-    elif login_working:
-        print("\n✅ GOOD NEWS: Login is actually working on production!")
-        print("💡 NOTE: User may have browser/network specific issues")
+    # Run comprehensive Trending Opinions tests
+    trending_opinions_success = tester.run_trending_opinions_tests()
     
     # Final Results
     print("\n" + "=" * 80)
@@ -782,20 +734,13 @@ def main():
     print(f"Tests Failed: {tester.tests_run - tester.tests_passed}")
     print(f"Success Rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
     
-    # Critical production status
-    print(f"\n🎯 PRODUCTION STATUS SUMMARY:")
-    print(f"   Domain Accessible: {'✅' if backend_healthy else '❌'}")
-    print(f"   Login Working: {'✅' if (login_working or backup_login_working) else '❌'}")
-    print(f"   API Endpoints: {'✅' if (public_settings_working and articles_working) else '❌'}")
-    
-    if not (login_working or backup_login_working):
-        print("\n🚨 CRITICAL: Production login is completely broken!")
-        return 1
-    elif tester.tests_passed == tester.tests_run:
-        print("\n🎉 Production backend is working correctly!")
+    # Feature status
+    print(f"\n🎯 TRENDING OPINIONS FEATURE STATUS:")
+    if trending_opinions_success:
+        print("   ✅ ALL TESTS PASSED - Feature is working correctly")
         return 0
     else:
-        print(f"\n⚠️  Production has some issues ({tester.tests_run - tester.tests_passed} failed tests)")
+        print("   ❌ SOME TESTS FAILED - Feature needs attention")
         return 1
 
 if __name__ == "__main__":
