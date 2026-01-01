@@ -80,7 +80,7 @@ const TrendingOpinionsPage = () => {
             📮 TRENDING OPINIONS ARCHIVE 📮
           </h1>
           <p className="text-xl text-slate-400 mb-2">
-            A permanent record of everyone's hot takes
+            A permanent record of everyone&apos;s hot takes
           </p>
           <p className="text-sm text-slate-500 italic">
             &quot;The internet never forgets... neither do we&quot; 🗄️
