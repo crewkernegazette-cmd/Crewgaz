@@ -813,6 +813,8 @@ async def get_all_opinions(limit: int = 50, db: Session = Depends(get_db)):
                     "image_url": op.image_url,
                     "uploaded_by": op.uploaded_by,
                     "is_published": op.is_published,
+                    "upvotes": op.upvotes,
+                    "downvotes": op.downvotes,
                     "created_at": op.created_at.isoformat() if op.created_at else None
                 }
                 for op in opinions
@@ -822,6 +824,533 @@ async def get_all_opinions(limit: int = 50, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"❌ Error fetching all opinions: {e}")
         return {"opinions": [], "message": "Failed to load opinions"}
+
+@api_router.get("/opinions/top")
+async def get_top_opinions(limit: int = 20, db: Session = Depends(get_db)):
+    """Get top trending opinions sorted by net votes (upvotes - downvotes)"""
+    try:
+        opinions = db.query(DBTrendingOpinion).filter(
+            DBTrendingOpinion.is_published == True
+        ).all()
+        
+        # Sort by net votes (upvotes - downvotes)
+        sorted_opinions = sorted(
+            opinions, 
+            key=lambda x: (x.upvotes - x.downvotes, x.upvotes), 
+            reverse=True
+        )[:limit]
+        
+        return {
+            "opinions": [
+                {
+                    "id": op.id,
+                    "image_url": op.image_url,
+                    "upvotes": op.upvotes,
+                    "downvotes": op.downvotes,
+                    "net_votes": op.upvotes - op.downvotes,
+                    "created_at": op.created_at.isoformat() if op.created_at else None
+                }
+                for op in sorted_opinions
+            ],
+            "message": f"Retrieved top {len(sorted_opinions)} opinions"
+        }
+    except Exception as e:
+        logger.error(f"❌ Error fetching top opinions: {e}")
+        return {"opinions": [], "message": "Failed to load top opinions"}
+
+@api_router.get("/opinions/{opinion_id}")
+async def get_single_opinion(opinion_id: int, db: Session = Depends(get_db)):
+    """Get a single opinion with its details"""
+    try:
+        opinion = db.query(DBTrendingOpinion).filter(
+            DBTrendingOpinion.id == opinion_id,
+            DBTrendingOpinion.is_published == True
+        ).first()
+        
+        if not opinion:
+            raise HTTPException(status_code=404, detail="Opinion not found")
+        
+        # Get adjacent opinions for navigation
+        prev_opinion = db.query(DBTrendingOpinion).filter(
+            DBTrendingOpinion.id < opinion_id,
+            DBTrendingOpinion.is_published == True
+        ).order_by(DBTrendingOpinion.id.desc()).first()
+        
+        next_opinion = db.query(DBTrendingOpinion).filter(
+            DBTrendingOpinion.id > opinion_id,
+            DBTrendingOpinion.is_published == True
+        ).order_by(DBTrendingOpinion.id.asc()).first()
+        
+        return {
+            "opinion": {
+                "id": opinion.id,
+                "image_url": opinion.image_url,
+                "upvotes": opinion.upvotes,
+                "downvotes": opinion.downvotes,
+                "net_votes": opinion.upvotes - opinion.downvotes,
+                "created_at": opinion.created_at.isoformat() if opinion.created_at else None
+            },
+            "prev_id": prev_opinion.id if prev_opinion else None,
+            "next_id": next_opinion.id if next_opinion else None
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error fetching opinion {opinion_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load opinion")
+
+# Opinion User Registration & Authentication
+@api_router.post("/opinion-users/register")
+async def register_opinion_user(
+    username: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Register a simple username for voting/commenting"""
+    try:
+        # Check if username exists
+        existing = db.query(DBOpinionUser).filter(DBOpinionUser.username == username).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Username already taken")
+        
+        # Create user with session token
+        import secrets
+        session_token = secrets.token_urlsafe(32)
+        
+        new_user = DBOpinionUser(
+            username=username,
+            session_token=session_token
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        logger.info(f"👤 New opinion user registered: {username}")
+        
+        return {
+            "ok": True,
+            "user": {
+                "id": new_user.id,
+                "username": new_user.username,
+                "session_token": session_token
+            },
+            "message": "Registration successful"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error registering opinion user: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Registration failed")
+
+@api_router.get("/opinion-users/me")
+async def get_current_opinion_user(
+    session_token: str = None,
+    db: Session = Depends(get_db)
+):
+    """Get current user by session token"""
+    if not session_token:
+        return {"user": None}
+    
+    try:
+        user = db.query(DBOpinionUser).filter(DBOpinionUser.session_token == session_token).first()
+        if user:
+            return {
+                "user": {
+                    "id": user.id,
+                    "username": user.username
+                }
+            }
+        return {"user": None}
+    except Exception as e:
+        logger.error(f"❌ Error fetching opinion user: {e}")
+        return {"user": None}
+
+# Opinion Voting
+@api_router.post("/opinions/{opinion_id}/vote")
+async def vote_on_opinion(
+    opinion_id: int,
+    vote_type: str = Form(...),
+    session_token: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Vote on an opinion (up or down). Users can change their vote."""
+    try:
+        # Verify user
+        user = db.query(DBOpinionUser).filter(DBOpinionUser.session_token == session_token).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="Please register to vote")
+        
+        # Verify opinion exists
+        opinion = db.query(DBTrendingOpinion).filter(DBTrendingOpinion.id == opinion_id).first()
+        if not opinion:
+            raise HTTPException(status_code=404, detail="Opinion not found")
+        
+        if vote_type not in ['up', 'down']:
+            raise HTTPException(status_code=400, detail="Vote type must be 'up' or 'down'")
+        
+        # Check for existing vote
+        existing_vote = db.query(DBOpinionVote).filter(
+            DBOpinionVote.opinion_id == opinion_id,
+            DBOpinionVote.user_id == user.id
+        ).first()
+        
+        if existing_vote:
+            if existing_vote.vote_type == vote_type:
+                # Same vote - remove it (toggle off)
+                if vote_type == 'up':
+                    opinion.upvotes = max(0, opinion.upvotes - 1)
+                else:
+                    opinion.downvotes = max(0, opinion.downvotes - 1)
+                db.delete(existing_vote)
+                db.commit()
+                
+                return {
+                    "ok": True,
+                    "action": "removed",
+                    "upvotes": opinion.upvotes,
+                    "downvotes": opinion.downvotes,
+                    "user_vote": None
+                }
+            else:
+                # Different vote - change it
+                if existing_vote.vote_type == 'up':
+                    opinion.upvotes = max(0, opinion.upvotes - 1)
+                    opinion.downvotes += 1
+                else:
+                    opinion.downvotes = max(0, opinion.downvotes - 1)
+                    opinion.upvotes += 1
+                
+                existing_vote.vote_type = vote_type
+                db.commit()
+                
+                return {
+                    "ok": True,
+                    "action": "changed",
+                    "upvotes": opinion.upvotes,
+                    "downvotes": opinion.downvotes,
+                    "user_vote": vote_type
+                }
+        else:
+            # New vote
+            if vote_type == 'up':
+                opinion.upvotes += 1
+            else:
+                opinion.downvotes += 1
+            
+            new_vote = DBOpinionVote(
+                opinion_id=opinion_id,
+                user_id=user.id,
+                vote_type=vote_type
+            )
+            db.add(new_vote)
+            db.commit()
+            
+            return {
+                "ok": True,
+                "action": "added",
+                "upvotes": opinion.upvotes,
+                "downvotes": opinion.downvotes,
+                "user_vote": vote_type
+            }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error voting on opinion: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to vote")
+
+@api_router.get("/opinions/{opinion_id}/user-vote")
+async def get_user_vote_on_opinion(
+    opinion_id: int,
+    session_token: str = None,
+    db: Session = Depends(get_db)
+):
+    """Get the current user's vote on an opinion"""
+    if not session_token:
+        return {"user_vote": None}
+    
+    try:
+        user = db.query(DBOpinionUser).filter(DBOpinionUser.session_token == session_token).first()
+        if not user:
+            return {"user_vote": None}
+        
+        vote = db.query(DBOpinionVote).filter(
+            DBOpinionVote.opinion_id == opinion_id,
+            DBOpinionVote.user_id == user.id
+        ).first()
+        
+        return {"user_vote": vote.vote_type if vote else None}
+    except Exception as e:
+        logger.error(f"❌ Error fetching user vote: {e}")
+        return {"user_vote": None}
+
+# Opinion Comments
+@api_router.post("/opinions/{opinion_id}/comments")
+async def add_comment(
+    opinion_id: int,
+    content: str = Form(...),
+    session_token: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Add a comment to an opinion"""
+    try:
+        # Verify user
+        user = db.query(DBOpinionUser).filter(DBOpinionUser.session_token == session_token).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="Please register to comment")
+        
+        # Verify opinion exists
+        opinion = db.query(DBTrendingOpinion).filter(DBTrendingOpinion.id == opinion_id).first()
+        if not opinion:
+            raise HTTPException(status_code=404, detail="Opinion not found")
+        
+        # Create comment
+        new_comment = DBOpinionComment(
+            opinion_id=opinion_id,
+            user_id=user.id,
+            username=user.username,
+            content=content.strip()
+        )
+        db.add(new_comment)
+        db.commit()
+        db.refresh(new_comment)
+        
+        logger.info(f"💬 New comment on opinion {opinion_id} by {user.username}")
+        
+        return {
+            "ok": True,
+            "comment": {
+                "id": new_comment.id,
+                "username": new_comment.username,
+                "content": new_comment.content,
+                "upvotes": new_comment.upvotes,
+                "downvotes": new_comment.downvotes,
+                "created_at": new_comment.created_at.isoformat() if new_comment.created_at else None
+            },
+            "message": "Comment added"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error adding comment: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to add comment")
+
+@api_router.get("/opinions/{opinion_id}/comments")
+async def get_opinion_comments(
+    opinion_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get comments for an opinion, sorted by net votes"""
+    try:
+        comments = db.query(DBOpinionComment).filter(
+            DBOpinionComment.opinion_id == opinion_id
+        ).all()
+        
+        # Sort by net votes (upvotes - downvotes)
+        sorted_comments = sorted(
+            comments,
+            key=lambda x: (x.upvotes - x.downvotes, x.created_at),
+            reverse=True
+        )
+        
+        return {
+            "comments": [
+                {
+                    "id": c.id,
+                    "username": c.username,
+                    "content": c.content,
+                    "upvotes": c.upvotes,
+                    "downvotes": c.downvotes,
+                    "net_votes": c.upvotes - c.downvotes,
+                    "created_at": c.created_at.isoformat() if c.created_at else None
+                }
+                for c in sorted_comments
+            ],
+            "total": len(comments)
+        }
+    except Exception as e:
+        logger.error(f"❌ Error fetching comments: {e}")
+        return {"comments": [], "total": 0}
+
+# Comment Voting
+@api_router.post("/comments/{comment_id}/vote")
+async def vote_on_comment(
+    comment_id: int,
+    vote_type: str = Form(...),
+    session_token: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Vote on a comment (up or down)"""
+    try:
+        # Verify user
+        user = db.query(DBOpinionUser).filter(DBOpinionUser.session_token == session_token).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="Please register to vote")
+        
+        # Verify comment exists
+        comment = db.query(DBOpinionComment).filter(DBOpinionComment.id == comment_id).first()
+        if not comment:
+            raise HTTPException(status_code=404, detail="Comment not found")
+        
+        if vote_type not in ['up', 'down']:
+            raise HTTPException(status_code=400, detail="Vote type must be 'up' or 'down'")
+        
+        # Check for existing vote
+        existing_vote = db.query(DBCommentVote).filter(
+            DBCommentVote.comment_id == comment_id,
+            DBCommentVote.user_id == user.id
+        ).first()
+        
+        if existing_vote:
+            if existing_vote.vote_type == vote_type:
+                # Same vote - remove it
+                if vote_type == 'up':
+                    comment.upvotes = max(0, comment.upvotes - 1)
+                else:
+                    comment.downvotes = max(0, comment.downvotes - 1)
+                db.delete(existing_vote)
+                db.commit()
+                
+                return {
+                    "ok": True,
+                    "action": "removed",
+                    "upvotes": comment.upvotes,
+                    "downvotes": comment.downvotes,
+                    "user_vote": None
+                }
+            else:
+                # Different vote - change it
+                if existing_vote.vote_type == 'up':
+                    comment.upvotes = max(0, comment.upvotes - 1)
+                    comment.downvotes += 1
+                else:
+                    comment.downvotes = max(0, comment.downvotes - 1)
+                    comment.upvotes += 1
+                
+                existing_vote.vote_type = vote_type
+                db.commit()
+                
+                return {
+                    "ok": True,
+                    "action": "changed",
+                    "upvotes": comment.upvotes,
+                    "downvotes": comment.downvotes,
+                    "user_vote": vote_type
+                }
+        else:
+            # New vote
+            if vote_type == 'up':
+                comment.upvotes += 1
+            else:
+                comment.downvotes += 1
+            
+            new_vote = DBCommentVote(
+                comment_id=comment_id,
+                user_id=user.id,
+                vote_type=vote_type
+            )
+            db.add(new_vote)
+            db.commit()
+            
+            return {
+                "ok": True,
+                "action": "added",
+                "upvotes": comment.upvotes,
+                "downvotes": comment.downvotes,
+                "user_vote": vote_type
+            }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error voting on comment: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to vote")
+
+@api_router.get("/comments/{comment_id}/user-vote")
+async def get_user_vote_on_comment(
+    comment_id: int,
+    session_token: str = None,
+    db: Session = Depends(get_db)
+):
+    """Get the current user's vote on a comment"""
+    if not session_token:
+        return {"user_vote": None}
+    
+    try:
+        user = db.query(DBOpinionUser).filter(DBOpinionUser.session_token == session_token).first()
+        if not user:
+            return {"user_vote": None}
+        
+        vote = db.query(DBCommentVote).filter(
+            DBCommentVote.comment_id == comment_id,
+            DBCommentVote.user_id == user.id
+        ).first()
+        
+        return {"user_vote": vote.vote_type if vote else None}
+    except Exception as e:
+        logger.error(f"❌ Error fetching user vote: {e}")
+        return {"user_vote": None}
+
+# Admin: Get all comments for dashboard
+@api_router.get("/admin/comments")
+async def get_all_comments(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all comments for admin dashboard"""
+    try:
+        comments = db.query(DBOpinionComment).order_by(
+            DBOpinionComment.created_at.desc()
+        ).all()
+        
+        return {
+            "comments": [
+                {
+                    "id": c.id,
+                    "opinion_id": c.opinion_id,
+                    "username": c.username,
+                    "content": c.content,
+                    "upvotes": c.upvotes,
+                    "downvotes": c.downvotes,
+                    "created_at": c.created_at.isoformat() if c.created_at else None
+                }
+                for c in comments
+            ],
+            "total": len(comments)
+        }
+    except Exception as e:
+        logger.error(f"❌ Error fetching all comments: {e}")
+        return {"comments": [], "total": 0}
+
+# Admin: Delete comment
+@api_router.delete("/admin/comments/{comment_id}")
+async def delete_comment(
+    comment_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a comment (admin only)"""
+    try:
+        comment = db.query(DBOpinionComment).filter(DBOpinionComment.id == comment_id).first()
+        if not comment:
+            raise HTTPException(status_code=404, detail="Comment not found")
+        
+        # Delete associated votes
+        db.query(DBCommentVote).filter(DBCommentVote.comment_id == comment_id).delete()
+        
+        db.delete(comment)
+        db.commit()
+        
+        logger.info(f"🗑️ Comment {comment_id} deleted by {current_user.username}")
+        
+        return {"ok": True, "message": "Comment deleted"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error deleting comment: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to delete comment")
 
 @app.get("/og/article/{slug}")
 @app.head("/og/article/{slug}")
