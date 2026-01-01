@@ -676,15 +676,34 @@ async def upload_trending_opinion(
             ]
         )
         
-        # Create database record
-        new_opinion = DBTrendingOpinion(
-            image_url=upload_result['secure_url'],
-            uploaded_by=current_user.username,
-            is_published=True
-        )
-        db.add(new_opinion)
-        db.commit()
-        db.refresh(new_opinion)
+        # Create database record using raw SQL to avoid column issues
+        # This ensures compatibility even if upvotes/downvotes columns don't exist yet
+        try:
+            new_opinion = DBTrendingOpinion(
+                image_url=upload_result['secure_url'],
+                uploaded_by=current_user.username,
+                is_published=True
+            )
+            db.add(new_opinion)
+            db.commit()
+            db.refresh(new_opinion)
+        except Exception as insert_error:
+            db.rollback()
+            # Fallback: Try inserting without upvotes/downvotes columns
+            logger.warning(f"⚠️ Standard insert failed, trying raw SQL: {insert_error}")
+            from sqlalchemy import text
+            result = db.execute(
+                text("INSERT INTO trending_opinions (image_url, uploaded_by, is_published) VALUES (:image_url, :uploaded_by, :is_published) RETURNING id, created_at"),
+                {"image_url": upload_result['secure_url'], "uploaded_by": current_user.username, "is_published": True}
+            )
+            db.commit()
+            row = result.fetchone()
+            new_opinion = type('Opinion', (), {
+                'id': row[0],
+                'image_url': upload_result['secure_url'],
+                'uploaded_by': current_user.username,
+                'created_at': row[1]
+            })()
         
         logger.info(f"📸 Trending opinion uploaded by {current_user.username}: {upload_result['secure_url']}")
         
