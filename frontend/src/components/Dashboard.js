@@ -112,6 +112,77 @@ const Dashboard = () => {
     }
   };
 
+  // Trending Opinions functions
+  const fetchOpinions = async () => {
+    try {
+      const response = await apiClient.get('/opinions');
+      setOpinions(response.data.opinions || []);
+    } catch (error) {
+      console.error('Error fetching opinions:', error);
+      setOpinions([]);
+    }
+  };
+
+  const handleOpinionFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setOpinionFile(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setOpinionPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleOpinionUpload = async () => {
+    if (!opinionFile) {
+      toast.error('Please select an image to upload');
+      return;
+    }
+
+    setUploadingOpinion(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', opinionFile);
+
+      const response = await apiClient.post('/opinions', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data.ok) {
+        toast.success('🎉 Trending opinion uploaded successfully!');
+        setOpinionFile(null);
+        setOpinionPreview(null);
+        fetchOpinions();
+      } else {
+        toast.error('Failed to upload opinion');
+      }
+    } catch (error) {
+      console.error('Error uploading opinion:', error);
+      toast.error(error.response?.data?.detail || 'Failed to upload opinion');
+    } finally {
+      setUploadingOpinion(false);
+    }
+  };
+
+  const handleDeleteOpinion = async (opinionId) => {
+    if (!window.confirm('Are you sure you want to delete this opinion?')) {
+      return;
+    }
+
+    try {
+      await apiClient.delete(`/opinions/${opinionId}`);
+      toast.success('Opinion deleted successfully');
+      fetchOpinions();
+    } catch (error) {
+      console.error('Error deleting opinion:', error);
+      toast.error('Failed to delete opinion');
+    }
+  };
+
   // Debug logging in render
   console.warn('Dashboard render - Articles state:', articles, 'Type:', typeof articles, 'IsArray:', Array.isArray(articles));
 
