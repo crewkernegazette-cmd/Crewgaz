@@ -102,7 +102,20 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: Complete pending dashboard and article features including admin password change, maintenance mode toggle, publisher selection, breaking news flag, subheading field, trending topics section, and Google News optimization for The Crewkerne Gazette news CMS.
+## user_problem_statement: Implement "Trending Opinions" feature - a new section for comical readers' opinions as images, with dashboard upload, homepage display, and dedicated archive page organized by date. Remove Dover Dash retro arcade section and replace with slapstick humor button to the opinions archive.
+
+## backend:
+  - task: "Trending Opinions API endpoints"
+    implemented: true
+    working: "unknown"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "🔧 IMPLEMENTED: Added 5 new API endpoints for Trending Opinions: 1) POST /api/opinions - Upload image to Cloudinary and save to DB, 2) GET /api/opinions/latest - Fetch latest opinions for homepage, 3) GET /api/opinions/archive - Fetch all opinions grouped by month/day, 4) DELETE /api/opinions/{id} - Delete an opinion, 5) GET /api/opinions - Get all opinions for dashboard management. All endpoints use existing Cloudinary integration and DBTrendingOpinion model from database.py."
 
 ## backend:
   - task: "Social media sharing OG meta tags backend"
