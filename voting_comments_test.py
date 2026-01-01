@@ -124,10 +124,18 @@ class VotingCommentsAPITester:
                     self.log_test("Duplicate Username Rejection", True, 
                                 "Correctly rejected duplicate username")
                     return True
-        
-        self.log_test("Duplicate Username Rejection", False, 
-                     "Should reject duplicate usernames with 400 error")
-        return False
+                else:
+                    self.log_test("Duplicate Username Rejection", False, 
+                                f"Wrong error message: {data.get('detail', '')}")
+                    return False
+            else:
+                self.log_test("Duplicate Username Rejection", False, 
+                            f"Expected 400, got {response2.status_code if response2 else 'No response'}")
+                return False
+        else:
+            self.log_test("Duplicate Username Rejection", False, 
+                        f"First registration failed: {response1.status_code if response1 else 'No response'}")
+            return False
 
     def test_get_current_user(self):
         """Test getting current user by session token"""
