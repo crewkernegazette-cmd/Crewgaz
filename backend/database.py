@@ -315,6 +315,29 @@ def init_database():
         Base.metadata.create_all(bind=engine)
         logger.info("✅ Database tables created/verified")
         
+        # Manually add columns that might be missing in existing databases
+        try:
+            with engine.connect() as conn:
+                # Add upvotes column to trending_opinions if missing
+                try:
+                    conn.execute(text("SELECT upvotes FROM trending_opinions LIMIT 1"))
+                except Exception:
+                    logger.info("Adding upvotes column to trending_opinions...")
+                    conn.execute(text("ALTER TABLE trending_opinions ADD COLUMN upvotes INTEGER DEFAULT 0"))
+                    conn.commit()
+                    logger.info("✅ Added upvotes column")
+                
+                # Add downvotes column to trending_opinions if missing
+                try:
+                    conn.execute(text("SELECT downvotes FROM trending_opinions LIMIT 1"))
+                except Exception:
+                    logger.info("Adding downvotes column to trending_opinions...")
+                    conn.execute(text("ALTER TABLE trending_opinions ADD COLUMN downvotes INTEGER DEFAULT 0"))
+                    conn.commit()
+                    logger.info("✅ Added downvotes column")
+        except Exception as col_error:
+            logger.warning(f"⚠️ Column migration warning: {col_error}")
+        
         # Run Alembic migrations to add any new columns/indexes
         try:
             alembic_cfg = Config("alembic.ini")
