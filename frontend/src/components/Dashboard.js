@@ -538,8 +538,12 @@ const Dashboard = () => {
               <Image className="w-4 h-4 mr-2" />
               Opinions
             </TabsTrigger>
-            <TabsTrigger value="messages" className="text-slate-300 data-[state=active]:text-white">
+            <TabsTrigger value="comments" className="text-slate-300 data-[state=active]:text-white">
               <MessageSquare className="w-4 h-4 mr-2" />
+              Comments
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="text-slate-300 data-[state=active]:text-white">
+              <Mail className="w-4 h-4 mr-2" />
               Messages
             </TabsTrigger>
             <TabsTrigger value="settings" className="text-slate-300 data-[state=active]:text-white">
