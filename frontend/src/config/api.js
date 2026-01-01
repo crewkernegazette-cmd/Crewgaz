@@ -26,6 +26,13 @@ apiClient.interceptors.request.use(
       // baseURL is already set, just log for debugging
       console.log(`🔀 API Interceptor: ${config.method?.toUpperCase()} ${config.url} -> ${API_BASE}${config.url}`);
     }
+    
+    // If sending FormData, let the browser set the Content-Type automatically
+    // This is important for file uploads and form submissions
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     return config;
   },
   (error) => {
