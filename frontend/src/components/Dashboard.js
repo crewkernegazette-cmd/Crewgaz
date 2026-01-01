@@ -188,6 +188,35 @@ const Dashboard = () => {
     }
   };
 
+  // Opinion Comments functions
+  const fetchOpinionComments = async () => {
+    setLoadingComments(true);
+    try {
+      const response = await apiClient.get('/admin/comments');
+      setOpinionComments(response.data.comments || []);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      setOpinionComments([]);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Are you sure you want to delete this comment?')) {
+      return;
+    }
+
+    try {
+      await apiClient.delete(`/admin/comments/${commentId}`);
+      toast.success('Comment deleted successfully');
+      fetchOpinionComments();
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      toast.error('Failed to delete comment');
+    }
+  };
+
   // Debug logging in render
   console.warn('Dashboard render - Articles state:', articles, 'Type:', typeof articles, 'IsArray:', Array.isArray(articles));
 
