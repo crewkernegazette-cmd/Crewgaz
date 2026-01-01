@@ -264,7 +264,7 @@ class VotingCommentsAPITester:
         
         # Test 1: Vote up
         response = self.make_request('POST', f'opinions/{self.test_opinion_id}/vote', 
-                                   data={'vote_type': 'up', 'session_token': self.test_user_session_token})
+                                   data={'vote_type': 'up', 'session_token': self.test_user_session_token}, form_data=True)
         
         if response and response.status_code == 200:
             data = response.json()
@@ -274,7 +274,7 @@ class VotingCommentsAPITester:
                 
                 # Test 2: Change to down vote
                 response2 = self.make_request('POST', f'opinions/{self.test_opinion_id}/vote', 
-                                            data={'vote_type': 'down', 'session_token': self.test_user_session_token})
+                                            data={'vote_type': 'down', 'session_token': self.test_user_session_token}, form_data=True)
                 
                 if response2 and response2.status_code == 200:
                     data2 = response2.json()
@@ -284,7 +284,7 @@ class VotingCommentsAPITester:
                         
                         # Test 3: Remove vote (vote down again)
                         response3 = self.make_request('POST', f'opinions/{self.test_opinion_id}/vote', 
-                                                    data={'vote_type': 'down', 'session_token': self.test_user_session_token})
+                                                    data={'vote_type': 'down', 'session_token': self.test_user_session_token}, form_data=True)
                         
                         if response3 and response3.status_code == 200:
                             data3 = response3.json()
