@@ -107,16 +107,16 @@ class VotingCommentsAPITester:
         """Test that duplicate usernames are rejected"""
         print("\n🚫 Testing Duplicate Username Rejection...")
         
-        username = f'duplicate_test_{int(time.time())}'
+        username = f'duplicate_test_{int(time.time() * 1000)}'
         
         # Register first user
         response1 = self.make_request('POST', 'opinion-users/register', 
-                                    data={'username': username})
+                                    data={'username': username}, form_data=True)
         
         if response1 and response1.status_code == 200:
             # Try to register same username again
             response2 = self.make_request('POST', 'opinion-users/register', 
-                                        data={'username': username})
+                                        data={'username': username}, form_data=True)
             
             if response2 and response2.status_code == 400:
                 data = response2.json()
