@@ -521,7 +521,7 @@ const Dashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-slate-800 border border-slate-700">
+          <TabsList className="bg-slate-800 border border-slate-700 flex-wrap">
             <TabsTrigger value="overview" className="text-slate-300 data-[state=active]:text-white">
               <Users className="w-4 h-4 mr-2" />
               Overview
@@ -533,6 +533,10 @@ const Dashboard = () => {
             <TabsTrigger value="articles" className="text-slate-300 data-[state=active]:text-white">
               <FileText className="w-4 h-4 mr-2" />
               Articles
+            </TabsTrigger>
+            <TabsTrigger value="opinions" className="text-slate-300 data-[state=active]:text-white">
+              <Image className="w-4 h-4 mr-2" />
+              Opinions
             </TabsTrigger>
             <TabsTrigger value="messages" className="text-slate-300 data-[state=active]:text-white">
               <MessageSquare className="w-4 h-4 mr-2" />
