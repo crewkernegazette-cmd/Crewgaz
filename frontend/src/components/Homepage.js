@@ -9,6 +9,7 @@ import MusicSection from './MusicSection';
 import DocumentariesSection from './DocumentariesSection';
 import ComedySection from './ComedySection';
 import ContactSection from './ContactSection';
+import TrendingOpinionsSection from './TrendingOpinionsSection';
 import { apiClient } from '../config/api';
 
 const Homepage = () => {
