@@ -544,7 +544,7 @@ class VotingCommentsAPITester:
         self.test_get_current_user()
         
         # Opinion setup
-        self.create_test_opinion()
+        self.create_simple_test_opinion()
         
         # Opinion tests
         self.test_get_single_opinion()
