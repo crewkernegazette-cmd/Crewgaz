@@ -398,7 +398,7 @@ class VotingCommentsAPITester:
         
         # Vote up on comment
         response = self.make_request('POST', f'comments/{self.test_comment_id}/vote', 
-                                   data={'vote_type': 'up', 'session_token': self.test_user_2_session_token})
+                                   data={'vote_type': 'up', 'session_token': self.test_user_2_session_token}, form_data=True)
         
         if response and response.status_code == 200:
             data = response.json()
