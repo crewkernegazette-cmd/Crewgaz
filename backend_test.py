@@ -3,15 +3,17 @@ import sys
 from datetime import datetime
 import json
 import io
+import os
 
 class CrewkerneGazetteAPITester:
-    def __init__(self, base_url="https://CrewkerneGazette.co.uk"):
+    def __init__(self, base_url="https://viewtrends-1.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
         self.tests_run = 0
         self.tests_passed = 0
         self.created_article_id = None
+        self.created_opinion_ids = []  # Track created opinions for cleanup
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
         """Run a single API test"""
