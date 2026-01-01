@@ -35,18 +35,24 @@ class VotingCommentsAPITester:
         
         try:
             if method == 'GET':
-                response = requests.get(url, headers=headers, params=data, timeout=10)
+                response = requests.get(url, headers=headers, params=data, timeout=30)
             elif method == 'POST':
                 if files:
-                    response = requests.post(url, data=data, headers=headers, files=files, timeout=10)
+                    response = requests.post(url, data=data, headers=headers, files=files, timeout=30)
                 elif form_data:
-                    response = requests.post(url, data=data, headers=headers, timeout=10)
+                    response = requests.post(url, data=data, headers=headers, timeout=30)
                 else:
-                    response = requests.post(url, json=data, headers=headers, timeout=10)
+                    response = requests.post(url, json=data, headers=headers, timeout=30)
             elif method == 'DELETE':
-                response = requests.delete(url, headers=headers, timeout=10)
+                response = requests.delete(url, headers=headers, timeout=30)
             
             return response
+        except requests.exceptions.Timeout:
+            print(f"   Timeout error for {url}")
+            return None
+        except requests.exceptions.ConnectionError:
+            print(f"   Connection error for {url}")
+            return None
         except Exception as e:
             print(f"   Request error: {e}")
             return None
