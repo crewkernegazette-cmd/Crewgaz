@@ -29,6 +29,10 @@ const Dashboard = () => {
   const [opinionPreview, setOpinionPreview] = useState(null);
   const [uploadingOpinion, setUploadingOpinion] = useState(false);
 
+  // Opinion Comments state
+  const [opinionComments, setOpinionComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+
   // Settings state
   const [settings, setSettings] = useState({
     show_breaking_news_banner: true,
