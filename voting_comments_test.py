@@ -306,7 +306,7 @@ class VotingCommentsAPITester:
         
         # First vote on the opinion
         self.make_request('POST', f'opinions/{self.test_opinion_id}/vote', 
-                         data={'vote_type': 'up', 'session_token': self.test_user_session_token})
+                         data={'vote_type': 'up', 'session_token': self.test_user_session_token}, form_data=True)
         
         # Then check the vote
         response = self.make_request('GET', f'opinions/{self.test_opinion_id}/user-vote', 
