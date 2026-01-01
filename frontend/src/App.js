@@ -19,6 +19,7 @@ import LoginForm from './components/LoginForm';
 import Debug from './components/Debug';
 import ErrorBoundary from './components/ErrorBoundary';
 import TrendingOpinionsPage from './components/TrendingOpinionsPage';
+import OpinionDetailPage from './components/OpinionDetailPage';
 import { Toaster } from './components/ui/sonner';
 
 import { apiClient, API_BASE } from './config/api';
