@@ -333,7 +333,7 @@ class VotingCommentsAPITester:
         comment_content = f"Test comment created at {datetime.now().isoformat()}"
         
         response = self.make_request('POST', f'opinions/{self.test_opinion_id}/comments', 
-                                   data={'content': comment_content, 'session_token': self.test_user_session_token})
+                                   data={'content': comment_content, 'session_token': self.test_user_session_token}, form_data=True)
         
         if response and response.status_code == 200:
             data = response.json()
