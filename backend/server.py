@@ -647,6 +647,181 @@ def set_setting(db: Session, key: str, value: str):
         db.add(setting)
     db.commit()
 
+# Trending Opinions API Endpoints
+@api_router.post("/opinions")
+async def upload_trending_opinion(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upload a trending opinion image (admin only)"""
+    try:
+        # Validate file type
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        
+        # Read file content
+        contents = await file.read()
+        
+        # Upload to Cloudinary
+        upload_result = cloudinary.uploader.upload(
+            contents,
+            folder="crewkerne-gazette/trending-opinions",
+            resource_type="image",
+            transformation=[
+                {"width": 800, "crop": "limit"},
+                {"quality": "auto"},
+                {"format": "auto"}
+            ]
+        )
+        
+        # Create database record
+        new_opinion = DBTrendingOpinion(
+            image_url=upload_result['secure_url'],
+            uploaded_by=current_user.username,
+            is_published=True
+        )
+        db.add(new_opinion)
+        db.commit()
+        db.refresh(new_opinion)
+        
+        logger.info(f"📸 Trending opinion uploaded by {current_user.username}: {upload_result['secure_url']}")
+        
+        return {
+            "ok": True,
+            "message": "Trending opinion uploaded successfully",
+            "opinion": {
+                "id": new_opinion.id,
+                "image_url": new_opinion.image_url,
+                "uploaded_by": new_opinion.uploaded_by,
+                "created_at": new_opinion.created_at.isoformat() if new_opinion.created_at else None
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading trending opinion: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to upload trending opinion: {str(e)}")
+
+@api_router.get("/opinions/latest")
+async def get_latest_opinions(limit: int = 6, db: Session = Depends(get_db)):
+    """Get latest trending opinions for homepage display"""
+    try:
+        opinions = db.query(DBTrendingOpinion).filter(
+            DBTrendingOpinion.is_published == True
+        ).order_by(DBTrendingOpinion.created_at.desc()).limit(limit).all()
+        
+        return {
+            "opinions": [
+                {
+                    "id": op.id,
+                    "image_url": op.image_url,
+                    "uploaded_by": op.uploaded_by,
+                    "created_at": op.created_at.isoformat() if op.created_at else None
+                }
+                for op in opinions
+            ],
+            "message": f"Retrieved {len(opinions)} latest opinions"
+        }
+    except Exception as e:
+        logger.error(f"❌ Error fetching latest opinions: {e}")
+        return {"opinions": [], "message": "Failed to load opinions"}
+
+@api_router.get("/opinions/archive")
+async def get_opinions_archive(db: Session = Depends(get_db)):
+    """Get all trending opinions grouped by month and day for archive page"""
+    try:
+        opinions = db.query(DBTrendingOpinion).filter(
+            DBTrendingOpinion.is_published == True
+        ).order_by(DBTrendingOpinion.created_at.desc()).all()
+        
+        # Group by month (YYYY-MM) then by day
+        archive = {}
+        for op in opinions:
+            if op.created_at:
+                month_key = op.created_at.strftime("%Y-%m")
+                day_key = op.created_at.strftime("%Y-%m-%d")
+                
+                if month_key not in archive:
+                    archive[month_key] = {
+                        "month_name": op.created_at.strftime("%B %Y"),
+                        "days": {}
+                    }
+                
+                if day_key not in archive[month_key]["days"]:
+                    archive[month_key]["days"][day_key] = {
+                        "day_name": op.created_at.strftime("%A, %d %B"),
+                        "opinions": []
+                    }
+                
+                archive[month_key]["days"][day_key]["opinions"].append({
+                    "id": op.id,
+                    "image_url": op.image_url,
+                    "uploaded_by": op.uploaded_by,
+                    "created_at": op.created_at.isoformat()
+                })
+        
+        return {
+            "archive": archive,
+            "total_count": len(opinions),
+            "message": f"Retrieved {len(opinions)} opinions in archive"
+        }
+    except Exception as e:
+        logger.error(f"❌ Error fetching opinions archive: {e}")
+        return {"archive": {}, "total_count": 0, "message": "Failed to load archive"}
+
+@api_router.delete("/opinions/{opinion_id}")
+async def delete_trending_opinion(
+    opinion_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a trending opinion (admin only)"""
+    try:
+        opinion = db.query(DBTrendingOpinion).filter(DBTrendingOpinion.id == opinion_id).first()
+        if not opinion:
+            raise HTTPException(status_code=404, detail="Opinion not found")
+        
+        db.delete(opinion)
+        db.commit()
+        
+        logger.info(f"🗑️ Trending opinion {opinion_id} deleted by {current_user.username}")
+        
+        return {"ok": True, "message": "Opinion deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error deleting trending opinion: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete opinion: {str(e)}")
+
+@api_router.get("/opinions")
+async def get_all_opinions(limit: int = 50, db: Session = Depends(get_db)):
+    """Get all trending opinions for dashboard management"""
+    try:
+        opinions = db.query(DBTrendingOpinion).order_by(
+            DBTrendingOpinion.created_at.desc()
+        ).limit(limit).all()
+        
+        return {
+            "opinions": [
+                {
+                    "id": op.id,
+                    "image_url": op.image_url,
+                    "uploaded_by": op.uploaded_by,
+                    "is_published": op.is_published,
+                    "created_at": op.created_at.isoformat() if op.created_at else None
+                }
+                for op in opinions
+            ],
+            "message": f"Retrieved {len(opinions)} opinions"
+        }
+    except Exception as e:
+        logger.error(f"❌ Error fetching all opinions: {e}")
+        return {"opinions": [], "message": "Failed to load opinions"}
+
 @app.get("/og/article/{slug}")
 @app.head("/og/article/{slug}")
 async def og_article(slug: str, db: Session = Depends(get_db)):
