@@ -1134,6 +1134,126 @@ const Dashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Trending Opinions Tab */}
+          <TabsContent value="opinions">
+            <div className="space-y-6">
+              {/* Upload Card */}
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center">
+                    <Upload className="w-5 h-5 mr-2" />
+                    Upload Trending Opinion
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center">
+                      {opinionPreview ? (
+                        <div className="space-y-4">
+                          <img
+                            src={opinionPreview}
+                            alt="Preview"
+                            className="max-w-xs mx-auto rounded-lg shadow-lg"
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setOpinionFile(null);
+                              setOpinionPreview(null);
+                            }}
+                            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ) : (
+                        <div>
+                          <Image className="w-12 h-12 mx-auto text-slate-500 mb-4" />
+                          <p className="text-slate-400 mb-4">
+                            Drag and drop an image here, or click to select
+                          </p>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleOpinionFileSelect}
+                            className="max-w-xs mx-auto bg-slate-700/50 border-slate-600 text-white"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <Button
+                      onClick={handleOpinionUpload}
+                      disabled={!opinionFile || uploadingOpinion}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {uploadingOpinion ? (
+                        <>
+                          <span className="animate-spin mr-2">⏳</span>
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 mr-2" />
+                          Upload Opinion
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Existing Opinions */}
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center">
+                    <Image className="w-5 h-5 mr-2" />
+                    All Trending Opinions ({opinions.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {opinions.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                      {opinions.map((opinion) => (
+                        <div
+                          key={opinion.id}
+                          className="relative group rounded-lg overflow-hidden bg-slate-700 aspect-square"
+                        >
+                          <img
+                            src={opinion.image_url}
+                            alt="Opinion"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center">
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteOpinion(opinion.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                            <p className="text-white text-xs mt-2">
+                              {opinion.created_at && new Date(opinion.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Image className="w-16 h-16 mx-auto text-slate-600 mb-4" />
+                      <p className="text-slate-400">No opinions uploaded yet</p>
+                      <p className="text-slate-500 text-sm mt-2">
+                        Upload your first trending opinion above!
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           {/* Settings Tab */}
           <TabsContent value="settings">
             <Card className="bg-slate-800/50 border-slate-700">
