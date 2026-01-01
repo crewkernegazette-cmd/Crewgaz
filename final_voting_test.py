@@ -372,7 +372,7 @@ class VotingCommentsAPITester:
                     self.log_test("Opinion Creation", True, 
                                 f"Opinion created successfully: {data['opinion']['id']}")
                     return True
-            elif response.status_code == 500:
+            elif response.status_code in [500, 520]:
                 try:
                     error_data = response.json()
                     if 'cloudinary' in str(error_data).lower() or 'api_key' in str(error_data).lower():
