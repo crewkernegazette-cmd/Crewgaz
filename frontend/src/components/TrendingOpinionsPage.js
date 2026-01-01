@@ -83,7 +83,7 @@ const TrendingOpinionsPage = () => {
             A permanent record of everyone's hot takes
           </p>
           <p className="text-sm text-slate-500 italic">
-            "The internet never forgets... neither do we" 🗄️
+            &quot;The internet never forgets... neither do we&quot; 🗄️
           </p>
           
           <div className="mt-6 inline-flex items-center bg-slate-700/50 px-6 py-3 rounded-full">
