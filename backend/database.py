@@ -230,6 +230,16 @@ class DBSettings(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
+class DBTrendingOpinion(Base):
+    __tablename__ = "trending_opinions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    image_url = Column(String(500), nullable=False)  # Cloudinary URL
+    uploaded_by = Column(String(50), nullable=True)  # Admin username who uploaded
+    is_published = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
 # Dependency to get database session
 def get_db():
     db = SessionLocal()
